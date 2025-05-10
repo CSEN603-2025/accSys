@@ -1,0 +1,230 @@
+.container {
+    min-height: 100vh;
+    background-color: #f3f4f6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+}
+
+.pageHeader {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.systemTitle {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: #0b257a;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+
+.systemTitle span {
+    display: block;
+    margin-top: 0.1rem;
+}
+
+.portalSubtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-top: 0;
+}
+
+.formContainer {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 48rem;
+    border-top: 4px solid #0b257a;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.formTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000000;
+    margin-bottom: 0.5rem;
+}
+
+.formSubtitle {
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.formSection {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1.5rem;
+}
+
+.formSection:last-child {
+    border-bottom: none;
+}
+
+.sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0b257a;
+    margin-bottom: 1rem;
+}
+
+.formGroup {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.formRow {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+    .formRow {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+.label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.input,
+.select,
+.textarea {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+    outline: none;
+    border-color: #0b257a;
+    box-shadow: 0 0 0 1px #0b257a;
+}
+
+.select {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    background-color: white;
+    color: #6b7280;
+}
+
+.select option:first-child {
+    color: #6b7280;
+}
+
+.select option {
+    color: black;
+}
+
+.input::placeholder {
+    color: #6b7280;
+}
+
+.textarea {
+    resize: vertical;
+}
+
+.error {
+    color: #dc2626;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.formActions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.submitButton {
+    width: 100%;
+    background-color: #0b257a;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.submitButton:hover {
+    background-color: #091c58;
+}
+
+.backLink {
+    color: #0b257a;
+    text-decoration: none;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.backLink:hover {
+    text-decoration: underline;
+}
+
+.fileInput {
+    width: 100%;
+    padding: 0.5rem 0;
+    color: #0b257a;
+}
+
+.fileInput::-webkit-file-upload-button {
+    background-color: #0b257a;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+.fileInput::file-selector-button {
+    background-color: #0b257a;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+.fileInput::-webkit-file-upload-button:hover {
+    background-color: #091c58;
+}
+
+.fileInput::file-selector-button:hover {
+    background-color: #091c58;
+}
+
+.fileHelp {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}

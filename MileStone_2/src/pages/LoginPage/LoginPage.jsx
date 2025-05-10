@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { mockUsers } from "../../DummyData/mockUsers";
 import styles from "./LoginPage.module.css";
 
@@ -8,6 +8,8 @@ const LoginPage = ({ onLogin }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
+
+    console.log("Current role:", role); // Add this debug line
 
     const handleLogin = () => {
         const user = mockUsers.find(
@@ -25,9 +27,9 @@ const LoginPage = ({ onLogin }) => {
         <div className={styles.container}>
             <div className={styles.pageHeader}>
                 <h1 className={styles.systemTitle}>
-                    Internship Management<span>System</span>
+                    Internship Management <span>System</span>
                 </h1>
-                <p className={styles.portalSubtitle}>University Internship Portal</p>
+                <p className={styles.portalSubtitle}>Univsersity Internship Portal</p>
             </div>
             <div className={styles.card}>
                 <div className={styles.header}>
@@ -41,8 +43,7 @@ const LoginPage = ({ onLogin }) => {
                         {["student", "faculty", "company", "SCAD"].map((r) => (
                             <button
                                 key={r}
-                                className={`${styles.roleButton} ${role === r ? styles.activeRole : styles.inactiveRole
-                                    }`}
+                                className={`${styles.roleButton} ${role === r ? styles.activeRole : styles.inactiveRole}`}
                                 onClick={() => setRole(r)}
                             >
                                 {r.charAt(0).toUpperCase() + r.slice(1)}
@@ -78,6 +79,14 @@ const LoginPage = ({ onLogin }) => {
                     >
                         Sign In
                     </button>
+
+                    {role === "company" && (
+                        <Link to="/register-company" className={styles.registerLink}>
+                            <button className={styles.registerButton}>
+                                Register Company
+                            </button>
+                        </Link>
+                    )}
                 </div>
             </div>
         </div>

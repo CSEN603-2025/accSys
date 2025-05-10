@@ -6,6 +6,7 @@ import StudentHome from './pages/StudentHome';
 import FacultyHome from './pages/FacultyHome';
 import CompanyHome from './pages/CompanyHome';
 import ScadHome from './pages/ScadHome';
+import RegisterCompany from './pages/LoginPage/RegisterCompany';
 
 export default function App() {
   const [user, setUser] = useState(null); // Simulates a logged-in user
@@ -34,6 +35,7 @@ export default function App() {
       <Route path="/faculty" element={<FacultyHome />} />
       <Route path="/company" element={<CompanyHome />} />
       <Route path="/scad" element={<ScadHome />} />
+      <Route path="/register-company" element={<RegisterCompany />} />
       {/* Default route fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
