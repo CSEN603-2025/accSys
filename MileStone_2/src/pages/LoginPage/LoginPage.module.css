@@ -1,0 +1,129 @@
+.container {
+    min-height: 100vh;
+    background-color: #f3f4f6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+}
+
+.pageHeader {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.systemTitle {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: #0b257a;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+
+.systemTitle span {
+    display: block;
+    margin-top: 0.1rem;
+}
+
+.portalSubtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-top: 0;
+}
+
+.card {
+    background-color: white;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    width: 100%;
+    max-width: 28rem;
+    border-top: 4px solid #0b257a;
+}
+
+.header {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000000;
+    text-align: left;
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.body {
+    padding: 1rem 1.5rem;
+}
+
+.roleSelector {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    background-color: #e2e8f0;
+    border-radius: 0.375rem;
+}
+
+.roleButton {
+    width: 25%;
+    padding: 0.5rem 0;
+    border-radius: 0.375rem;
+}
+
+.activeRole {
+    background-color: white;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+}
+
+.inactiveRole {
+    color: #64748b;
+}
+
+.formGroup {
+    margin-bottom: 1rem;
+}
+
+.label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.forgotPassword {
+    text-align: right;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.forgotPasswordLink {
+    color: #0b257a;
+    /* Changed from #3b82f6 to #0b257a */
+}
+
+.submitButton {
+    width: 100%;
+    background-color: #0b257a;
+    /* Changed from #1e40af to #0b257a */
+    color: white;
+    padding: 0.5rem 0;
+    border-radius: 0.375rem;
+    margin-top: 0.5rem;
+    cursor: pointer;
+}

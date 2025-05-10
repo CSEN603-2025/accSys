@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { mockUsers } from "../DummyData/mockUsers";
+import { mockUsers } from "../../DummyData/mockUsers";
+import styles from "./LoginPage.module.css";
 
 const LoginPage = ({ onLogin }) => {
     const [role, setRole] = useState("student");
@@ -21,20 +22,26 @@ const LoginPage = ({ onLogin }) => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-            <div className="bg-white shadow-lg rounded-lg w-full max-w-md">
-                <div className="text-center px-6 pt-8">
-                    <h1 className="text-2xl font-bold text-blue-800">Sign In</h1>
-                    <p className="text-sm text-gray-500 mt-1">
+        <div className={styles.container}>
+            <div className={styles.pageHeader}>
+                <h1 className={styles.systemTitle}>
+                    Internship Management<span>System</span>
+                </h1>
+                <p className={styles.portalSubtitle}>University Internship Portal</p>
+            </div>
+            <div className={styles.card}>
+                <div className={styles.header}>
+                    <h1 className={styles.title}>Sign In</h1>
+                    <p className={styles.subtitle}>
                         Access the internship management portal
                     </p>
                 </div>
-                <div className="px-6 mt-4">
-                    <div className="flex justify-between mb-4 bg-gray-100 rounded">
-                        {["student", "faculty", "company"].map((r) => (
+                <div className={styles.body}>
+                    <div className={styles.roleSelector}>
+                        {["student", "faculty", "company", "SCAD"].map((r) => (
                             <button
                                 key={r}
-                                className={`w-1/3 py-2 rounded ${role === r ? "bg-white shadow font-medium" : "text-gray-600"
+                                className={`${styles.roleButton} ${role === r ? styles.activeRole : styles.inactiveRole
                                     }`}
                                 onClick={() => setRole(r)}
                             >
@@ -42,31 +49,31 @@ const LoginPage = ({ onLogin }) => {
                             </button>
                         ))}
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Username</label>
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Username</label>
                         <input
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            className={styles.input}
                             type="text"
                             placeholder={`Enter ${role} username`}
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Password</label>
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Password</label>
                         <input
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            className={styles.input}
                             type="password"
                             placeholder="Password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <div className="text-right text-sm mt-1">
-                            <a href="#" className="text-blue-500">Forgot password?</a>
+                        <div className={styles.forgotPassword}>
+                            <a href="#" className={styles.forgotPasswordLink}>Forgot password?</a>
                         </div>
                     </div>
                     <button
-                        className="w-full bg-blue-800 text-white py-2 rounded mt-2 hover:bg-blue-700"
+                        className={styles.submitButton}
                         onClick={handleLogin}
                     >
                         Sign In
