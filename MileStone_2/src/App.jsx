@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import "./index.css";
 
 import LoginPage from './pages/LoginPage/LoginPage';
-import StudentHome from './pages/StudentHome';
+import StudentDashboard from './pages/Student/StudentDashboard';
 import FacultyHome from './pages/FacultyHome';
 import CompanyHome from './pages/CompanyHome';
 import ScadHome from './pages/ScadHome';
@@ -14,7 +15,7 @@ export default function App() {
   const renderHomeByRole = () => {
     switch (user.role) {
       case 'student':
-        return <StudentHome />;
+        return <StudentDashboard />;
       case 'faculty':
         return <FacultyHome />;
       case 'company':
@@ -31,7 +32,7 @@ export default function App() {
       <Route path="/" element={user ? renderHomeByRole() : <Navigate to="/login" />} />
       <Route path="/login" element={<LoginPage onLogin={setUser} />} />
       {/* Optional: direct access to dashboards */}
-      <Route path="/student" element={<StudentHome />} />
+      <Route path="/student" element={<StudentDashboard />} />
       <Route path="/faculty" element={<FacultyHome />} />
       <Route path="/company" element={<CompanyHome />} />
       <Route path="/scad" element={<ScadHome />} />
