@@ -3,7 +3,7 @@ import { Bell, Search, User, Settings, LogOut } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageTitle } from '../pages/PageTitle';
 
-const NavBar = ({ currentUser }) => {
+const NavBar = ({ currentUser, onLogout }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const avatarRef = useRef(null);
@@ -17,7 +17,6 @@ const NavBar = ({ currentUser }) => {
 
   const unreadCount = currentUser?.notifications?.filter(n => !n.read).length || 0;
 
-  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -53,6 +52,12 @@ const NavBar = ({ currentUser }) => {
       setNotificationsOpen(false);
       setTimeout(() => setNotificationsOpen(true), 0);
     }
+  };
+
+  const handleLogout = () => {
+    if (onLogout) onLogout();
+    navigate('/login');
+    setDropdownOpen(false);
   };
 
   const formatTimeAgo = (date) => {
@@ -316,7 +321,7 @@ const NavBar = ({ currentUser }) => {
               </div>
               <DropdownButton icon={<User size={18} />} label="Profile" onClick={handleProfileClick} />
               <DropdownButton icon={<Settings size={18} />} label="Settings" />
-              <DropdownButton icon={<LogOut size={18} />} label="Log Out" last />
+              <DropdownButton onClick={handleLogout} icon={<LogOut size={18} />} label="Log Out" last />
             </div>
           )}
         </div>
@@ -343,6 +348,8 @@ const DropdownButton = ({ icon, label, last, onClick }) => (
     }}
     onClick={onClick}
     onMouseDown={e => e.preventDefault()}
+    onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+    onMouseLeave={e => e.currentTarget.style.background = 'none'}
   >
     {icon}
     {label}
