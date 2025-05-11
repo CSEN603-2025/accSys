@@ -10,6 +10,9 @@ import ScadHome from './pages/ScadHome';
 import RegisterCompany from './pages/LoginPage/RegisterCompany';
 import CompaniesPage from './pages/CompaniesPage';
 import StudentProfilePage from './pages/Student/StudentProfilePage';
+import SideBar from './Components/SideBar';
+import NavBar from './Components/NavBar';
+import InternshipPage from './pages/InternshipPage';
 
 // Placeholder components for other roles
 const FacultyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
@@ -62,6 +65,7 @@ export default function App() {
       <Route path="/scad" element={<ScadHome currentUser={user} />} />
       <Route path="/register-company" element={<RegisterCompany />} />
       <Route path="/companies" element={<CompaniesPage currentUser={user} />} />
+      <Route path="/internships" element={<InternshipPage currentUser={user} />} />
       <Route path="/student/profile" element={<StudentProfilePage currentUser={user} />} />
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />

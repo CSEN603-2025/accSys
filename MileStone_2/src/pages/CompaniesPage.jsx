@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Users, Building2, CheckCircle2 } from "lucide-react";
 import { mockUsers } from "../DummyData/mockUsers";
 import NavBar from "../Components/NavBar";
@@ -6,6 +6,7 @@ import SideBar from "../Components/SideBar";
 import { useLocation } from "react-router-dom";
 
 const companies = mockUsers.filter(user => user.role === 'company');
+const students = mockUsers.filter(user => user.role === 'student');
 
 function getPageTitle(pathname, userRole) {
   if (pathname === "/" && userRole) {
@@ -28,6 +29,69 @@ export default function CompaniesPage({ currentUser }) {
   const location = useLocation();
   const userRole = currentUser?.role?.toLowerCase();
   const pageTitle = getPageTitle(location.pathname, userRole);
+
+  // Toggle state for relevant companies
+  const [showRelevant, setShowRelevant] = useState(false);
+  // Search state
+  const [search, setSearch] = useState("");
+  // Sort by recommendations state
+  const [sortByRecommendations, setSortByRecommendations] = useState(false);
+  // Force update for recommend button
+  const [, setForce] = useState(0);
+
+  // User info for filtering
+  const userInterests = (currentUser?.interests || []).map(i => i.toLowerCase());
+  const userMajor = currentUser?.major?.toLowerCase() || "";
+
+  // Count recommendations for each company
+  const companiesWithRecommendations = companies.map(company => {
+    const recCount = students.filter(student =>
+      Array.isArray(student.recommendedCompanies) &&
+      student.recommendedCompanies.includes(company.id)
+    ).length;
+    return { ...company, recommendations: recCount };
+  });
+
+  // Filter companies by user interests or major
+  const relevantCompanies = companiesWithRecommendations.filter(company => {
+    const industry = company.industry?.toLowerCase() || "";
+    return userInterests.includes(industry) || industry.includes(userMajor);
+  });
+
+  // Filter by search (name or industry)
+  const filteredCompanies = (showRelevant ? relevantCompanies : companiesWithRecommendations).filter(company => {
+    const searchLower = search.toLowerCase();
+    return (
+      company.companyName.toLowerCase().includes(searchLower) ||
+      (company.industry && company.industry.toLowerCase().includes(searchLower))
+    );
+  });
+
+  // Sort by recommendations if toggled
+  let displayedCompanies = filteredCompanies;
+  if (sortByRecommendations) {
+    displayedCompanies = [...filteredCompanies].sort(
+      (a, b) => (b.recommendations || 0) - (a.recommendations || 0)
+    );
+  }
+
+  // Helper: has the student interned at this company?
+  const hasInternedAt = (student, companyId) => {
+    return Array.isArray(student.internships) &&
+      student.internships.some(internship =>
+        internship.company === companyId ||
+        (internship.company && internship.company.id === companyId)
+      );
+  };
+
+  // Recommend handler
+  const handleRecommend = (companyId) => {
+    if (!currentUser?.recommendedCompanies) currentUser.recommendedCompanies = [];
+    if (!currentUser.recommendedCompanies.includes(companyId)) {
+      currentUser.recommendedCompanies.push(companyId);
+      setForce(f => f + 1); // force re-render
+    }
+  };
 
   // Inline style objects
   const pageBg = { background: "#f8fafc", minHeight: "100vh", display: "flex" };
@@ -144,10 +208,34 @@ export default function CompaniesPage({ currentUser }) {
           </div>
           {/* Search and Actions Row */}
           <div style={searchRow}>
+            <button
+              style={{
+                ...addBtn,
+                background: showRelevant ? "#64748b" : "#1746a2",
+                marginLeft: 0,
+                marginRight: 8
+              }}
+              onClick={() => setShowRelevant(r => !r)}
+            >
+              {showRelevant ? "Show All Companies" : "Show Relevant Companies"}
+            </button>
+            <button
+              style={{
+                ...addBtn,
+                background: sortByRecommendations ? "#64748b" : "#1746a2",
+                marginLeft: 0,
+                marginRight: 8
+              }}
+              onClick={() => setSortByRecommendations(s => !s)}
+            >
+              {sortByRecommendations ? "Unsort" : "Sort by Recommendations"}
+            </button>
             <input
               type="text"
               placeholder="Search companies..."
               style={searchInput}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
             />
             {currentUser && userRole !== 'student' && (
               <button style={addBtn}>
@@ -164,26 +252,53 @@ export default function CompaniesPage({ currentUser }) {
           </div>
           {/* Cards */}
           <div style={cardsRow}>
-            {companies.map((company) => (
-              <div
-                key={company.companyName}
-                style={card}
-              >
-                <div style={cardTitle}>{company.companyName}</div>
-                <div style={cardIndustry}>{company.industry}</div>
-                <div style={cardRow}>
-                  <Building2 size={16} />
-                  {company.location || "Cairo, Egypt"}
+            {displayedCompanies.map((company) => {
+              const alreadyRecommended = currentUser?.recommendedCompanies?.includes(company.id);
+              const canRecommend = userRole === 'student' && hasInternedAt(currentUser, company.id);
+              const recommendDisabled = userRole !== 'student' || alreadyRecommended || !canRecommend;
+              let recommendLabel = 'Recommend';
+              if (alreadyRecommended) recommendLabel = 'Recommended';
+              else if (!canRecommend) recommendLabel = 'Recommend';
+              return (
+                <div
+                  key={company.companyName}
+                  style={card}
+                >
+                  <div style={cardTitle}>{company.companyName}</div>
+                  <div style={cardIndustry}>{company.industry}</div>
+                  <div style={cardRow}>
+                    <Building2 size={16} />
+                    {company.location || "Cairo, Egypt"}
+                  </div>
+                  <div style={cardRow}>
+                    <Users size={16} />
+                    0 active interns
+                  </div>
+                  <div style={cardRow}>
+                    <span>Recommended by {company.recommendations || 0} interns</span>
+                  </div>
+                  {userRole === 'student' && (
+                    <button
+                      style={{
+                        ...cardBtn,
+                        background: recommendDisabled ? '#cbd5e1' : '#1746a2',
+                        color: recommendDisabled ? '#64748b' : '#fff',
+                        cursor: recommendDisabled ? 'not-allowed' : 'pointer',
+                        marginTop: 8
+                      }}
+                      disabled={recommendDisabled}
+                      onClick={() => canRecommend && !alreadyRecommended && handleRecommend(company.id)}
+                      title={!canRecommend ? 'You must have interned at this company to recommend it.' : ''}
+                    >
+                      {recommendLabel}
+                    </button>
+                  )}
+                  <button style={cardBtn}>
+                    View Details
+                  </button>
                 </div>
-                <div style={cardRow}>
-                  <Users size={16} />
-                  0 active interns
-                </div>
-                <button style={cardBtn}>
-                  View Details
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
