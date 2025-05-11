@@ -320,7 +320,6 @@ const NavBar = ({ currentUser, onLogout }) => {
                 <div style={{ color: '#64748b', fontSize: 14 }}>{getRoleDisplay()}</div>
               </div>
               <DropdownButton icon={<User size={18} />} label="Profile" onClick={handleProfileClick} />
-              <DropdownButton icon={<Settings size={18} />} label="Settings" />
               <DropdownButton onClick={handleLogout} icon={<LogOut size={18} />} label="Log Out" last />
             </div>
           )}
