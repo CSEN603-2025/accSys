@@ -1,8 +1,9 @@
 import React from 'react';
-import SideBar from '../Components/SideBar';
-import NavBar from '../Components/NavBar';
+import { BrowserRouter, Route, Link } from "react-router-dom";
+import SideBar from '../../Components/SideBar';
+import NavBar from '../../Components/NavBar';
 import { Users, FileText, Star } from 'lucide-react';
-import { mockUsers } from '../DummyData/mockUsers';
+import { mockUsers } from '../../DummyData/mockUsers';
 
 const CompanyHome = ({ currentUser }) => {
   // Get all students and applications
@@ -98,7 +99,25 @@ const CompanyHome = ({ currentUser }) => {
             <div style={{ flex: 1, background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem' }}>
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Intern Evaluations</div>
               <div style={{ color: '#64748b', fontSize: 15, marginBottom: 18 }}>Submit and manage intern performance evaluations</div>
-              <button style={{ width: '100%', background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '12px 0', fontWeight: 500, fontSize: 16, color: '#1746a2', cursor: 'pointer' }}>Manage Evaluations</button>
+              <Link 
+  to="/InternEvaluations"
+  style={{ 
+    display: 'block',
+    width: '100%', 
+    background: '#f1f5f9', 
+    border: 'none', 
+    borderRadius: 8, 
+    padding: '12px 0', 
+    fontWeight: 500, 
+    fontSize: 16, 
+    color: '#1746a2', 
+    cursor: 'pointer',
+    textDecoration: 'none',
+    textAlign: 'center'
+  }}
+>
+  Manage Evaluations
+</Link>
             </div>
           </div>
         </div>

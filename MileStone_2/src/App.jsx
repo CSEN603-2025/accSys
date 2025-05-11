@@ -5,10 +5,11 @@ import "./index.css";
 import LoginPage from './pages/LoginPage/LoginPage';
 import StudentDashboard from './pages/Student/StudentDashboard';
 import FacultyHome from './pages/FacultyHome';
-import CompanyHome from './pages/CompanyHome';
+import CompanyHome from './pages/Company/CompanyHome';
 import ScadHome from './pages/ScadHome';
 import RegisterCompany from './pages/LoginPage/RegisterCompany';
 import CompaniesPage from './pages/CompaniesPage';
+import InternEvaluations from './pages/Company/InternEvaluations';  
 
 export default function App() {
   const [user, setUser] = useState(null); // Simulates a logged-in user
@@ -38,7 +39,7 @@ export default function App() {
       <Route path="/company" element={<CompanyHome currentUser={user} />} />
       <Route path="/scad" element={<ScadHome currentUser={user} />} />
       <Route path="/register-company" element={<RegisterCompany />} />
-      <Route path="/companies" element={<CompaniesPage currentUser={user} />} />
+      <Route path="/internevaluations" element={<InternEvaluations currentUser={user} />} />
       {/* Default route fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
