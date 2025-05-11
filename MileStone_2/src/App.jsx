@@ -9,6 +9,12 @@ import CompanyHome from './pages/CompanyHome';
 import ScadHome from './pages/ScadHome';
 import RegisterCompany from './pages/LoginPage/RegisterCompany';
 import CompaniesPage from './pages/CompaniesPage';
+import StudentProfilePage from './pages/Student/StudentProfilePage';
+
+// Placeholder components for other roles
+const FacultyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
+const CompanyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Company Profile Page</h2><p>Welcome, {currentUser?.companyName || currentUser?.username}</p></div>;
+const ScadProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>SCAD Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
 
 export default function App() {
   const [user, setUser] = useState(null); // Simulates a logged-in user
@@ -21,10 +27,27 @@ export default function App() {
         return <FacultyHome currentUser={user} />;
       case 'company':
         return <CompanyHome currentUser={user} />;
-      case 'SCAD':
+      case 'scad':
         return <ScadHome currentUser={user} />;
       default:
         return <Navigate to="/login" />;
+    }
+  };
+
+  // Dynamic profile page route
+  const renderProfileByRole = () => {
+    if (!user) return <Navigate to="/login" />;
+    switch (user.role) {
+      case 'student':
+        return <StudentProfilePage currentUser={user} />;
+      case 'faculty':
+        return <FacultyProfilePage currentUser={user} />;
+      case 'company':
+        return <CompanyProfilePage currentUser={user} />;
+      case 'scad':
+        return <ScadProfilePage currentUser={user} />;
+      default:
+        return <div>Unknown user type</div>;
     }
   };
 
@@ -39,6 +62,9 @@ export default function App() {
       <Route path="/scad" element={<ScadHome currentUser={user} />} />
       <Route path="/register-company" element={<RegisterCompany />} />
       <Route path="/companies" element={<CompaniesPage currentUser={user} />} />
+      <Route path="/student/profile" element={<StudentProfilePage currentUser={user} />} />
+      {/* Dynamic profile route for all user types */}
+      <Route path="/profile" element={renderProfileByRole()} />
       {/* Default route fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

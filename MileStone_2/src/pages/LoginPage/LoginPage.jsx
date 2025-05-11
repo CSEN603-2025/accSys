@@ -40,7 +40,7 @@ const LoginPage = ({ onLogin }) => {
                 </div>
                 <div className={styles.body}>
                     <div className={styles.roleSelector}>
-                        {["student", "faculty", "company", "SCAD"].map((r) => (
+                        {["student", "faculty", "company", "scad"].map((r) => (
                             <button
                                 key={r}
                                 className={`${styles.roleButton} ${role === r ? styles.activeRole : styles.inactiveRole}`}
