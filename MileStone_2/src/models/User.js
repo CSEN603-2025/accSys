@@ -26,12 +26,39 @@ export class User {
 
 // ===== Student Class =====
 export class Student extends User {
-    constructor(id, username, email, password, major, gpa) {
+    constructor(id, username, email, password, major, gpa, semesterNumber = 1) {
         super(id, username, email, "student", password);
         this.applications = [];
         this.reports = [];
         this.major = major;
         this.gpa = gpa;
+        this.semesterNumber = semesterNumber;
+        this.interests = [];
+        this.internships = [];
+        this.activities = [];
+    }
+
+    addInterest(interest) {
+        if (!this.interests.includes(interest)) {
+            this.interests.push(interest);
+        }
+    }
+    removeInterest(interest) {
+        this.interests = this.interests.filter(i => i !== interest);
+    }
+
+    addInternship(internship) {
+        this.internships.push(internship);
+    }
+    removeInternship(index) {
+        this.internships.splice(index, 1);
+    }
+
+    addActivity(activity) {
+        this.activities.push(activity);
+    }
+    removeActivity(index) {
+        this.activities.splice(index, 1);
     }
 
     applyToInternship(application) {
@@ -143,12 +170,13 @@ export class Internship {
 
 // ===== Application Class =====
 export class Application {
-    constructor(id, student, internship, status = "pending", submissionDate = new Date()) {
+    constructor(id, student, internship, status = "pending", submissionDate = new Date(), applicationData = {}) {
         this.id = id;
         this.student = student;         // Full Student object
         this.internship = internship;   // Full Internship object
         this.status = status;
         this.submissionDate = submissionDate;
+        this.applicationData = applicationData; // Store user-entered info
     }
 }
 

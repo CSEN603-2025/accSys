@@ -5,16 +5,43 @@ import logo from '../assets/GucLogo.png';
 import { House, FileText, Users, Star } from 'lucide-react';
 
 const roleLinks = {
+  student: [
+    { icon: <House />, label: 'Dashboard', path: '/student' },
+    { icon: <Building2 />, label: 'Companies', path: '/companies' },
+    { icon: <BriefcaseBusiness />, label: 'Internships', path: '/student/internships' },
+    { icon: <FileText />, label: 'Applications', path: '/student/applications' },
+    { icon: <Edit />, label: 'Reports', path: '/student/reports' },
+    { icon: <Star />, label: 'Evaluation', path: '/student/evaluation' },
+  ],
+  faculty: [
+    { icon: <House />, label: 'Dashboard', path: '/faculty' },
+    { icon: <Users />, label: 'Students', path: '/faculty/students' },
+    { icon: <Building2 />, label: 'Companies', path: '/companies' },
+    { icon: <FileText />, label: 'Applications', path: '/faculty/applications' },
+    { icon: <Edit />, label: 'Reports', path: '/faculty/reports' },
+    { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
+  ],
   company: [
     { icon: <House />, label: 'Dashboard', path: '/company' },
+    { icon: <Building />, label: 'Profile', path: '/company/profile' },
+    { icon: <Building2 />, label: 'Companies', path: '/companies' },
+    { icon: <FileText />, label: 'Postings', path: '/company/postings' },
     { icon: <Users />, label: 'Applicants', path: '/company/applicants' },
     { icon: <FileText />, label: 'Postings', path: '/company/postings' },
     { icon: <Star />, label: 'Evaluations', path: '/company/evaluations' },
   ],
-  // ... other roles ...
+  scad: [
+    { icon: <House />, label: 'Dashboard', path: '/scad' },
+    { icon: <Users />, label: 'Students', path: '/scad/students' },
+    { icon: <Building2 />, label: 'Companies', path: '/companies' },
+    { icon: <Building />, label: 'Companies (Admin)', path: '/scad/companies' },
+    { icon: <ClipboardList />, label: 'Applications', path: '/scad/applications' },
+    { icon: <Award />, label: 'Evaluations', path: '/scad/evaluations' },
+    { icon: <Settings />, label: 'Settings', path: '/scad/settings' },
+  ],
 };
 
-const SideBar = ({ userRole = 'company', activeSection }) => {
+const SideBar = ({ userRole }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();

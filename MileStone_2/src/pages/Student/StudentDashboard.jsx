@@ -54,7 +54,7 @@ const StudentDashboard = ({ currentUser }) => {
 
   const handleViewDetails = () => {
     if (recentApplication) {
-      navigate(`/student/applications/${recentApplication.id}`);
+      navigate(`/applications`);
     }
   };
 
@@ -183,7 +183,7 @@ const StudentDashboard = ({ currentUser }) => {
               title="Applications" 
               desc="View and manage your internship applications" 
               btn="View Applications"
-              onClick={() => handleQuickAccess('/student/applications')}
+              onClick={() => handleQuickAccess('/applications')}
             />
             <QuickCard 
               title="Reports" 

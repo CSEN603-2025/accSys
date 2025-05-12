@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, Search, User, Settings, LogOut } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageTitle } from '../pages/PageTitle';
 
-const NavBar = ({ currentUser }) => {
+const NavBar = ({ currentUser, onLogout }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const avatarRef = useRef(null);
   const dropdownRef = useRef(null);
   const notificationsRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
   // Default to 'student' if userRole is not set
   const userRole = (currentUser?.role ? currentUser.role.toLowerCase() : 'student');
   const pageTitle = getPageTitle(location.pathname, userRole);
 
   const unreadCount = currentUser?.notifications?.filter(n => !n.read).length || 0;
 
-  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -52,6 +52,12 @@ const NavBar = ({ currentUser }) => {
       setNotificationsOpen(false);
       setTimeout(() => setNotificationsOpen(true), 0);
     }
+  };
+
+  const handleLogout = () => {
+    if (onLogout) onLogout();
+    navigate('/login');
+    setDropdownOpen(false);
   };
 
   const formatTimeAgo = (date) => {
@@ -101,6 +107,19 @@ const NavBar = ({ currentUser }) => {
     if (!currentUser?.role) return 'User';
     const role = currentUser.role.toLowerCase();
     return role.charAt(0).toUpperCase() + role.slice(1);
+  };
+
+  const handleProfileClick = () => {
+    if (userRole === 'student') {
+      navigate('/student/profile');
+    } else if (userRole === 'faculty') {
+      navigate('/faculty/profile');
+    } else if (userRole === 'company') {
+      navigate('/company/profile');
+    } else if (userRole === 'scad') {
+      navigate('/scad/profile');
+    }
+    setDropdownOpen(false);
   };
 
   return (
@@ -300,9 +319,8 @@ const NavBar = ({ currentUser }) => {
                 <div style={{ fontWeight: 600, fontSize: 16 }}>{getDisplayName()}</div>
                 <div style={{ color: '#64748b', fontSize: 14 }}>{getRoleDisplay()}</div>
               </div>
-              <DropdownButton icon={<User size={18} />} label="Profile" />
-              <DropdownButton icon={<Settings size={18} />} label="Settings" />
-              <DropdownButton icon={<LogOut size={18} />} label="Log Out" last />
+              <DropdownButton icon={<User size={18} />} label="Profile" onClick={handleProfileClick} />
+              <DropdownButton onClick={handleLogout} icon={<LogOut size={18} />} label="Log Out" last />
             </div>
           )}
         </div>
@@ -311,7 +329,7 @@ const NavBar = ({ currentUser }) => {
   );
 };
 
-const DropdownButton = ({ icon, label, last }) => (
+const DropdownButton = ({ icon, label, last, onClick }) => (
   <button
     style={{
       display: 'flex',
@@ -327,7 +345,10 @@ const DropdownButton = ({ icon, label, last }) => (
       borderBottom: last ? 'none' : '1px solid #f1f5f9',
       transition: 'background 0.15s',
     }}
+    onClick={onClick}
     onMouseDown={e => e.preventDefault()}
+    onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+    onMouseLeave={e => e.currentTarget.style.background = 'none'}
   >
     {icon}
     {label}

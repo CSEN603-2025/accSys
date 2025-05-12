@@ -9,7 +9,6 @@ import CompanyHome from './pages/Company/CompanyHome';
 import ScadHome from './pages/ScadHome';
 import RegisterCompany from './pages/LoginPage/RegisterCompany';
 import CompaniesPage from './pages/CompaniesPage';
-import InternEvaluations from './pages/Company/InternEvaluations';  
 
 export default function App() {
   const [user, setUser] = useState(null); // Simulates a logged-in user
@@ -22,10 +21,27 @@ export default function App() {
         return <FacultyHome currentUser={user} />;
       case 'company':
         return <CompanyHome currentUser={user} />;
-      case 'SCAD':
+      case 'scad':
         return <ScadHome currentUser={user} />;
       default:
         return <Navigate to="/login" />;
+    }
+  };
+
+  // Dynamic profile page route
+  const renderProfileByRole = () => {
+    if (!user) return <Navigate to="/login" />;
+    switch (user.role) {
+      case 'student':
+        return <StudentProfilePage currentUser={user} />;
+      case 'faculty':
+        return <FacultyProfilePage currentUser={user} />;
+      case 'company':
+        return <CompanyProfilePage currentUser={user} />;
+      case 'scad':
+        return <ScadProfilePage currentUser={user} />;
+      default:
+        return <div>Unknown user type</div>;
     }
   };
 
@@ -39,7 +55,7 @@ export default function App() {
       <Route path="/company" element={<CompanyHome currentUser={user} />} />
       <Route path="/scad" element={<ScadHome currentUser={user} />} />
       <Route path="/register-company" element={<RegisterCompany />} />
-      <Route path="/internevaluations" element={<InternEvaluations currentUser={user} />} />
+      <Route path="/companies" element={<CompaniesPage currentUser={user} />} />
       {/* Default route fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
