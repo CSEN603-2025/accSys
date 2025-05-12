@@ -13,6 +13,7 @@ import StudentProfilePage from './pages/Student/StudentProfilePage';
 import SideBar from './Components/SideBar';
 import NavBar from './Components/NavBar';
 import InternshipPage from './pages/InternshipPage';
+import ApplicationsPage from './pages/ApplicationsPage';
 
 // Placeholder components for other roles
 const FacultyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
@@ -67,6 +68,7 @@ export default function App() {
       <Route path="/companies" element={<CompaniesPage currentUser={user} />} />
       <Route path="/internships" element={<InternshipPage currentUser={user} />} />
       <Route path="/student/profile" element={<StudentProfilePage currentUser={user} />} />
+      <Route path="/applications" element={<ApplicationsPage currentUser={user}/>}/>
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />
       {/* Default route fallback */}

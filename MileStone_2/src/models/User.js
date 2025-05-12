@@ -170,12 +170,13 @@ export class Internship {
 
 // ===== Application Class =====
 export class Application {
-    constructor(id, student, internship, status = "pending", submissionDate = new Date()) {
+    constructor(id, student, internship, status = "pending", submissionDate = new Date(), applicationData = {}) {
         this.id = id;
         this.student = student;         // Full Student object
         this.internship = internship;   // Full Internship object
         this.status = status;
         this.submissionDate = submissionDate;
+        this.applicationData = applicationData; // Store user-entered info
     }
 }
 

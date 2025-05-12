@@ -10,7 +10,7 @@ const roleLinks = {
     { icon: <House />, label: 'Dashboard', path: '/student' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    { icon: <FileText />, label: 'Applications', path: '/student/applications' },
+    { icon: <FileText />, label: 'Applications', path: '/applications' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
     { icon: <Star />, label: 'Evaluation', path: '/student/evaluation' },
   ],
