@@ -35,19 +35,26 @@ const ApplicationCard = ({ application, showStudent, onViewDetails }) => {
       borderRadius: 14,
       boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
       display: 'flex',
+      flexDirection: window.innerWidth < 1024 ? 'column' : 'row',
       justifyContent: 'space-between',
       alignItems: 'stretch',
       marginBottom: 28,
       minHeight: 170,
-      maxWidth: 1300,
+      maxWidth: '95%',
       marginLeft: 'auto',
       marginRight: 'auto',
       overflow: 'hidden',
     }}>
       {/* Left: Main Info */}
-      <div style={{ flex: 1, padding: '44px 64px 44px 64px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-          <h3 style={{ fontSize: 22, fontWeight: 700, margin: 0, marginRight: 16 }}>{internship.title}</h3>
+      <div style={{ 
+        flex: 1, 
+        padding: window.innerWidth < 768 ? '24px 20px' : '44px 64px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center' 
+      }}>
+        <div style={{ display: 'flex', flexDirection: window.innerWidth < 480 ? 'column' : 'row', alignItems: window.innerWidth < 480 ? 'flex-start' : 'center', marginBottom: 8 }}>
+          <h3 style={{ fontSize: window.innerWidth < 480 ? 18 : 22, fontWeight: 700, margin: 0, marginRight: 16 }}>{internship.title}</h3>
           <span style={{
             padding: '4px 16px',
             borderRadius: 16,
@@ -55,14 +62,14 @@ const ApplicationCard = ({ application, showStudent, onViewDetails }) => {
             fontWeight: 500,
             background: statusStyle.background,
             color: statusStyle.color,
-            marginLeft: 0,
+            marginLeft: window.innerWidth < 480 ? 0 : 16,
+            marginTop: window.innerWidth < 480 ? 8 : 2,
             minWidth: 0,
             textAlign: 'center',
             display: 'inline-block',
-            marginTop: 2,
           }}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
         </div>
-        <div style={{ color: '#2563eb', fontWeight: 500, fontSize: 16, marginBottom: 2 }}>{internship.company.companyName}</div>
+        <div style={{ color: '#2563eb', fontWeight: 500, fontSize: window.innerWidth < 480 ? 14 : 16, marginBottom: 2 }}>{internship.company.companyName}</div>
         {showStudent && (
           <div style={{ color: '#64748b', fontSize: 14, marginBottom: 2 }}>Student: <span style={{ fontWeight: 500 }}>{student.username}</span></div>
         )}
@@ -78,20 +85,33 @@ const ApplicationCard = ({ application, showStudent, onViewDetails }) => {
       {/* Right: Duration & Button */}
       <div style={{
         background: '#f1f5f9',
-        borderLeft: '1px solid #e5e7eb',
-        minWidth: 370,
-        maxWidth: 440,
+        borderLeft: window.innerWidth < 1024 ? 'none' : '1px solid #e5e7eb',
+        borderTop: window.innerWidth < 1024 ? '1px solid #e5e7eb' : 'none',
+        minWidth: window.innerWidth < 1024 ? 'auto' : 370,
+        maxWidth: window.innerWidth < 1024 ? '100%' : 440,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '44px 48px',
+        padding: window.innerWidth < 768 ? '24px 20px' : '44px 48px',
       }}>
         <div style={{ color: '#334155', fontWeight: 600, fontSize: 15, marginBottom: 4 }}>Duration</div>
-        <div style={{ color: '#334155', fontSize: 15, marginBottom: 18 }}>
+        <div style={{ color: '#334155', fontSize: 15, marginBottom: 18, textAlign: 'center' }}>
           {`${internship.startDate instanceof Date ? internship.startDate.toLocaleDateString() : new Date(internship.startDate).toLocaleDateString()} - ${internship.endDate instanceof Date ? internship.endDate.toLocaleDateString() : new Date(internship.endDate).toLocaleDateString()}`}
         </div>
-        <button style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 0', width: '100%', fontWeight: 600, fontSize: 16, cursor: 'pointer', transition: 'background 0.2s' }}
+        <button style={{ 
+          background: '#1746a2', 
+          color: '#fff', 
+          border: 'none', 
+          borderRadius: 8, 
+          padding: '12px 0', 
+          width: '100%', 
+          fontWeight: 600, 
+          fontSize: 16, 
+          cursor: 'pointer', 
+          transition: 'background 0.2s',
+          maxWidth: window.innerWidth < 1024 ? '300px' : '100%'
+        }}
           onClick={onViewDetails}
         >
           View Details
@@ -106,9 +126,25 @@ const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedApp, setSelectedApp] = useState(null);
-  const headerBox = { marginBottom: 32, maxWidth: 1300, marginLeft: 'auto', marginRight: 'auto' };
-  const headerTitle = { fontWeight: 700, fontSize: 28, color: '#334155', marginBottom: 2, marginTop: 0 };
-  const headerDesc = { color: '#64748b', fontSize: 17, marginBottom: 0 };
+  const headerBox = { 
+    marginBottom: 32, 
+    maxWidth: '95%', 
+    marginLeft: 'auto', 
+    marginRight: 'auto',
+    padding: window.innerWidth < 768 ? '0 20px' : '0'
+  };
+  const headerTitle = { 
+    fontWeight: 700, 
+    fontSize: window.innerWidth < 480 ? 24 : 28, 
+    color: '#334155', 
+    marginBottom: 2, 
+    marginTop: 0 
+  };
+  const headerDesc = { 
+    color: '#64748b', 
+    fontSize: window.innerWidth < 480 ? 15 : 17, 
+    marginBottom: 0 
+  };
   const actionsRow = { display: 'flex', gap: 12 };
   const actionBtn = { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#1746a2', fontWeight: 600, fontSize: 15, cursor: 'pointer', transition: 'background 0.2s' };
 
@@ -157,46 +193,60 @@ const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
         </div>
       </div>
       {/* Status filter and search */}
-      <div style={{ maxWidth: 1300, margin: '0 auto', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
-        <span style={{ fontWeight: 500, color: '#334155', fontSize: 15 }}>Status:</span>
-        {STATUS_OPTIONS.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => setStatusFilter(opt.value)}
-            style={{
-              background: statusFilter === opt.value ? '#1746a2' : '#f1f5f9',
-              color: statusFilter === opt.value ? '#fff' : '#334155',
-              border: 'none',
-              borderRadius: 8,
-              padding: '7px 18px',
-              fontWeight: 600,
-              fontSize: 15,
-              cursor: 'pointer',
-              marginRight: 4,
-              transition: 'background 0.2s',
-            }}
-          >
-            {opt.label}
-          </button>
-        ))}
+      <div style={{ 
+        maxWidth: '95%', 
+        margin: '0 auto', 
+        marginBottom: 24, 
+        display: 'flex', 
+        flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+        alignItems: window.innerWidth < 768 ? 'flex-start' : 'center', 
+        gap: 16,
+        padding: window.innerWidth < 768 ? '0 20px' : '0'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: 8,
+          marginBottom: window.innerWidth < 768 ? 16 : 0
+        }}>
+          <span style={{ fontWeight: 500, color: '#334155', fontSize: 15 }}>Status:</span>
+          {STATUS_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setStatusFilter(opt.value)}
+              style={{
+                background: statusFilter === opt.value ? '#1746a2' : '#f1f5f9',
+                color: statusFilter === opt.value ? '#fff' : '#334155',
+                border: 'none',
+                borderRadius: 8,
+                padding: '7px 18px',
+                fontWeight: 600,
+                fontSize: 15,
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
         <input
           type="text"
           placeholder="Search company or internship..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           style={{
-            marginLeft: 24,
             padding: '8px 16px',
             borderRadius: 8,
             border: '1px solid #e2e8f0',
             fontSize: 15,
-            width: 260,
+            width: window.innerWidth < 768 ? '100%' : 260,
             background: '#f8fafc',
             outline: 'none',
           }}
         />
       </div>
-      <div style={{ maxWidth: 1300, margin: '0 auto' }}>
+      <div style={{ maxWidth: '95%', margin: '0 auto' }}>
         {filteredApps.length === 0 ? (
           <div style={{ color: '#64748b', fontSize: 16 }}>No applications found.</div>
         ) : (
@@ -207,10 +257,32 @@ const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
       </div>
       {/* Modal for application details */}
       {selectedApp && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 36, minWidth: 400, maxWidth: 540, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', position: 'relative' }}>
+        <div style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          width: '100vw', 
+          height: '100vh', 
+          background: 'rgba(0,0,0,0.18)', 
+          zIndex: 1000, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          padding: window.innerWidth < 768 ? '20px' : '0'
+        }}>
+          <div style={{ 
+            background: '#fff', 
+            borderRadius: 12, 
+            padding: window.innerWidth < 768 ? '24px' : '36px', 
+            width: '100%',
+            maxWidth: 540, 
+            boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
+            position: 'relative',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
             <button onClick={() => setSelectedApp(null)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: 'pointer' }}>×</button>
-            <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>{selectedApp.internship.title}</h3>
+            <h3 style={{ fontSize: window.innerWidth < 480 ? 20 : 22, fontWeight: 700, marginBottom: 10 }}>{selectedApp.internship.title}</h3>
             <div style={{ color: '#64748b', marginBottom: 8 }}><b>Company:</b> {selectedApp.internship.company.companyName}</div>
             <div style={{ color: '#64748b', marginBottom: 8 }}><b>Status:</b> {selectedApp.status.charAt(0).toUpperCase() + selectedApp.status.slice(1)}</div>
             <div style={{ color: '#64748b', marginBottom: 8 }}><b>Applied on:</b> {selectedApp.submissionDate instanceof Date ? selectedApp.submissionDate.toLocaleDateString() : new Date(selectedApp.submissionDate).toLocaleDateString()}</div>
@@ -240,7 +312,7 @@ const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
       <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
-        <div style={{ flex: 1, padding: '2.5rem 0 0 0', background: '#f8fafc' }}>{mainContent}</div>
+        <div style={{ flex: 1, padding: window.innerWidth < 768 ? '1.5rem 0 0 0' : '2.5rem 0 0 0', background: '#f8fafc' }}>{mainContent}</div>
       </div>
     </div>
   );

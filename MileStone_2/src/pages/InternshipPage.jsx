@@ -356,57 +356,284 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
         )}
         {/* Modal for applying to internship */}
         {showApplyModal && selected && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 400, maxWidth: 540, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', position: 'relative' }}>
-              <button onClick={() => { setShowApplyModal(false); setApplySuccess(false); }} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: 'pointer' }}>×</button>
-              <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>Apply for {selected.title}</h3>
+          <div style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            width: '100vw', 
+            height: '100vh', 
+            background: 'rgba(0,0,0,0.18)', 
+            zIndex: 1100, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: window.innerWidth < 768 ? '20px' : '0'
+          }}>
+            <div style={{ 
+              background: '#fff', 
+              borderRadius: 12, 
+              padding: window.innerWidth < 768 ? '24px' : '32px', 
+              width: '100%',
+              maxWidth: 540, 
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
+              position: 'relative'
+            }}>
+              <button 
+                onClick={() => { setShowApplyModal(false); setApplySuccess(false); }} 
+                style={{ 
+                  position: 'absolute', 
+                  top: 16, 
+                  right: 16, 
+                  background: 'none', 
+                  border: 'none', 
+                  fontSize: 22, 
+                  color: '#64748b', 
+                  cursor: 'pointer',
+                  zIndex: 1
+                }}
+              >×</button>
+              <h3 style={{ 
+                fontSize: window.innerWidth < 480 ? 20 : 22, 
+                fontWeight: 700, 
+                marginBottom: 10,
+                paddingRight: 24 // Make space for close button
+              }}>Apply for {selected.title}</h3>
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Company:</b> {selected.company.companyName}</div>
-              <form onSubmit={handleApplySubmit} style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <form onSubmit={handleApplySubmit} style={{ 
+                marginTop: 18, 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 12 
+              }}>
                 <div>
-                  <label style={{ fontWeight: 500 }}>Name</label>
-                  <input name="name" value={applyData.name} onChange={handleApplyChange} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }} required />
+                  <label style={{ 
+                    fontWeight: 500, 
+                    display: 'block', 
+                    marginBottom: 4,
+                    fontSize: window.innerWidth < 480 ? 14 : 15
+                  }}>Name</label>
+                  <input 
+                    name="name" 
+                    value={applyData.name} 
+                    onChange={handleApplyChange} 
+                    style={{ 
+                      width: '100%', 
+                      padding: '8px 12px', 
+                      borderRadius: 6, 
+                      border: '1px solid #e2e8f0',
+                      fontSize: window.innerWidth < 480 ? 14 : 15
+                    }} 
+                    required 
+                  />
                 </div>
                 <div>
-                  <label style={{ fontWeight: 500 }}>Email</label>
-                  <input name="email" value={applyData.email} onChange={handleApplyChange} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }} required />
+                  <label style={{ 
+                    fontWeight: 500, 
+                    display: 'block', 
+                    marginBottom: 4,
+                    fontSize: window.innerWidth < 480 ? 14 : 15
+                  }}>Email</label>
+                  <input 
+                    name="email" 
+                    value={applyData.email} 
+                    onChange={handleApplyChange} 
+                    style={{ 
+                      width: '100%', 
+                      padding: '8px 12px', 
+                      borderRadius: 6, 
+                      border: '1px solid #e2e8f0',
+                      fontSize: window.innerWidth < 480 ? 14 : 15
+                    }} 
+                    required 
+                  />
                 </div>
                 <div>
-                  <label style={{ fontWeight: 500 }}>Major</label>
-                  <input name="major" value={applyData.major} onChange={handleApplyChange} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }} required />
+                  <label style={{ 
+                    fontWeight: 500, 
+                    display: 'block', 
+                    marginBottom: 4,
+                    fontSize: window.innerWidth < 480 ? 14 : 15
+                  }}>Major</label>
+                  <input 
+                    name="major" 
+                    value={applyData.major} 
+                    onChange={handleApplyChange} 
+                    style={{ 
+                      width: '100%', 
+                      padding: '8px 12px', 
+                      borderRadius: 6, 
+                      border: '1px solid #e2e8f0',
+                      fontSize: window.innerWidth < 480 ? 14 : 15
+                    }} 
+                    required 
+                  />
                 </div>
                 <div>
-                  <label style={{ fontWeight: 500 }}>GPA</label>
-                  <input name="gpa" value={applyData.gpa} onChange={handleApplyChange} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }} required />
+                  <label style={{ 
+                    fontWeight: 500, 
+                    display: 'block', 
+                    marginBottom: 4,
+                    fontSize: window.innerWidth < 480 ? 14 : 15
+                  }}>GPA</label>
+                  <input 
+                    name="gpa" 
+                    value={applyData.gpa} 
+                    onChange={handleApplyChange} 
+                    style={{ 
+                      width: '100%', 
+                      padding: '8px 12px', 
+                      borderRadius: 6, 
+                      border: '1px solid #e2e8f0',
+                      fontSize: window.innerWidth < 480 ? 14 : 15
+                    }} 
+                    required 
+                  />
                 </div>
                 <div>
-                  <label style={{ fontWeight: 500 }}>Semester</label>
-                  <input name="semester" value={applyData.semester} onChange={handleApplyChange} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }} required />
+                  <label style={{ 
+                    fontWeight: 500, 
+                    display: 'block', 
+                    marginBottom: 4,
+                    fontSize: window.innerWidth < 480 ? 14 : 15
+                  }}>Semester</label>
+                  <input 
+                    name="semester" 
+                    value={applyData.semester} 
+                    onChange={handleApplyChange} 
+                    style={{ 
+                      width: '100%', 
+                      padding: '8px 12px', 
+                      borderRadius: 6, 
+                      border: '1px solid #e2e8f0',
+                      fontSize: window.innerWidth < 480 ? 14 : 15
+                    }} 
+                    required 
+                  />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button type="button" onClick={() => document.getElementById('cv-upload').click()} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <UploadCloud size={18} /> Upload CV
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: window.innerWidth < 480 ? 'column' : 'row',
+                  alignItems: window.innerWidth < 480 ? 'stretch' : 'center', 
+                  gap: 8 
+                }}>
+                  <button 
+                    type="button" 
+                    onClick={() => document.getElementById('cv-upload').click()} 
+                    style={{ 
+                      background: '#f1f5f9', 
+                      border: '1px solid #e2e8f0', 
+                      borderRadius: 8, 
+                      padding: '8px 16px', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8,
+                      fontSize: window.innerWidth < 480 ? 14 : 15,
+                      flex: window.innerWidth < 480 ? '1' : 'auto'
+                    }}
+                  >
+                    <UploadCloud size={window.innerWidth < 480 ? 16 : 18} /> Upload CV
                   </button>
                   <input id="cv-upload" name="cv" type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} style={{ display: 'none' }} />
-                  {uploadedFiles.cv && <span style={{ fontSize: 14 }}>{uploadedFiles.cv.name}</span>}
+                  {uploadedFiles.cv && (
+                    <span style={{ 
+                      fontSize: window.innerWidth < 480 ? 13 : 14,
+                      wordBreak: 'break-all'
+                    }}>{uploadedFiles.cv.name}</span>
+                  )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button type="button" onClick={() => document.getElementById('coverLetter-upload').click()} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <UploadCloud size={18} /> Upload Cover Letter
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: window.innerWidth < 480 ? 'column' : 'row',
+                  alignItems: window.innerWidth < 480 ? 'stretch' : 'center', 
+                  gap: 8 
+                }}>
+                  <button 
+                    type="button" 
+                    onClick={() => document.getElementById('coverLetter-upload').click()} 
+                    style={{ 
+                      background: '#f1f5f9', 
+                      border: '1px solid #e2e8f0', 
+                      borderRadius: 8, 
+                      padding: '8px 16px', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8,
+                      fontSize: window.innerWidth < 480 ? 14 : 15,
+                      flex: window.innerWidth < 480 ? '1' : 'auto'
+                    }}
+                  >
+                    <UploadCloud size={window.innerWidth < 480 ? 16 : 18} /> Upload Cover Letter
                   </button>
                   <input id="coverLetter-upload" name="coverLetter" type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} style={{ display: 'none' }} />
-                  {uploadedFiles.coverLetter && <span style={{ fontSize: 14 }}>{uploadedFiles.coverLetter.name}</span>}
+                  {uploadedFiles.coverLetter && (
+                    <span style={{ 
+                      fontSize: window.innerWidth < 480 ? 13 : 14,
+                      wordBreak: 'break-all'
+                    }}>{uploadedFiles.coverLetter.name}</span>
+                  )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button type="button" onClick={() => document.getElementById('certificates-upload').click()} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <UploadCloud size={18} /> Upload Certificates
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: window.innerWidth < 480 ? 'column' : 'row',
+                  alignItems: window.innerWidth < 480 ? 'stretch' : 'center', 
+                  gap: 8 
+                }}>
+                  <button 
+                    type="button" 
+                    onClick={() => document.getElementById('certificates-upload').click()} 
+                    style={{ 
+                      background: '#f1f5f9', 
+                      border: '1px solid #e2e8f0', 
+                      borderRadius: 8, 
+                      padding: '8px 16px', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8,
+                      fontSize: window.innerWidth < 480 ? 14 : 15,
+                      flex: window.innerWidth < 480 ? '1' : 'auto'
+                    }}
+                  >
+                    <UploadCloud size={window.innerWidth < 480 ? 16 : 18} /> Upload Certificates
                   </button>
                   <input id="certificates-upload" name="certificates" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} style={{ display: 'none' }} />
-                  {uploadedFiles.certificates && <span style={{ fontSize: 14 }}>{uploadedFiles.certificates.name}</span>}
+                  {uploadedFiles.certificates && (
+                    <span style={{ 
+                      fontSize: window.innerWidth < 480 ? 13 : 14,
+                      wordBreak: 'break-all'
+                    }}>{uploadedFiles.certificates.name}</span>
+                  )}
                 </div>
-                <button type="submit" style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 24px', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 8 }}>
+                <button 
+                  type="submit" 
+                  style={{ 
+                    background: '#1746a2', 
+                    color: '#fff', 
+                    border: 'none', 
+                    borderRadius: 6, 
+                    padding: '8px 24px', 
+                    fontWeight: 600, 
+                    fontSize: window.innerWidth < 480 ? 15 : 16, 
+                    cursor: 'pointer', 
+                    marginTop: 8,
+                    width: window.innerWidth < 480 ? '100%' : 'auto'
+                  }}
+                >
                   Submit Application
                 </button>
-                {applySuccess && <div style={{ color: '#16a34a', fontWeight: 600, fontSize: 16, marginTop: 12 }}>Application submitted!</div>}
+                {applySuccess && (
+                  <div style={{ 
+                    color: '#16a34a', 
+                    fontWeight: 600, 
+                    fontSize: window.innerWidth < 480 ? 15 : 16, 
+                    marginTop: 12,
+                    textAlign: 'center'
+                  }}>Application submitted!</div>
+                )}
               </form>
             </div>
           </div>
