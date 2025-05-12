@@ -11,13 +11,10 @@ import InternEvaluations from './pages/Company/InternEvaluations';
 import ScadHome from './pages/ScadHome';
 import RegisterCompany from './pages/LoginPage/RegisterCompany';
 import CompaniesPage from './pages/CompaniesPage';
-<<<<<<< Updated upstream
-import InternshipPage from './pages/InternshipPage'
-=======
+import InternshipPage from './pages/InternshipPage';
 import StudentProfilePage from './pages/Student/StudentProfilePage';
 import SideBar from './Components/SideBar';
 import NavBar from './Components/NavBar';
-import InternshipPage from './pages/InternshipPage';
 import StudentReports from './pages/Student/StudentReports';
 import StudentInternships from './pages/Student/StudentInternships';
 
@@ -25,7 +22,6 @@ import StudentInternships from './pages/Student/StudentInternships';
 const FacultyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
 const CompanyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Company Profile Page</h2><p>Welcome, {currentUser?.companyName || currentUser?.username}</p></div>;
 const ScadProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>SCAD Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
->>>>>>> Stashed changes
 
 export default function App() {
   const [user, setUser] = useState(null); // Simulates a logged-in user
@@ -76,14 +72,11 @@ export default function App() {
       <Route path="/companies" element={<CompaniesPage currentUser={user} />} />
       <Route path="/intern-evaluations" element={<InternEvaluations currentUser={user} />} />
       <Route path="/internships" element={<InternshipPage currentUser={user} />} />
-<<<<<<< Updated upstream
-=======
       <Route path="/student/profile" element={<StudentProfilePage currentUser={user} />} />
       <Route path="/student/studentinternships" element={<StudentInternships currentUser={user} />} />
 
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />
->>>>>>> Stashed changes
       {/* Default route fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
