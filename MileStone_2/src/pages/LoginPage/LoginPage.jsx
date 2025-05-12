@@ -29,7 +29,7 @@ const LoginPage = ({ onLogin }) => {
                 <h1 className={styles.systemTitle}>
                     Internship Management <span>System</span>
                 </h1>
-                <p className={styles.portalSubtitle}>Univsersity Internship Portal</p>
+                <p className={styles.portalSubtitle}>University Internship Portal</p>
             </div>
             <div className={styles.card}>
                 <div className={styles.header}>

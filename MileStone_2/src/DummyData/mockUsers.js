@@ -26,7 +26,7 @@ const omar = new Student(3, "Omar Hassan", "omar@student.guc.edu.eg", "123", "Co
 
 // Add applications for Karim
 karim.applyToInternship(new Application(1, karim, webDevInternship, "pending", new Date('2024-03-01')));
-karim.applyToInternship(new Application(2, karim, dataScienceInternship, "approved", new Date('2024-02-15')));
+karim.applyToInternship(new Application(2, karim, dataScienceInternship, "accepted", new Date('2024-02-15')));
 karim.applyToInternship(new Application(3, karim, cloudInternship, "rejected", new Date('2024-01-20')));
 
 // Add reports for Karim's approved internship

@@ -25,12 +25,10 @@ const roleLinks = {
   ],
   company: [
     { icon: <House />, label: 'Dashboard', path: '/company' },
-    { icon: <Building />, label: 'Profile', path: '/company/profile' },
-    { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <FileText />, label: 'Postings', path: '/company/postings' },
     { icon: <Users />, label: 'Applicants', path: '/company/applicants' },
-    { icon: <Star />, label: 'Evaluations', path: '/company/evaluations' },
+    { icon: <Star />, label: 'Evaluations', path: '/intern-evaluations' },
   ],
   scad: [
     { icon: <House />, label: 'Dashboard', path: '/scad' },
