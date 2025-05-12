@@ -325,5 +325,63 @@ export const mockInternships = [
     contactPerson: "Hany Yousef",
     tags: ["Biomedical", "Healthcare", "Engineering", "Medical Devices"],
     createdAt: "2025-02-25T14:30:00Z"
+  },
+  {
+    id: 11,
+    title: "Backend Developer Intern (Flagged)",
+    company: {
+      id: 110,
+      companyName: "FlaggedTech",
+      logo: "https://placehold.co/100x100?text=FT",
+      location: "Cairo, Egypt",
+      industry: "Technology"
+    },
+    description: "This internship has been flagged for review.",
+    requirements: ["CS background", "Node.js", "API development"],
+    location: "Cairo, Egypt",
+    startDate: "2025-07-01",
+    endDate: "2025-09-30",
+    durationMonths: 3,
+    paid: true,
+    salary: 4000,
+    skills: ["Node.js", "APIs", "Backend"],
+    industry: "Technology",
+    isApproved: true,
+    applicationsCount: 2,
+    isRemote: false,
+    department: "Backend",
+    contactPerson: "Flag Reviewer",
+    tags: ["Backend", "Flagged"],
+    createdAt: "2025-03-01T10:00:00Z",
+    status: "flagged"
+  },
+  {
+    id: 12,
+    title: "QA Tester Intern (Rejected)",
+    company: {
+      id: 111,
+      companyName: "RejectedSoft",
+      logo: "https://placehold.co/100x100?text=RS",
+      location: "Alexandria, Egypt",
+      industry: "Software"
+    },
+    description: "This internship application was rejected.",
+    requirements: ["Attention to detail", "Testing"],
+    location: "Alexandria, Egypt",
+    startDate: "2025-06-01",
+    endDate: "2025-08-31",
+    durationMonths: 2,
+    paid: false,
+    salary: 0,
+    skills: ["Testing", "QA"],
+    industry: "Software",
+    isApproved: false,
+    applicationsCount: 1,
+    isRemote: true,
+    department: "QA",
+    contactPerson: "Rejected Reviewer",
+    tags: ["QA", "Rejected"],
+    createdAt: "2025-03-10T10:00:00Z",
+    status: "rejected"
   }
 ];

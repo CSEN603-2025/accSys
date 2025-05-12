@@ -122,6 +122,11 @@ const NavBar = ({ currentUser, onLogout }) => {
     setDropdownOpen(false);
   };
 
+  const handleInternshipsClick = () => {
+    navigate('/student/studentinternships');
+    setDropdownOpen(false);
+  };
+
   return (
     <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.2rem 2rem 1.2rem 2rem', background: '#fff', borderBottom: '1px solid #e2e8f0', position: 'relative', zIndex: 2 }}>
       {/* Left Side */}
@@ -319,6 +324,10 @@ const NavBar = ({ currentUser, onLogout }) => {
                 <div style={{ fontWeight: 600, fontSize: 16 }}>{getDisplayName()}</div>
                 <div style={{ color: '#64748b', fontSize: 14 }}>{getRoleDisplay()}</div>
               </div>
+              {/* My Internships for Students */}
+              {userRole === 'student' && (
+                <DropdownButton label="My Internships" onClick={handleInternshipsClick} />
+              )}
               <DropdownButton icon={<User size={18} />} label="Profile" onClick={handleProfileClick} />
               <DropdownButton onClick={handleLogout} icon={<LogOut size={18} />} label="Log Out" last />
             </div>
