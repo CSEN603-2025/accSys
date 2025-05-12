@@ -36,7 +36,6 @@ const roleLinks = {
     { icon: <House />, label: 'Dashboard', path: '/scad' },
     { icon: <Users />, label: 'Students', path: '/scad/students' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
-    { icon: <Building />, label: 'Companies (Admin)', path: '/scad/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <ClipboardList />, label: 'Applications', path: '/scad/applications' },
     { icon: <Award />, label: 'Evaluations', path: '/scad/evaluations' },
