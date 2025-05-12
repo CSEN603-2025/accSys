@@ -4,6 +4,7 @@ import NavBar from '../Components/NavBar';
 import { mockUsers } from '../DummyData/mockUsers';
 import { mockInternships } from '../DummyData/mockInternships';
 import { BriefcaseBusiness, UploadCloud } from 'lucide-react';
+import { Application } from '../models/User';
 
 // Check this code in InternshipPage.jsx
 const getInternshipsForUser = (currentUser) => {
@@ -37,7 +38,7 @@ const STATUS_COLORS = {
   pending: { bg: '#fef3c7', color: '#b45309' },
 };
 
-const InternshipPage = ({ currentUser }) => {
+const InternshipPage = ({ currentUser, setCurrentUser }) => {
   const [selected, setSelected] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
@@ -121,6 +122,26 @@ const InternshipPage = ({ currentUser }) => {
   const handleApplySubmit = (e) => {
     e.preventDefault();
     setApplySuccess(true);
+    
+    // Create a new application
+    const newApp = new Application(
+      Date.now(),
+      currentUser,
+      selected,
+      'pending',
+      new Date(),
+      { ...applyData }
+    );
+
+    // Add the application to the student's applications
+    currentUser.applyToInternship(newApp);
+
+    // Update the current user state
+    setCurrentUser({
+      ...currentUser,
+      applications: [...currentUser.applications]
+    });
+
     setTimeout(() => {
       setShowApplyModal(false);
       setSelected(null);
