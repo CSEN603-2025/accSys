@@ -44,7 +44,7 @@ const StudentDashboard = ({ currentUser }) => {
   // Calculate summary statistics
   const totalApplications = currentUser?.applications?.length || 0;
   const pendingApplications = currentUser?.applications?.filter(app => app.status === 'pending').length || 0;
-  const activeInternships = currentUser?.applications?.filter(app => app.status === 'approved').length || 0;
+  const activeInternships = currentUser?.currentInternship ? 1 : 0;
   const submittedReports = currentUser?.reports?.length || 0;
 
   // Get most recent application

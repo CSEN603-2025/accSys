@@ -1,95 +1,110 @@
-// data/mockUsers.js
-import { Student, Faculty, Company, SCAD, Internship, Application, Report } from '../models/User';
+import {
+  Student,
+  Faculty,
+  Company,
+  SCAD,
+  InternshipPost,
+  StudentInternship,
+  Application,
+  Report,
+} from '../models/models.js';
 
-// Create companies first since they're needed for internships
-const abcCorp = new Company(7, "ABC Corp", "contact@abccorp.com", "123", "ABC Corporation", "Technology");
-const techSolutions = new Company(8, "Tech Solutions", "hr@techsolutions.com", "123", "Tech Solutions", "Software Development");
-const digitalSystems = new Company(9, "Digital Systems", "careers@digitalsystems.com", "123", "Digital Systems", "IT Services");
+// ===== SCAD Admin =====
+const scadAdmin = new SCAD(1, "scadAdmin", "admin@scad.edu", "adminpass");
 
-// Create internships
-const webDevInternship = new Internship(1, abcCorp, "Machine Learning Engineer", "Full-stack web development internship", "Cairo", new Date('2024-06-01'), new Date('2024-08-31'));
-const dataScienceInternship = new Internship(2, techSolutions, "Data Science Intern", "Machine learning and data analysis internship", "Cairo", new Date('2024-07-01'), new Date('2024-09-30'));
-const cloudInternship = new Internship(3, digitalSystems, "Cloud Computing Intern", "AWS and Azure cloud services internship", "Cairo", new Date('2024-06-15'), new Date('2024-09-15'));
+// ===== Faculty Members =====
+const faculty1 = new Faculty(2, "profJohn", "john@univ.edu", "password123", "Computer Science");
+const faculty2 = new Faculty(3, "profSara", "sara@univ.edu", "password123", "Information Systems");
+const faculty3 = new Faculty(4, "profAli", "ali@univ.edu", "password123", "AI & Robotics");
 
-// Approve companies and internships
-abcCorp.isApproved = true;
-techSolutions.isApproved = true;
-digitalSystems.isApproved = true;
-webDevInternship.isApproved = true;
-dataScienceInternship.isApproved = true;
-cloudInternship.isApproved = true;
+// ===== Students =====
+const student1 = new Student(5, "Ziad", "ziad@student.edu", "123", "CS", 3.7, 5);
+const student2 = new Student(6, "Karim", "karim@student.edu", "pass123", "IS", 3.5, 4);
+const student3 = new Student(7, "Khairy", "layla@student.edu", "pass123", "Robotics", 3.9, 6);
 
-// Create users
-const karim = new Student(1, "Karim Ahmed", "karim@student.guc.edu.eg", "123", "Computer Science", 3.8);
-const sarah = new Student(2, "Sarah Mohamed", "sarah@student.guc.edu.eg", "123", "Information Engineering", 3.9);
-const omar = new Student(3, "Omar Hassan", "omar@student.guc.edu.eg", "123", "Computer Science", 3.7);
+// ===== Companies and Internships =====
+const companies = [];
 
-// Add applications for Karim
-karim.applyToInternship(new Application(1, karim, webDevInternship, "pending", new Date('2024-03-01')));
-karim.applyToInternship(new Application(2, karim, dataScienceInternship, "accepted", new Date('2024-02-15')));
-karim.applyToInternship(new Application(3, karim, cloudInternship, "rejected", new Date('2024-01-20')));
-
-// Add reports for Karim's approved internship
-const report1 = new Report(1, karim, dataScienceInternship, 
-    "First week report: Completed initial data analysis training and started working on customer segmentation project. Implemented K-means clustering algorithm and achieved 85% accuracy in customer grouping.",
-    new Date('2024-07-07')
-);
-
-const report2 = new Report(2, karim, dataScienceInternship,
-    "Second week report: Developed and deployed a machine learning model for predicting customer churn. Model achieved 92% accuracy on test data. Started working on feature engineering for next iteration.",
-    new Date('2024-07-14')
-);
-
-const report3 = new Report(3, karim, dataScienceInternship,
-    "Third week report: Implemented A/B testing framework for model validation. Created automated pipeline for data preprocessing. Presented findings to the team and received positive feedback.",
-    new Date('2024-07-21')
-);
-
-// Add reports to Karim's record
-karim.submitReport(report1);
-karim.submitReport(report2);
-karim.submitReport(report3);
-
-// Grade the reports (assuming Dr. Samer is the faculty supervisor)
-const drSamer = new Faculty(4, "Dr. Samer", "samer@guc.edu.eg", "123", "Computer Science");
-drSamer.gradeReport(report1, "A");
-drSamer.gradeReport(report2, "A+");
-drSamer.gradeReport(report3, "A");
-
-// Add notifications
-karim.addNotification("Your application to ABC Corp has been reviewed");
-karim.addNotification("New internship opportunity at Tech Solutions");
-karim.addNotification("Your report for Digital Systems has been approved");
-karim.addNotification("Your Week 1 report has been graded: A");
-karim.addNotification("Your Week 2 report has been graded: A+");
-karim.addNotification("Your Week 3 report has been graded: A");
-
-export const mockUsers = [
-    // Students
-    karim,
-    sarah,
-    omar,
-    
-    // Faculty Members
-    drSamer,
-    new Faculty(5, "Dr. Mona", "mona@guc.edu.eg", "123", "Information Engineering"),
-    new Faculty(6, "Dr. Ahmed", "ahmed@guc.edu.eg", "123", "Computer Science"),
-    
-    // Companies
-    abcCorp,
-    techSolutions,
-    digitalSystems,
-    
-    // SCAD
-    new SCAD(10, "SCAD Admin", "admin@scad.guc.edu.eg", "123"),
+const companyNames = [
+  ["TechNova", "Software"],
+  ["BioSync", "Biotech"],
+  ["Finverse", "Fintech"],
+  ["EcoDrive", "Sustainability"],
+  ["CyberLink", "Cybersecurity"],
+  ["RoboSphere", "AI & Robotics"]
 ];
 
-// Add remaining notifications
-mockUsers[3].addNotification("New student assigned: Karim Ahmed");
-mockUsers[3].addNotification("Report submitted by Sarah Mohamed");
+companyNames.forEach(([name, industry], idx) => {
+  const company = new Company(10 + idx, name.toLowerCase(), `${name.toLowerCase()}@corp.com`, "123", name, industry);
+  company.isApproved = true;
+  companies.push(company);
+});
 
-mockUsers[6].addNotification("Your company has been approved by SCAD");
-mockUsers[6].addNotification("New application received from Omar Hassan");
+const internships = [
+  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote", "2025-06-01", "2025-08-30"),
+  new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote", "2025-06-01", "2025-08-30"),
+  new InternshipPost(102, companies[1], "Bioinformatics Intern", "Analyze medical data.", "Cairo", "2025-06-01", "2025-09-01"),
+  new InternshipPost(103, companies[2], "Quant Intern", "Financial modeling in Python.", "Dubai", "2025-06-15", "2025-09-15"),
+  new InternshipPost(104, companies[2], "Data Analyst Intern", "Help automate dashboards.", "Remote", "2025-06-01", "2025-08-01"),
+  new InternshipPost(105, companies[3], "Sustainability Intern", "Research energy tech.", "Berlin", "2025-07-01", "2025-09-30"),
+  new InternshipPost(106, companies[4], "Cybersecurity Intern", "Audit and test systems.", "Online", "2025-06-01", "2025-08-30"),
+  new InternshipPost(107, companies[5], "AI Research Intern", "Train and deploy models.", "Cairo", "2025-06-01", "2025-09-01")
+];
 
-mockUsers[9].addNotification("New company registration: Tech Solutions");
-mockUsers[9].addNotification("New internship posted by Digital Systems");
+// Approve internships
+internships.forEach(i => {
+  scadAdmin.approveInternship(i);
+  i.company.postInternship(i);
+});
+
+// Sample Applications
+const application1 = new Application(200, student1, internships[0]);
+const application2 = new Application(201, student2, internships[4]);
+const application3 = new Application(202, student3, internships[7]);
+
+student1.applyToInternship(application1);
+student2.applyToInternship(application2);
+student3.applyToInternship(application3);
+
+// Hire and assign internships (simulate acceptance)
+companies[0].hireIntern(internships[0], student1);
+student1.currentInternship = new StudentInternship(300, companies[0], internships[0].title, internships[0].description, internships[0].location, internships[0].startDate, internships[0].endDate);
+student1.currentInternship.updateStatus("completed");
+
+// Add a completed internship to Ziad's past internships
+const completedInternship = new StudentInternship(303, companies[1], "Bioinformatics Research Intern", "Worked on medical data analysis and machine learning models.", "Cairo", "2024-01-01", "2024-04-30");
+completedInternship.updateStatus("completed");
+student1.addPastInternship(completedInternship);
+
+companies[2].hireIntern(internships[4], student2);
+student2.currentInternship = new StudentInternship(301, companies[2], internships[4].title, internships[4].description, internships[4].location, internships[4].startDate, internships[4].endDate);
+student2.currentInternship.updateStatus("accepted");
+
+companies[5].hireIntern(internships[7], student3);
+student3.currentInternship = new StudentInternship(302, companies[5], internships[7].title, internships[7].description, internships[7].location, internships[7].startDate, internships[7].endDate);
+student3.currentInternship.updateStatus("accepted");
+
+// Sample Reports
+const report1 = new Report(400, student1, student1.currentInternship, "Worked on frontend components using React.");
+const report2 = new Report(401, student2, student2.currentInternship, "Built analytics dashboards in Tableau.");
+const report3 = new Report(402, student3, student3.currentInternship, "Researched GPT model fine-tuning methods.");
+
+student1.submitReport(report1);
+student2.submitReport(report2);
+student3.submitReport(report3);
+
+// Export all mock data
+export const mockUsers = [
+  scadAdmin,
+  faculty1,
+  faculty2,
+  faculty3,
+  student1,
+  student2,
+  student3,
+  ...companies
+];
+
+export const mockReports = [report1, report2, report3];
+export const mockInternships = internships;
+export const mockApplications = [application1, application2, application3];

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import SideBar from '../Components/SideBar';
 import NavBar from '../Components/NavBar';
-import { mockUsers } from '../DummyData/mockUsers';
-import { mockInternships } from '../DummyData/mockInternships';
+import { mockUsers, mockInternships } from '../DummyData/mockUsers';
+
 import { Eye, Edit2, Trash2, Upload } from 'lucide-react';
-import { Application, Internship } from '../models/User';
+import { Application, InternshipPost } from '../models/models';
 
 // Check this code in InternshipPage.jsx
 const getInternshipsForUser = (currentUser) => {
@@ -27,7 +27,7 @@ const getInternshipsForUser = (currentUser) => {
       return internships;
       
     default:
-      return []; // Make sure you're returning a proper default
+      return [];
   }
 };
 
@@ -47,7 +47,13 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
   const isSCAD = currentUser?.role === 'scad';
   const [applying, setApplying] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
-  const [applyData, setApplyData] = useState({ name: currentUser?.username || '', email: currentUser?.email || '', major: currentUser?.major || '', gpa: currentUser?.gpa || '', semester: currentUser?.semesterNumber || '' });
+  const [applyData, setApplyData] = useState({ 
+    name: currentUser?.username || '', 
+    email: currentUser?.email || '', 
+    major: currentUser?.major || '', 
+    gpa: currentUser?.gpa || '', 
+    semester: currentUser?.semesterNumber || '' 
+  });
   const [applySuccess, setApplySuccess] = useState(false);
   const [industryFilter, setIndustryFilter] = useState('');
   const [durationFilter, setDurationFilter] = useState('');
@@ -58,9 +64,8 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
     title: '',
     location: '',
     description: '',
-    durationMonths: '',
-    paid: true,
-    salary: '',
+    startDate: '',
+    endDate: '',
     skills: []
   });
 
@@ -79,97 +84,83 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
   if (search.trim()) {
     internships = internships.filter(i =>
       i.title.toLowerCase().includes(search.toLowerCase()) ||
-      i.company.companyName.toLowerCase().includes(search.toLowerCase())
+      i.company.companyName.toLowerCase().includes(search.toLowerCase()) ||
+      i.location.toLowerCase().includes(search.toLowerCase())
     );
   }
-  // Filter by industry
+
+  // Apply industry filter
   if (industryFilter) {
     internships = internships.filter(i => i.company.industry === industryFilter);
   }
-  // Filter by duration
+
+  // Apply duration filter
   if (durationFilter) {
     internships = internships.filter(i => {
-      if (!i.durationMonths) return false;
-      if (durationFilter === '<2') return i.durationMonths < 2;
-      if (durationFilter === '2-4') return i.durationMonths >= 2 && i.durationMonths <= 4;
-      if (durationFilter === '>4') return i.durationMonths > 4;
-      return true;
+      const duration = (new Date(i.endDate) - new Date(i.startDate)) / (1000 * 60 * 60 * 24 * 30); // Convert to months
+      switch (durationFilter) {
+        case '<2': return duration < 2;
+        case '2-4': return duration >= 2 && duration <= 4;
+        case '>4': return duration > 4;
+        default: return true;
+      }
     });
   }
-  // Filter by paid/unpaid
+
+  // Apply paid filter
   if (paidFilter) {
-    internships = internships.filter(i => paidFilter === 'paid' ? i.paid : !i.paid);
+    internships = internships.filter(i => i.paid === (paidFilter === 'paid'));
   }
 
-  // Get page title based on user role
-  const getPageTitle = () => {
-    if (isCompany) return "Your Internship Postings";
-    if (isFaculty) return "All Internships";
-    if (isSCAD) return "All Internships";
-    return "Available Internships";
-  };
-
-  // Open modal with internship details
   const handleView = (internship) => {
     setSelected(internship);
     setShowModal(true);
   };
 
-  // Open the apply modal
   const openApplyModal = (internship) => {
     setSelected(internship);
     setShowApplyModal(true);
-    setApplyData({
-      name: currentUser?.username || '',
-      email: currentUser?.email || '',
-      major: currentUser?.major || '',
-      gpa: currentUser?.gpa || '',
-      semester: currentUser?.semesterNumber || ''
-    });
-    setApplySuccess(false);
   };
 
-  // Handle apply form change
-  const handleApplyChange = (e) => {
-    setApplyData({ ...applyData, [e.target.name]: e.target.value });
-  };
-
-  // Handle apply form submit
   const handleApplySubmit = (e) => {
     e.preventDefault();
-    setApplySuccess(true);
-    
-    // Create a new application
-    const newApp = new Application(
-      Date.now(),
+    setApplying(true);
+
+    // Create new application
+    const newApplication = new Application(
+      Date.now(), // Use timestamp as ID
       currentUser,
       selected,
       'pending',
       new Date(),
-      { ...applyData }
+      {
+        ...applyData,
+        files: uploadedFiles
+      }
     );
 
-    // Add the application to the student's applications
-    currentUser.applyToInternship(newApp);
+    // Add application to student's applications
+    currentUser.applyToInternship(newApplication);
 
-    // Update the current user state
-    setCurrentUser({
-      ...currentUser,
-      applications: [...currentUser.applications]
-    });
+    // Add applicant to internship
+    selected.addApplicant(newApplication);
 
+    setApplying(false);
+    setApplySuccess(true);
     setTimeout(() => {
       setShowApplyModal(false);
-      setSelected(null);
       setApplySuccess(false);
-      alert('Application submitted!');
-    }, 1200);
+      setSelected(null);
+      setUploadedFiles({ cv: null, coverLetter: null, certificates: null });
+    }, 2000);
   };
 
-  // Handle file uploads
   const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    setUploadedFiles(prev => ({ ...prev, [name]: files[0] }));
+    const { name } = e.target;
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setUploadedFiles(prev => ({ ...prev, [name]: files[0] }));
+    }
   };
 
   // Handle edit internship
@@ -179,9 +170,8 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
       title: internship.title || '',
       location: internship.location || '',
       description: internship.description || '',
-      durationMonths: internship.durationMonths || '',
-      paid: internship.paid || false,
-      salary: internship.salary || '',
+      startDate: internship.startDate.toISOString().split('T')[0] || '',
+      endDate: internship.endDate.toISOString().split('T')[0] || '',
       skills: internship.skills || []
     });
     setShowEditModal(true);
@@ -204,6 +194,8 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
       mockInternships[internshipIndex] = {
         ...mockInternships[internshipIndex],
         ...editData,
+        startDate: new Date(editData.startDate),
+        endDate: new Date(editData.endDate),
         skills: editData.skills.split(',').map(s => s.trim()).filter(Boolean)
       };
     }
@@ -239,21 +231,21 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
   // Get applicants count - only show for company's own internships
   const getApplicantsCount = (internship) => {
     if (isOwnInternship(internship)) {
-      return internship.applicants?.length || internship.applicationsCount || 0;
+      return internship.applicants?.length || 0;
     }
     return '-';
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
       <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ maxWidth: 1800, margin: '2rem auto', padding: '0 1rem' }}>
           {/* Title and subtitle */}
           <div style={{ marginBottom: 24, marginTop: 24 }}>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#1e293b' }}>{getPageTitle()}</div>
-            <div style={{ color: '#64748b', fontSize: 17, marginTop: 4 }}>Browse and manage internships</div>
+            <h1 style={{ fontSize: 32, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>Internships</h1>
+            <p style={{ fontSize: 16, color: '#64748b' }}>Browse and apply for internships</p>
           </div>
           {/* Card container */}
           <div style={{ 
@@ -283,9 +275,8 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                   type="text"
                   placeholder="Search internships..."
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={(e) => setSearch(e.target.value)}
                   style={{
-                    background: '#f8fafc',
                     border: '1px solid #e2e8f0',
                     borderRadius: 8,
                     padding: '8px 16px',
@@ -341,7 +332,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 <thead>
                   <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
                     <th style={{ padding: '14px 16px', fontWeight: 600, color: '#334155' }}>Company</th>
-                    <th style={{ padding: '14px 16px', fontWeight: 600, color: '#334155' }}>Position</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: '#334155' }}>Title</th>
                     <th style={{ padding: '14px 16px', fontWeight: 600, color: '#334155' }}>Location</th>
                     <th style={{ padding: '14px 16px', fontWeight: 600, color: '#334155' }}>Duration</th>
                     <th style={{ padding: '14px 16px', fontWeight: 600, color: '#334155' }}>Paid</th>
@@ -360,7 +351,11 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{internship.company?.companyName || '-'}</td>
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{internship.title || '-'}</td>
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{internship.location || '-'}</td>
-                      <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{internship.durationMonths ? `${internship.durationMonths}m` : '-'}</td>
+                      <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                        {internship.startDate && internship.endDate ? 
+                          `${Math.round((new Date(internship.endDate) - new Date(internship.startDate)) / (1000 * 60 * 60 * 24 * 30))}m` : 
+                          '-'}
+                      </td>
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
                         {internship.paid ? <span style={{ color: '#16a34a', fontWeight: 600 }}>Paid</span> : <span style={{ color: '#991b1b', fontWeight: 600 }}>Unpaid</span>}
                       </td>
@@ -382,11 +377,12 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                             background: STATUS_COLORS[internship.isApproved ? 'approved' : 'pending'].bg,
                             color: STATUS_COLORS[internship.isApproved ? 'approved' : 'pending'].color,
                             borderRadius: 8,
-                            padding: '4px 14px',
+                            padding: '4px 12px',
                             fontWeight: 600,
-                            fontSize: 15,
-                            display: 'inline-block',
-                          }}>{internship.isApproved ? 'Approved' : 'Pending'}</span>
+                            fontSize: 14
+                          }}>
+                            {internship.isApproved ? 'Approved' : 'Pending'}
+                          </span>
                         </td>
                       )}
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
@@ -476,18 +472,54 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
         </div>
         {/* Modal for internship details */}
         {showModal && selected && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#fff', borderRadius: 12, padding: 32, width: '100%', maxWidth: 540, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', position: 'relative' }}>
-              <button onClick={() => { setShowModal(false); setSelected(null); }} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: 'pointer' }}>×</button>
-              <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>{selected.title}</h3>
+          <div style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            width: '100vw', 
+            height: '100vh', 
+            background: 'rgba(0,0,0,0.18)', 
+            zIndex: 1000, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: '1rem'
+          }}>
+            <div style={{ 
+              background: '#fff', 
+              borderRadius: 12, 
+              padding: '1.5rem', 
+              width: '100%', 
+              maxWidth: 540, 
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
+              position: 'relative' 
+            }}>
+              <button 
+                onClick={() => { setShowModal(false); setSelected(null); }} 
+                style={{ 
+                  position: 'absolute', 
+                  top: 12, 
+                  right: 12, 
+                  background: 'none', 
+                  border: 'none', 
+                  fontSize: 22, 
+                  color: '#64748b', 
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >×</button>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 10, paddingRight: '2rem' }}>{selected.title}</h3>
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Company:</b> {selected.company.companyName}</div>
-              <div style={{ color: '#64748b', marginBottom: 8 }}><b>Industry:</b> {selected.company.industry}</div>
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Location:</b> {selected.location}</div>
-              <div style={{ color: '#64748b', marginBottom: 8 }}><b>Duration:</b> {selected.durationMonths ? `${selected.durationMonths} month${selected.durationMonths > 1 ? 's' : ''}` : '-'}</div>
-              <div style={{ color: '#64748b', marginBottom: 8 }}><b>Paid:</b> {selected.paid ? 'Paid' : 'Unpaid'}</div>
-              {selected.paid && (
-                <div style={{ color: '#64748b', marginBottom: 8 }}><b>Expected Salary:</b> {selected.salary ? `${selected.salary} EGP/month` : '-'}</div>
-              )}
+              <div style={{ color: '#64748b', marginBottom: 8 }}><b>Duration:</b> {selected.startDate && selected.endDate ? 
+                `${Math.round((new Date(selected.endDate) - new Date(selected.startDate)) / (1000 * 60 * 60 * 24 * 30))} months` : 
+                '-'}</div>
+              <div style={{ color: '#64748b', marginBottom: 8 }}><b>Status:</b> {selected.isApproved ? 'Approved' : 'Pending'}</div>
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Skills Required:</b> {Array.isArray(selected.skills) ? selected.skills.join(', ') : '-'}</div>
               {isOwnInternship(selected) && (
                 <div style={{ color: '#64748b', marginBottom: 8 }}><b>Total Applicants:</b> {getApplicantsCount(selected)}</div>
@@ -495,22 +527,52 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
               <div style={{ color: '#334155', marginBottom: 18 }}><b>Job Description:</b> {selected.description}</div>
               {isStudent && selected.isApproved && (
                 <button
-                  style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 24px', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}
-                  onClick={() => openApplyModal(selected)}
+                  style={{ 
+                    background: '#1746a2', 
+                    color: '#fff', 
+                    border: 'none', 
+                    borderRadius: 6, 
+                    padding: '0.75rem 1.5rem', 
+                    fontWeight: 600, 
+                    fontSize: '1rem', 
+                    cursor: 'pointer', 
+                    width: '100%' 
+                  }}
+                  onClick={() => { setShowModal(false); openApplyModal(selected); }}
                 >
-                  Apply
+                  Apply Now
                 </button>
               )}
               {isOwnInternship(selected) && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                   <button
-                    style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 24px', fontWeight: 600, fontSize: 16, cursor: 'pointer', flex: 1 }}
+                    style={{ 
+                      background: '#1746a2', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: 6, 
+                      padding: '0.75rem 1.5rem', 
+                      fontWeight: 600, 
+                      fontSize: '1rem', 
+                      cursor: 'pointer', 
+                      flex: 1 
+                    }}
                     onClick={() => { setShowModal(false); handleEdit(selected); }}
                   >
                     Edit
                   </button>
                   <button
-                    style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: 6, padding: '8px 24px', fontWeight: 600, fontSize: 16, cursor: 'pointer', flex: 1 }}
+                    style={{ 
+                      background: '#fee2e2', 
+                      color: '#991b1b', 
+                      border: 'none', 
+                      borderRadius: 6, 
+                      padding: '0.75rem 1.5rem', 
+                      fontWeight: 600, 
+                      fontSize: '1rem', 
+                      cursor: 'pointer', 
+                      flex: 1 
+                    }}
                     onClick={() => handleDelete(selected)}
                   >
                     Delete
@@ -522,10 +584,48 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
         )}
         {/* Modal for editing internship */}
         {showEditModal && selected && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#fff', borderRadius: 12, padding: 32, width: '100%', maxWidth: 540, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', position: 'relative' }}>
-              <button onClick={() => { setShowEditModal(false); setSelected(null); }} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: 'pointer' }}>×</button>
-              <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Edit Internship</h3>
+          <div style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            width: '100vw', 
+            height: '100vh', 
+            background: 'rgba(0,0,0,0.18)', 
+            zIndex: 1000, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: '1rem'
+          }}>
+            <div style={{ 
+              background: '#fff', 
+              borderRadius: 12, 
+              padding: '1.5rem', 
+              width: '100%', 
+              maxWidth: 540, 
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
+              position: 'relative' 
+            }}>
+              <button 
+                onClick={() => { setShowEditModal(false); setSelected(null); }} 
+                style={{ 
+                  position: 'absolute', 
+                  top: 12, 
+                  right: 12, 
+                  background: 'none', 
+                  border: 'none', 
+                  fontSize: 22, 
+                  color: '#64748b', 
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >×</button>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20, paddingRight: '2rem' }}>Edit Internship</h3>
               <form onSubmit={handleEditSubmit}>
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Title</label>
@@ -534,7 +634,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                     name="title"
                     value={editData.title}
                     onChange={handleEditChange}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
                     required
                   />
                 </div>
@@ -545,7 +645,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                     name="location"
                     value={editData.location}
                     onChange={handleEditChange}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
                     required
                   />
                 </div>
@@ -555,44 +655,32 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                     name="description"
                     value={editData.description}
                     onChange={handleEditChange}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', minHeight: 100 }}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0', minHeight: 100 }}
                     required
                   />
                 </div>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Duration (months)</label>
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Start Date</label>
                   <input
-                    type="number"
-                    name="durationMonths"
-                    value={editData.durationMonths}
+                    type="date"
+                    name="startDate"
+                    value={editData.startDate}
                     onChange={handleEditChange}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
                     required
                   />
                 </div>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      name="paid"
-                      checked={editData.paid}
-                      onChange={handleEditChange}
-                    />
-                    Paid Internship
-                  </label>
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>End Date</label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={editData.endDate}
+                    onChange={handleEditChange}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    required
+                  />
                 </div>
-                {editData.paid && (
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Salary (EGP/month)</label>
-                    <input
-                      type="number"
-                      name="salary"
-                      value={editData.salary}
-                      onChange={handleEditChange}
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}
-                    />
-                  </div>
-                )}
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Skills (comma-separated)</label>
                   <input
@@ -600,12 +688,22 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                     name="skills"
                     value={Array.isArray(editData.skills) ? editData.skills.join(', ') : editData.skills}
                     onChange={handleEditChange}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
                   />
                 </div>
                 <button
                   type="submit"
-                  style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 6, padding: '12px 24px', fontWeight: 600, fontSize: 16, cursor: 'pointer', width: '100%' }}
+                  style={{ 
+                    background: '#1746a2', 
+                    color: '#fff', 
+                    border: 'none', 
+                    borderRadius: 6, 
+                    padding: '0.75rem 1.5rem', 
+                    fontWeight: 600, 
+                    fontSize: '1rem', 
+                    cursor: 'pointer', 
+                    width: '100%' 
+                  }}
                 >
                   Save Changes
                 </button>
@@ -615,192 +713,218 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
         )}
         {/* Modal for applying to internship */}
         {showApplyModal && selected && (
-
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#fff', borderRadius: 12, padding: 32, width: '100%', maxWidth: 540, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', position: 'relative' }}>
-              <button onClick={() => { setShowApplyModal(false); setApplySuccess(false); }} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: 'pointer' }}>×</button>
-              <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>Apply for {selected.title}</h3>
+          <div style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            width: '100vw', 
+            height: '100vh', 
+            background: 'rgba(0,0,0,0.18)', 
+            zIndex: 1100, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: '1rem'
+          }}>
+            <div style={{ 
+              background: '#fff', 
+              borderRadius: 12, 
+              padding: '1.5rem', 
+              width: '100%', 
+              maxWidth: 540, 
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
+              position: 'relative' 
+            }}>
+              <button 
+                onClick={() => { setShowApplyModal(false); setApplySuccess(false); }} 
+                style={{ 
+                  position: 'absolute', 
+                  top: 12, 
+                  right: 12, 
+                  background: 'none', 
+                  border: 'none', 
+                  fontSize: 22, 
+                  color: '#64748b', 
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >×</button>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 10, paddingRight: '2rem' }}>Apply for {selected.title}</h3>
 
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Company:</b> {selected.company.companyName}</div>
               <form onSubmit={handleApplySubmit} style={{ 
-                marginTop: 18, 
                 display: 'flex', 
                 flexDirection: 'column', 
-                gap: 12 
+                gap: 16,
+                marginTop: 24
               }}>
                 <div>
-                  <label style={{ 
-                    fontWeight: 500, 
-                    display: 'block', 
-                    marginBottom: 4,
-                    fontSize: window.innerWidth < 480 ? 14 : 15
-                  }}>Name</label>
-                  <input 
-                    name="name" 
-                    value={applyData.name} 
-                    onChange={handleApplyChange} 
-                    style={{ 
-                      width: '100%', 
-                      padding: '8px 12px', 
-                      borderRadius: 6, 
-                      border: '1px solid #e2e8f0',
-                      fontSize: window.innerWidth < 480 ? 14 : 15
-                    }} 
-                    required 
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Name</label>
+                  <input
+                    type="text"
+                    value={applyData.name}
+                    onChange={(e) => setApplyData(prev => ({ ...prev, name: e.target.value }))}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    required
                   />
                 </div>
                 <div>
-                  <label style={{ 
-                    fontWeight: 500, 
-                    display: 'block', 
-                    marginBottom: 4,
-                    fontSize: window.innerWidth < 480 ? 14 : 15
-                  }}>Email</label>
-                  <input 
-                    name="email" 
-                    value={applyData.email} 
-                    onChange={handleApplyChange} 
-                    style={{ 
-                      width: '100%', 
-                      padding: '8px 12px', 
-                      borderRadius: 6, 
-                      border: '1px solid #e2e8f0',
-                      fontSize: window.innerWidth < 480 ? 14 : 15
-                    }} 
-                    required 
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Email</label>
+                  <input
+                    type="email"
+                    value={applyData.email}
+                    onChange={(e) => setApplyData(prev => ({ ...prev, email: e.target.value }))}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    required
                   />
                 </div>
                 <div>
-                  <label style={{ 
-                    fontWeight: 500, 
-                    display: 'block', 
-                    marginBottom: 4,
-                    fontSize: window.innerWidth < 480 ? 14 : 15
-                  }}>Major</label>
-                  <input 
-                    name="major" 
-                    value={applyData.major} 
-                    onChange={handleApplyChange} 
-                    style={{ 
-                      width: '100%', 
-                      padding: '8px 12px', 
-                      borderRadius: 6, 
-                      border: '1px solid #e2e8f0',
-                      fontSize: window.innerWidth < 480 ? 14 : 15
-                    }} 
-                    required 
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Major</label>
+                  <input
+                    type="text"
+                    value={applyData.major}
+                    onChange={(e) => setApplyData(prev => ({ ...prev, major: e.target.value }))}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    required
                   />
                 </div>
                 <div>
-                  <label style={{ 
-                    fontWeight: 500, 
-                    display: 'block', 
-                    marginBottom: 4,
-                    fontSize: window.innerWidth < 480 ? 14 : 15
-                  }}>GPA</label>
-                  <input 
-                    name="gpa" 
-                    value={applyData.gpa} 
-                    onChange={handleApplyChange} 
-                    style={{ 
-                      width: '100%', 
-                      padding: '8px 12px', 
-                      borderRadius: 6, 
-                      border: '1px solid #e2e8f0',
-                      fontSize: window.innerWidth < 480 ? 14 : 15
-                    }} 
-                    required 
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>GPA</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="4"
+                    value={applyData.gpa}
+                    onChange={(e) => setApplyData(prev => ({ ...prev, gpa: e.target.value }))}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    required
                   />
                 </div>
                 <div>
-                  <label style={{ 
-                    fontWeight: 500, 
-                    display: 'block', 
-                    marginBottom: 4,
-                    fontSize: window.innerWidth < 480 ? 14 : 15
-                  }}>Semester</label>
-                  <input 
-                    name="semester" 
-                    value={applyData.semester} 
-                    onChange={handleApplyChange} 
-                    style={{ 
-                      width: '100%', 
-                      padding: '8px 12px', 
-                      borderRadius: 6, 
-                      border: '1px solid #e2e8f0',
-                      fontSize: window.innerWidth < 480 ? 14 : 15
-                    }} 
-                    required 
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Current Semester</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={applyData.semester}
+                    onChange={(e) => setApplyData(prev => ({ ...prev, semester: e.target.value }))}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: 6, border: '1px solid #e2e8f0' }}
+                    required
                   />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button type="button" onClick={() => document.getElementById('cv-upload').click()} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button 
+                    type="button" 
+                    onClick={() => document.getElementById('cv-upload').click()} 
+                    style={{ 
+                      background: '#f1f5f9', 
+                      border: '1px solid #e2e8f0', 
+                      borderRadius: 8, 
+                      padding: '0.75rem', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8,
+                      width: '100%',
+                      justifyContent: 'center'
+                    }}
+                  >
                     <Upload size={18} /> Upload CV
-
                   </button>
                   <input id="cv-upload" name="cv" type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} style={{ display: 'none' }} />
                   {uploadedFiles.cv && (
-                    <span style={{ 
-                      fontSize: window.innerWidth < 480 ? 13 : 14,
-                      wordBreak: 'break-all'
-                    }}>{uploadedFiles.cv.name}</span>
+                    <span style={{ color: '#16a34a', fontSize: 14 }}>✓ {uploadedFiles.cv.name}</span>
                   )}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button type="button" onClick={() => document.getElementById('coverLetter-upload').click()} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button 
+                    type="button" 
+                    onClick={() => document.getElementById('coverLetter-upload').click()} 
+                    style={{ 
+                      background: '#f1f5f9', 
+                      border: '1px solid #e2e8f0', 
+                      borderRadius: 8, 
+                      padding: '0.75rem', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8,
+                      width: '100%',
+                      justifyContent: 'center'
+                    }}
+                  >
                     <Upload size={18} /> Upload Cover Letter
-
                   </button>
                   <input id="coverLetter-upload" name="coverLetter" type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} style={{ display: 'none' }} />
                   {uploadedFiles.coverLetter && (
-                    <span style={{ 
-                      fontSize: window.innerWidth < 480 ? 13 : 14,
-                      wordBreak: 'break-all'
-                    }}>{uploadedFiles.coverLetter.name}</span>
+                    <span style={{ color: '#16a34a', fontSize: 14 }}>✓ {uploadedFiles.coverLetter.name}</span>
                   )}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button type="button" onClick={() => document.getElementById('certificates-upload').click()} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button 
+                    type="button" 
+                    onClick={() => document.getElementById('certificates-upload').click()} 
+                    style={{ 
+                      background: '#f1f5f9', 
+                      border: '1px solid #e2e8f0', 
+                      borderRadius: 8, 
+                      padding: '0.75rem', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8,
+                      width: '100%',
+                      justifyContent: 'center'
+                    }}
+                  >
                     <Upload size={18} /> Upload Certificates
-
                   </button>
                   <input id="certificates-upload" name="certificates" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} style={{ display: 'none' }} />
                   {uploadedFiles.certificates && (
-                    <span style={{ 
-                      fontSize: window.innerWidth < 480 ? 13 : 14,
-                      wordBreak: 'break-all'
-                    }}>{uploadedFiles.certificates.name}</span>
+                    <span style={{ color: '#16a34a', fontSize: 14 }}>✓ {uploadedFiles.certificates.name}</span>
                   )}
                 </div>
-                <button 
-                  type="submit" 
+
+                <button
+                  type="submit"
+                  disabled={applying}
                   style={{ 
                     background: '#1746a2', 
                     color: '#fff', 
                     border: 'none', 
                     borderRadius: 6, 
-                    padding: '8px 24px', 
+                    padding: '0.75rem 1.5rem', 
                     fontWeight: 600, 
-                    fontSize: window.innerWidth < 480 ? 15 : 16, 
-                    cursor: 'pointer', 
-                    marginTop: 8,
-                    width: window.innerWidth < 480 ? '100%' : 'auto'
+                    fontSize: '1rem', 
+                    cursor: applying ? 'not-allowed' : 'pointer',
+                    opacity: applying ? 0.7 : 1,
+                    width: '100%'
                   }}
                 >
-                  Submit Application
+                  {applying ? 'Submitting...' : 'Submit Application'}
                 </button>
-                {applySuccess && (
-                  <div style={{ 
-                    color: '#16a34a', 
-                    fontWeight: 600, 
-                    fontSize: window.innerWidth < 480 ? 15 : 16, 
-                    marginTop: 12,
-                    textAlign: 'center'
-                  }}>Application submitted!</div>
-                )}
               </form>
+              {applySuccess && (
+                <div style={{ 
+                  background: '#dcfce7', 
+                  color: '#16a34a', 
+                  padding: '0.75rem 1rem', 
+                  borderRadius: 6, 
+                  marginTop: 16,
+                  textAlign: 'center',
+                  fontWeight: 500
+                }}>
+                  Application submitted successfully!
+                </div>
+              )}
             </div>
           </div>
         )}

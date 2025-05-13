@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
-import { mockInternships } from '../../DummyData/mockInternships';
+import { mockInternships, mockReports } from '../../DummyData/mockUsers';
 import jsPDF from 'jspdf';
 
 // Example: courses per major (expand as needed)
 const COURSES_BY_MAJOR = {
-  'Computer Science': [
+  'CS': [
     'Data Structures',
     'Algorithms',
     'Operating Systems',
@@ -17,7 +17,7 @@ const COURSES_BY_MAJOR = {
     'Machine Learning',
     'Artificial Intelligence',
   ],
-  'Information Engineering': [
+  'IS': [
     'Signals and Systems',
     'Digital Logic',
     'Database Systems',
@@ -25,27 +25,34 @@ const COURSES_BY_MAJOR = {
     'Embedded Systems',
     'Computer Networks',
   ],
-  // Add more majors as needed
+  'Robotics': [
+    'Robotics Fundamentals',
+    'AI & Machine Learning',
+    'Control Systems',
+    'Computer Vision',
+    'Embedded Systems',
+    'Programming for Robotics',
+  ]
 };
 
 const StudentReports = ({ currentUser }) => {
   const [selectedInternship, setSelectedInternship] = useState(null);
   const [form, setForm] = useState({
     title: '',
-    introduction: '',
-    body: '',
+    content: '',
     courses: [],
   });
-  const [reports, setReports] = useState(currentUser?.reports || []);
+  const [reports, setReports] = useState(currentUser?.reports?.map(report => ({
+    ...report,
+    courses: report.courses || []
+  })) || []);
   const [uploading, setUploading] = useState(false);
   const [editingReportId, setEditingReportId] = useState(null);
   const [notifiedInternships, setNotifiedInternships] = useState([]);
 
   // Use mockInternships if user has no internships
-  const internships = (currentUser?.internships && currentUser.internships.length > 0)
-    ? currentUser.internships
-    : mockInternships;
-  const major = currentUser?.major || 'Computer Science';
+  const internships = currentUser?.currentInternship ? [currentUser.currentInternship] : mockInternships;
+  const major = currentUser?.major || 'CS';
   const availableCourses = COURSES_BY_MAJOR[major] || [];
 
   // Filter reports for a specific internship
@@ -54,16 +61,12 @@ const StudentReports = ({ currentUser }) => {
 
   const handleSelectInternship = (internship) => {
     setSelectedInternship(internship);
-    setForm({ title: '', introduction: '', body: '', courses: [] });
+    setForm({ title: '', content: '', courses: [] });
     setEditingReportId(null);
     // Notify if flagged or rejected
     const status = getStatus(internship);
-    if ((status === 'flagged' || status === 'rejected') && currentUser?.notifications && !notifiedInternships.includes(internship.id)) {
-      currentUser.notifications.push({
-        message: `Your internship '${internship.title}' was ${status}.`,
-        date: new Date().toISOString(),
-        read: false
-      });
+    if ((status === 'flagged' || status === 'rejected') && !notifiedInternships.includes(internship.id)) {
+      currentUser?.addNotification(`Your internship '${internship.title}' was ${status}.`);
       setNotifiedInternships(prev => [...prev, internship.id]);
     }
   };
@@ -78,6 +81,13 @@ const StudentReports = ({ currentUser }) => {
     }
   };
 
+  // Format date helper function
+  const formatDate = (date) => {
+    if (!date) return '';
+    if (typeof date === 'string') return date;
+    return new Date(date).toLocaleDateString();
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedInternship) return;
@@ -90,9 +100,8 @@ const StudentReports = ({ currentUser }) => {
             ? {
                 ...r,
                 title: form.title,
-                introduction: form.introduction,
-                body: form.body,
-                courses: form.courses,
+                content: form.content,
+                courses: form.courses || [],
               }
             : r
         ));
@@ -102,15 +111,15 @@ const StudentReports = ({ currentUser }) => {
           id: Date.now(),
           internship: selectedInternship,
           title: form.title,
-          introduction: form.introduction,
-          body: form.body,
-          courses: form.courses,
-          submissionDate: new Date().toLocaleDateString(),
+          content: form.content,
+          courses: form.courses || [],
+          submissionDate: new Date(),
           status: 'Submitted',
         };
         setReports((prev) => [...prev, newReport]);
+        currentUser?.submitReport(newReport);
       }
-      setForm({ title: '', introduction: '', body: '', courses: [] });
+      setForm({ title: '', content: '', courses: [] });
       setUploading(false);
       setEditingReportId(null);
       setSelectedInternship(null);
@@ -121,7 +130,7 @@ const StudentReports = ({ currentUser }) => {
     setReports((prev) => prev.filter((r) => r.id !== reportId));
     if (editingReportId === reportId) {
       setEditingReportId(null);
-      setForm({ title: '', introduction: '', body: '', courses: [] });
+      setForm({ title: '', content: '', courses: [] });
     }
   };
 
@@ -131,10 +140,8 @@ const StudentReports = ({ currentUser }) => {
     doc.setFontSize(16);
     doc.text(report.title, 10, 20);
     doc.setFontSize(12);
-    doc.text('Introduction:', 10, 35);
-    doc.text(report.introduction, 10, 45, { maxWidth: 180 });
-    doc.text('Body:', 10, 60);
-    doc.text(report.body, 10, 70, { maxWidth: 180 });
+    doc.text('Content:', 10, 35);
+    doc.text(report.content, 10, 45, { maxWidth: 180 });
     doc.text('Courses Used: ' + report.courses.join(', '), 10, 85);
     doc.save(`${report.title.replace(/\s+/g, '_')}_report.pdf`);
   };
@@ -143,8 +150,7 @@ const StudentReports = ({ currentUser }) => {
     setSelectedInternship(report.internship);
     setForm({
       title: report.title,
-      introduction: report.introduction,
-      body: report.body,
+      content: report.content,
       courses: report.courses,
     });
     setEditingReportId(report.id);
@@ -153,14 +159,6 @@ const StudentReports = ({ currentUser }) => {
   // Add status for demo (in real app, this would come from backend)
   const getStatus = (internship) => {
     if (internship.status) return internship.status;
-    if (internship.title.toLowerCase().includes('flagged')) return 'flagged';
-    if (internship.title.toLowerCase().includes('rejected')) return 'rejected';
-    if (internship.title.toLowerCase().includes('completed')) return 'completed';
-    if (internship.title.toLowerCase().includes('pending')) return 'pending';
-    if (internship.title.toLowerCase().includes('accepted')) return 'accepted';
-    if (internship.id % 5 === 0) return 'flagged';
-    if (internship.id % 3 === 0) return 'rejected';
-    if (internship.id % 2 === 0) return 'accepted';
     return 'pending';
   };
 
@@ -168,46 +166,6 @@ const StudentReports = ({ currentUser }) => {
   const [appealState, setAppealState] = useState({}); // { [reportId]: { comment: '', submitted: false } }
   const appealRefs = useRef({});
   const [scrollToAppealId, setScrollToAppealId] = useState(null);
-
-  // Dummy flagged and rejected reports for demo (only one per internship)
-  const dummyFlaggedReports = [
-    {
-      id: 101,
-      title: 'Backend API Report',
-      introduction: 'API flagged for review.',
-      body: 'Details about the backend API internship flagged.',
-      courses: ['Database Systems', 'Software Engineering'],
-      submissionDate: '2025-07-10',
-      status: 'flagged',
-      internship: { id: 11, title: 'Backend Developer Intern (Flagged)' }
-    }
-  ];
-  const dummyRejectedReports = [
-    {
-      id: 102,
-      title: 'QA Testing Report',
-      introduction: 'QA internship was rejected.',
-      body: 'Details about the QA internship rejection.',
-      courses: ['Operating Systems'],
-      submissionDate: '2025-07-12',
-      status: 'rejected',
-      internship: { id: 12, title: 'QA Tester Intern (Rejected)' }
-    }
-  ];
-
-  // Add a dummy notification for demo
-  useEffect(() => {
-    if (currentUser && currentUser.notifications && !currentUser.notifications.some(n => n.message.includes('flagged'))) {
-      currentUser.notifications.unshift({
-        message: "Your internship 'Backend Developer Intern (Flagged)' was flagged.",
-        date: new Date().toISOString(),
-        read: false,
-        type: 'flagged',
-        internshipId: 11,
-        reportId: 101
-      });
-    }
-  }, [currentUser]);
 
   // Scroll to appeal form if notification is clicked
   useEffect(() => {
@@ -231,13 +189,19 @@ const StudentReports = ({ currentUser }) => {
       [reportId]: { ...prev[reportId], comment: value }
     }));
   };
+
   const handleAppealSubmit = (e, reportId) => {
     e.preventDefault();
     setAppealState((prev) => ({
       ...prev,
       [reportId]: { ...prev[reportId], submitted: true }
     }));
-    // Optionally, move to "Appealed Reports" section or show under submitted
+    currentUser?.addNotification(`Appeal submitted for report ${reportId}`);
+  };
+
+  // Filter reports by status
+  const getReportsByStatus = (status) => {
+    return reports.filter(report => report.status === status);
   };
 
   // Only show content if user is logged in
@@ -312,19 +276,10 @@ const StudentReports = ({ currentUser }) => {
                       required
                     />
                     <textarea
-                      name="introduction"
-                      value={form.introduction}
+                      name="content"
+                      value={form.content}
                       onChange={handleFormChange}
-                      placeholder="Introduction"
-                      rows={2}
-                      style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
-                      required
-                    />
-                    <textarea
-                      name="body"
-                      value={form.body}
-                      onChange={handleFormChange}
-                      placeholder="Body"
+                      placeholder="Content"
                       rows={5}
                       style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
                       required
@@ -351,7 +306,7 @@ const StudentReports = ({ currentUser }) => {
                     {editingReportId && (
                       <button
                         type="button"
-                        onClick={() => { setEditingReportId(null); setForm({ title: '', introduction: '', body: '', courses: [] }); setSelectedInternship(null); }}
+                        onClick={() => { setEditingReportId(null); setForm({ title: '', content: '', courses: [] }); setSelectedInternship(null); }}
                         style={{ background: '#e2e8f0', color: '#1746a2', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
                       >
                         Cancel Edit
@@ -370,10 +325,9 @@ const StudentReports = ({ currentUser }) => {
                     getReportsForInternship(selectedInternship.id).map((report) => (
                       <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                         <div style={{ fontWeight: 600 }}>{report.title}</div>
-                        <div style={{ color: '#64748b', fontSize: 14 }}>{report.submissionDate}</div>
-                        <div style={{ fontSize: 15 }}><b>Introduction:</b> {report.introduction}</div>
-                        <div style={{ fontSize: 15 }}><b>Body:</b> {report.body}</div>
-                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {report.courses.join(', ')}</div>
+                        <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                         <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
                           <button onClick={() => handleDownload(report)} style={{ background: '#e0e7ef', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Download</button>
                           <button onClick={() => handleEdit(report)} style={{ background: '#e0f2fe', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Edit</button>
@@ -384,16 +338,15 @@ const StudentReports = ({ currentUser }) => {
                   )}
                   {/* Flagged Reports Section */}
                   <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#b91c1c' }}>Flagged Reports</h4>
-                  {dummyFlaggedReports.length === 0 ? (
+                  {getReportsByStatus('flagged').length === 0 ? (
                     <div style={{ color: '#64748b' }}>No flagged reports.</div>
                   ) : (
-                    dummyFlaggedReports.map((report) => (
+                    getReportsByStatus('flagged').map((report) => (
                       <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fff7ed', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                         <div style={{ fontWeight: 600 }}>{report.title}</div>
-                        <div style={{ color: '#64748b', fontSize: 14 }}>{report.submissionDate}</div>
-                        <div style={{ fontSize: 15 }}><b>Introduction:</b> {report.introduction}</div>
-                        <div style={{ fontSize: 15 }}><b>Body:</b> {report.body}</div>
-                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {report.courses.join(', ')}</div>
+                        <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                         {/* Appeal form for flagged */}
                         {!appealState[report.id]?.submitted ? (
                           <form onSubmit={e => handleAppealSubmit(e, report.id)} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
@@ -420,16 +373,15 @@ const StudentReports = ({ currentUser }) => {
                   )}
                   {/* Rejected Reports Section */}
                   <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#991b1b' }}>Rejected Reports</h4>
-                  {dummyRejectedReports.length === 0 ? (
+                  {getReportsByStatus('rejected').length === 0 ? (
                     <div style={{ color: '#64748b' }}>No rejected reports.</div>
                   ) : (
-                    dummyRejectedReports.map((report) => (
+                    getReportsByStatus('rejected').map((report) => (
                       <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                         <div style={{ fontWeight: 600 }}>{report.title}</div>
-                        <div style={{ color: '#64748b', fontSize: 14 }}>{report.submissionDate}</div>
-                        <div style={{ fontSize: 15 }}><b>Introduction:</b> {report.introduction}</div>
-                        <div style={{ fontSize: 15 }}><b>Body:</b> {report.body}</div>
-                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {report.courses.join(', ')}</div>
+                        <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                         {/* Appeal form for rejected */}
                         {!appealState[report.id]?.submitted ? (
                           <form onSubmit={e => handleAppealSubmit(e, report.id)} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>

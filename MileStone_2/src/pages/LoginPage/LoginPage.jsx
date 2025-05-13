@@ -9,8 +9,6 @@ const LoginPage = ({ onLogin }) => {
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
-    console.log("Current role:", role); // Add this debug line
-
     const handleLogin = () => {
         const user = mockUsers.find(
             (u) => u.username === username && u.password === password && u.role === role

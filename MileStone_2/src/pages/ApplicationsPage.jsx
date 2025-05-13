@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { mockUsers } from '../DummyData/mockUsers';
-import { mockInternships } from '../DummyData/mockInternships';
-import { Plus, Filter } from 'lucide-react';
+import { mockUsers, mockInternships, mockApplications } from '../DummyData/mockUsers';
+import { Plus, Filter, Eye, CheckCircle2, XCircle } from 'lucide-react';
 import NavBar from '../Components/NavBar';
 import SideBar from '../Components/SideBar';
 
@@ -121,11 +120,90 @@ const ApplicationCard = ({ application, showStudent, onViewDetails }) => {
   );
 };
 
-const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
+const ApplicationsPage = ({ currentUser }) => {
+  const [selected, setSelected] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const isStudent = currentUser?.role === 'student';
+  const isCompany = currentUser?.role === 'company';
+  const isFaculty = currentUser?.role === 'faculty';
+  const isSCAD = currentUser?.role === 'scad';
+
+  // Get applications based on user role
+  const getApplications = () => {
+    if (!currentUser) return [];
+
+    switch (currentUser.role.toLowerCase()) {
+      case 'student':
+        // Students see their own applications
+        return currentUser.applications || [];
+        
+      case 'company':
+        // Companies see applications for their internships
+        return mockApplications.filter(app => 
+          app.internship.company.id === currentUser.id
+        );
+        
+      case 'faculty':
+      case 'scad':
+        // Faculty and SCAD see all applications
+        return mockApplications;
+        
+      default:
+        return [];
+    }
+  };
+
+  // Get applications and apply filters
+  let applications = getApplications();
+
+  // Apply search filter
+  if (search.trim()) {
+    applications = applications.filter(app =>
+      app.internship.title.toLowerCase().includes(search.toLowerCase()) ||
+      app.internship.company.companyName.toLowerCase().includes(search.toLowerCase()) ||
+      (isCompany && app.student.username.toLowerCase().includes(search.toLowerCase()))
+    );
+  }
+
+  // Apply status filter
+  if (statusFilter) {
+    applications = applications.filter(app => app.status === statusFilter);
+  }
+
+  const handleView = (application) => {
+    setSelected(application);
+    setShowModal(true);
+  };
+
+  const handleStatusChange = (application, newStatus) => {
+    // Update application status
+    application.status = newStatus;
+
+    // Notify student
+    application.student.addNotification(
+      `Your application for "${application.internship.title}" has been ${newStatus}`
+    );
+
+    // Force re-render
+    setSearch(prev => prev + '');
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'accepted':
+        return { bg: '#dcfce7', color: '#16a34a' };
+      case 'rejected':
+        return { bg: '#fee2e2', color: '#991b1b' };
+      case 'pending':
+        return { bg: '#fef3c7', color: '#b45309' };
+      default:
+        return { bg: '#f1f5f9', color: '#64748b' };
+    }
+  };
+
   // Header styles
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedApp, setSelectedApp] = useState(null);
   const headerBox = { 
     marginBottom: 32, 
     maxWidth: '95%', 
@@ -147,41 +225,6 @@ const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
   };
   const actionsRow = { display: 'flex', gap: 12 };
   const actionBtn = { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#1746a2', fontWeight: 600, fontSize: 15, cursor: 'pointer', transition: 'background 0.2s' };
-
-  // Get applications based on user role
-  const getApplications = () => {
-    let applications = [];
-    if (currentUser?.role === 'student') {
-      applications = currentUser.applications || [];
-    } else if (currentUser?.role === 'scad' || currentUser?.role === 'faculty') {
-      applications = mockUsers
-        .filter(u => u.role === 'student')
-        .flatMap(student => student.applications.map(app => ({ ...app, student })));
-    }
-    
-    // Sort applications by submission date (most recent first)
-    return applications.sort((a, b) => {
-      const dateA = new Date(a.submissionDate);
-      const dateB = new Date(b.submissionDate);
-      return dateB - dateA;
-    });
-  };
-
-  // Filter applications
-  let filteredApps = getApplications();
-  
-  // Filter by status
-  if (statusFilter !== 'all') {
-    filteredApps = filteredApps.filter(app => app.status.toLowerCase() === statusFilter);
-  }
-  
-  // Filter by search term
-  if (searchTerm.trim()) {
-    filteredApps = filteredApps.filter(app =>
-      app.internship.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.internship.company.companyName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }
 
   // Main content
   const mainContent = (
@@ -233,8 +276,8 @@ const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
         <input
           type="text"
           placeholder="Search company or internship..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
           style={{
             padding: '8px 16px',
             borderRadius: 8,
@@ -247,16 +290,16 @@ const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
         />
       </div>
       <div style={{ maxWidth: '95%', margin: '0 auto' }}>
-        {filteredApps.length === 0 ? (
+        {applications.length === 0 ? (
           <div style={{ color: '#64748b', fontSize: 16 }}>No applications found.</div>
         ) : (
-          filteredApps.map((app, idx) => (
-            <ApplicationCard key={idx} application={app} showStudent={currentUser?.role !== 'student'} onViewDetails={() => setSelectedApp(app)} />
+          applications.map((app, idx) => (
+            <ApplicationCard key={idx} application={app} showStudent={currentUser?.role !== 'student'} onViewDetails={() => handleView(app)} />
           ))
         )}
       </div>
       {/* Modal for application details */}
-      {selectedApp && (
+      {selected && (
         <div style={{ 
           position: 'fixed', 
           top: 0, 
@@ -281,20 +324,20 @@ const ApplicationsPage = ({ currentUser, setCurrentUser }) => {
             maxHeight: '90vh',
             overflowY: 'auto'
           }}>
-            <button onClick={() => setSelectedApp(null)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: 'pointer' }}>×</button>
-            <h3 style={{ fontSize: window.innerWidth < 480 ? 20 : 22, fontWeight: 700, marginBottom: 10 }}>{selectedApp.internship.title}</h3>
-            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Company:</b> {selectedApp.internship.company.companyName}</div>
-            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Status:</b> {selectedApp.status.charAt(0).toUpperCase() + selectedApp.status.slice(1)}</div>
-            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Applied on:</b> {selectedApp.submissionDate instanceof Date ? selectedApp.submissionDate.toLocaleDateString() : new Date(selectedApp.submissionDate).toLocaleDateString()}</div>
-            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Description:</b> {selectedApp.internship.description}</div>
-            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Skills:</b> {(mockInternships.find(i => i.id === selectedApp.internship.id)?.skills || []).join(', ')}</div>
-            {selectedApp.internship.location && <div style={{ color: '#64748b', marginBottom: 8 }}><b>Location:</b> {selectedApp.internship.location}</div>}
-            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Duration:</b> {`${selectedApp.internship.startDate instanceof Date ? selectedApp.internship.startDate.toLocaleDateString() : new Date(selectedApp.internship.startDate).toLocaleDateString()} - ${selectedApp.internship.endDate instanceof Date ? selectedApp.internship.endDate.toLocaleDateString() : new Date(selectedApp.internship.endDate).toLocaleDateString()}`}</div>
+            <button onClick={() => setSelected(null)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: 'pointer' }}>×</button>
+            <h3 style={{ fontSize: window.innerWidth < 480 ? 20 : 22, fontWeight: 700, marginBottom: 10 }}>{selected.internship.title}</h3>
+            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Company:</b> {selected.internship.company.companyName}</div>
+            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Status:</b> {selected.status.charAt(0).toUpperCase() + selected.status.slice(1)}</div>
+            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Applied on:</b> {selected.submissionDate instanceof Date ? selected.submissionDate.toLocaleDateString() : new Date(selected.submissionDate).toLocaleDateString()}</div>
+            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Description:</b> {selected.internship.description}</div>
+            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Skills:</b> {(mockInternships.find(i => i.id === selected.internship.id)?.skills || []).join(', ')}</div>
+            {selected.internship.location && <div style={{ color: '#64748b', marginBottom: 8 }}><b>Location:</b> {selected.internship.location}</div>}
+            <div style={{ color: '#64748b', marginBottom: 8 }}><b>Duration:</b> {`${selected.internship.startDate instanceof Date ? selected.internship.startDate.toLocaleDateString() : new Date(selected.internship.startDate).toLocaleDateString()} - ${selected.internship.endDate instanceof Date ? selected.internship.endDate.toLocaleDateString() : new Date(selected.internship.endDate).toLocaleDateString()}`}</div>
             {/* User-entered application info */}
-            {selectedApp.applicationData && Object.keys(selectedApp.applicationData).length > 0 && (
+            {selected.applicationData && Object.keys(selected.applicationData).length > 0 && (
               <div style={{ marginTop: 18, padding: '16px 0 0 0', borderTop: '1px solid #e5e7eb' }}>
                 <div style={{ fontWeight: 600, color: '#334155', marginBottom: 8 }}>Your Application Info:</div>
-                {Object.entries(selectedApp.applicationData).map(([key, value]) => (
+                {Object.entries(selected.applicationData).map(([key, value]) => (
                   <div key={key} style={{ color: '#64748b', marginBottom: 6 }}>
                     <b>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</b> {String(value)}
                   </div>

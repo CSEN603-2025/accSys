@@ -4,8 +4,8 @@ import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
 import { Users, FileText, Star, Plus, X } from 'lucide-react';
 import { mockUsers } from '../../DummyData/mockUsers';
-import { mockInternships } from '../../DummyData/mockInternships';
-import { Internship } from '../../models/User';
+import { mockInternships } from '../../DummyData/mockUsers';
+import { Internship } from '../../models/models';
 
 const CompanyHome = ({ currentUser }) => {
   // State for modal and form

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Search, User, Settings, LogOut } from 'lucide-react';
+import { Bell, Search, User, Settings, LogOut, BriefcaseBusiness } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageTitle } from '../pages/PageTitle';
 
@@ -325,10 +325,10 @@ const NavBar = ({ currentUser, onLogout }) => {
                 <div style={{ color: '#64748b', fontSize: 14 }}>{getRoleDisplay()}</div>
               </div>
               {/* My Internships for Students */}
-              {userRole === 'student' && (
-                <DropdownButton label="My Internships" onClick={handleInternshipsClick} />
-              )}
               <DropdownButton icon={<User size={18} />} label="Profile" onClick={handleProfileClick} />
+              {userRole === 'student' && (
+                <DropdownButton label="My Internships" icon={<BriefcaseBusiness size={18} />} onClick={handleInternshipsClick} />
+              )}
               <DropdownButton onClick={handleLogout} icon={<LogOut size={18} />} label="Log Out" last />
             </div>
           )}
