@@ -9,6 +9,7 @@ import CompanyHome from './pages/Company/CompanyHome';
 import InternEvaluations from './pages/Company/InternEvaluations';
 
 import ScadHome from './pages/ScadHome';
+import ScadStudentList from './pages/ScadStudentList';
 import RegisterCompany from './pages/LoginPage/RegisterCompany';
 import CompaniesPage from './pages/CompaniesPage';
 import InternshipPage from './pages/InternshipPage';
@@ -69,6 +70,7 @@ export default function App() {
       <Route path="/faculty" element={<FacultyHome currentUser={user} />} />
       <Route path="/company" element={<CompanyHome currentUser={user} />} />
       <Route path="/scad" element={<ScadHome currentUser={user} />} />
+      <Route path="/scad/students" element={<ScadStudentList currentUser={user} />} />
       <Route path="/register-company" element={<RegisterCompany />} />
       <Route path="/companies" element={<CompaniesPage currentUser={user} />} />
       <Route path="/intern-evaluations" element={<InternEvaluations currentUser={user} />} />
@@ -76,7 +78,6 @@ export default function App() {
       <Route path="/student/profile" element={<StudentProfilePage currentUser={user} />} />
       <Route path="/student/studentinternships" element={<StudentInternships currentUser={user} />} />
       <Route path="/applications" element={<ApplicationsPage currentUser={user} />} />
-
 
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />
