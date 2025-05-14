@@ -39,7 +39,16 @@ const companyNames = [
 ];
 
 companyNames.forEach(([name, industry, logo], idx) => {
-  const company = new Company(10 + idx, name.toLowerCase(), `${name.toLowerCase()}@corp.com`, "123", name, industry);
+  const company = new Company(
+    10 + idx, 
+    name.toLowerCase(), 
+    `${name.toLowerCase()}@corp.com`, 
+    "123", 
+    name, 
+    industry, 
+    logo,
+    `${name} is a leading company in the ${industry} industry. We specialize in innovative solutions and cutting-edge technology. Our team is dedicated to excellence and continuous improvement.`,
+  );
   company.isApproved = true;
   company.logoUrl = logo;
   companies.push(company);
@@ -52,21 +61,23 @@ const newCompany = new Company(
   "info@nextech.com",
   "123",
   "NexTech Solutions",
-  "Healthcare Technology"
+  "Healthcare Technology",
+  logo1,
+  "NexTech Solutions is a pioneering healthcare technology company focused on developing innovative solutions that bridge the gap between healthcare and technology. We are committed to improving patient care through digital transformation."
 );
 newCompany.logoUrl = logo1;  // Assign a default logo even for non-approved companies
 // Keep isApproved as false (default value)
 companies.push(newCompany);
 
 const internships = [
-  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote", "2025-06-01", "2025-08-30"),
-  new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote", "2025-06-01", "2025-08-30"),
-  new InternshipPost(102, companies[1], "Bioinformatics Intern", "Analyze medical data.", "Cairo", "2025-06-01", "2025-09-01"),
-  new InternshipPost(103, companies[2], "Quant Intern", "Financial modeling in Python.", "Dubai", "2025-06-15", "2025-09-15"),
-  new InternshipPost(104, companies[2], "Data Analyst Intern", "Help automate dashboards.", "Remote", "2025-06-01", "2025-08-01"),
-  new InternshipPost(105, companies[3], "Sustainability Intern", "Research energy tech.", "Berlin", "2025-07-01", "2025-09-30"),
-  new InternshipPost(106, companies[4], "Cybersecurity Intern", "Audit and test systems.", "Online", "2025-06-01", "2025-08-30"),
-  new InternshipPost(107, companies[5], "AI Research Intern", "Train and deploy models.", "Cairo", "2025-06-01", "2025-09-01")
+  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote",4500, "2025-06-01", "2025-08-30"),
+  new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote",0, "2025-06-01", "2025-08-30"),
+  new InternshipPost(102, companies[1], "Bioinformatics Intern", "Analyze medical data.", "Cairo",5000, "2025-06-01", "2025-09-01"),
+  new InternshipPost(103, companies[2], "Quant Intern", "Financial modeling in Python.", "Dubai",15000, "2025-06-15", "2025-09-15"),
+  new InternshipPost(104, companies[2], "Data Analyst Intern", "Help automate dashboards.", "Remote",20000, "2025-06-01", "2025-08-01"),
+  new InternshipPost(105, companies[3], "Sustainability Intern", "Research energy tech.", "Berlin",3000, "2025-07-01", "2025-09-30"),
+  new InternshipPost(106, companies[4], "Cybersecurity Intern", "Audit and test systems.", "Online",0, "2025-06-01", "2025-08-30"),
+  new InternshipPost(107, companies[5], "AI Research Intern", "Train and deploy models.", "Cairo",0, "2025-06-01", "2025-09-01")
 ];
 
 // Approve internships

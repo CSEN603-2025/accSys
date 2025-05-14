@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/GucLogo.png'; // Adjust the path to your logo image
-import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award } from 'lucide-react';
+import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award , FileUser} from 'lucide-react';
 
 // Role-specific navigation links with their corresponding paths
 const roleLinks = {
@@ -25,9 +25,11 @@ const roleLinks = {
   company: [
     { icon: <House />, label: 'Dashboard', path: '/company' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    { icon: <FileText />, label: 'Postings', path: '/company/postings' },
-    { icon: <Users />, label: 'Applicants', path: '/company/applicants' },
+    //{ icon: <FileText />, label: 'Postings', path: '/company/postings' },
+    { icon: <FileUser />, label: 'Applicants', path: '/applicants' },
+    { icon: <Users />, label: 'Interns', path: '/intern-page' },
     { icon: <Star />, label: 'Evaluations', path: '/intern-evaluations' },
+
   ],
   scad: [
     { icon: <House />, label: 'Dashboard', path: '/scad' },

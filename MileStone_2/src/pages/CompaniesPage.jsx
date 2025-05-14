@@ -464,6 +464,10 @@ export default function CompaniesPage({ currentUser }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     overflow: 'hidden',
+                    background: '#fff',
+                    borderRadius: 8,
+                    padding: '0.5rem',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                   }}>
                     {selectedCompany.logoUrl ? (
                       <img
@@ -488,6 +492,19 @@ export default function CompaniesPage({ currentUser }) {
                     )}
                   </div>
                 </div>
+
+                {/* Company Description */}
+                {selectedCompany.description && (
+                  <div style={{ 
+                    marginTop: 24, 
+                    padding: '1.5rem', 
+                    background: '#f8fafc', 
+                    borderRadius: 8 
+                  }}>
+                    <h3 style={{ fontWeight: 600, marginBottom: '0.75rem' }}>About {selectedCompany.companyName}</h3>
+                    <p style={{ color: '#334155', lineHeight: 1.6 }}>{selectedCompany.description}</p>
+                  </div>
+                )}
 
                 {/* Posted Internships - Moved to top */}
                 <div style={{ width: '100%', marginTop: 24 }}>
