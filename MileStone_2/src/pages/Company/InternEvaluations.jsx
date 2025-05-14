@@ -24,8 +24,17 @@ const InternEvaluations = ({ currentUser }) => {
   // Filter interns from mockUsers that belong to the current company
   const companyInterns = mockUsers.filter(user => 
     user.role?.toLowerCase() === 'student' && 
-    user.currentInternship &&
-    user.currentInternship.company.id === currentUser.id
+    (
+      // Include completed past internships
+      user.pastInternships?.some(internship => 
+        internship.company.id === currentUser.id && 
+        internship.status === 'completed'
+      ) ||
+      // Include current internships that are completed (end date passed)
+      (user.currentInternship?.company.id === currentUser.id &&
+       new Date(user.currentInternship.endDate) < new Date() &&
+       user.currentInternship.status === 'completed')
+    )
   );
 
   const handleInputChange = (e) => {
