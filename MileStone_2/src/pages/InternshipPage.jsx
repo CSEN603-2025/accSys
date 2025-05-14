@@ -109,7 +109,11 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
 
   // Apply paid filter
   if (paidFilter) {
-    internships = internships.filter(i => i.paid === (paidFilter === 'paid'));
+    if (paidFilter === 'paid') {
+      internships = internships.filter(i => Boolean(i.paid));
+    } else if (paidFilter === 'unpaid') {
+      internships = internships.filter(i => !i.paid);
+    }
   }
 
   const handleView = (internship) => {
