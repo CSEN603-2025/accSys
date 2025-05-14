@@ -92,12 +92,20 @@ export default function CompaniesPage({ currentUser }) {
       }
     });
 
-  // Helper: has the student interned at this company?
+  // Helper: has the student completed an internship at this company?
   const hasInternedAt = (student, companyId) => {
-    return Array.isArray(student.internships) &&
+    // Check if the student has completed internships at this company
+    return (
+      Array.isArray(student.internships) &&
       student.internships.some(internship =>
-        internship.company === companyId ||
-        (internship.company && internship.company.id === companyId)
+      (internship.company === companyId ||
+        (internship.company && internship.company.id === companyId))
+      )
+    ) || (
+        // Also check if the student has a completed currentInternship at this company
+        student.currentInternship &&
+        student.currentInternship.status === "completed" &&
+        (student.currentInternship.company.id === companyId)
       );
   };
 
@@ -364,7 +372,7 @@ export default function CompaniesPage({ currentUser }) {
                           style={{
                             padding: '0.5rem 1rem',
                             borderRadius: '0.375rem',
-                            background: '#64748b', // Changed from #1746a2 (blue) to #64748b (grey)
+                            background: '#1746a2',
                             color: 'white',
                             border: 'none',
                             cursor: 'pointer',
@@ -455,27 +463,51 @@ export default function CompaniesPage({ currentUser }) {
                     )}
                   </div>
                   {userRole === 'student' && (
-                    <button
-                      onClick={() => {
-                        const canRecommend = hasInternedAt(currentUser, selectedCompany.id);
-                        const alreadyRecommended = currentUser?.recommendedCompanies?.includes(selectedCompany.id);
-                        if (canRecommend && !alreadyRecommended) {
-                          handleRecommend(selectedCompany.id);
-                        }
-                      }}
-                      disabled={!hasInternedAt(currentUser, selectedCompany.id) || currentUser?.recommendedCompanies?.includes(selectedCompany.id)}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        borderRadius: '0.375rem',
-                        background: hasInternedAt(currentUser, selectedCompany.id) && !currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? '#1746a2' : '#cbd5e1',
-                        color: 'white',
-                        border: 'none',
-                        cursor: hasInternedAt(currentUser, selectedCompany.id) && !currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? 'pointer' : 'not-allowed',
-                        marginTop: '1rem'
-                      }}
-                    >
-                      {currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? 'Recommended' : 'Recommend Company'}
-                    </button>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center', // Center the button and text horizontally
+                      marginTop: '1rem'
+                    }}>
+                      <button
+                        onClick={() => {
+                          const canRecommend = hasInternedAt(currentUser, selectedCompany.id);
+                          const alreadyRecommended = currentUser?.recommendedCompanies?.includes(selectedCompany.id);
+                          if (canRecommend && !alreadyRecommended) {
+                            handleRecommend(selectedCompany.id);
+                          }
+                        }}
+                        disabled={!hasInternedAt(currentUser, selectedCompany.id) || currentUser?.recommendedCompanies?.includes(selectedCompany.id)}
+                        style={{
+                          padding: '0.75rem 1.5rem',
+                          borderRadius: '0.375rem',
+                          background: hasInternedAt(currentUser, selectedCompany.id) && !currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? '#1746a2' : '#cbd5e1',
+                          color: 'white',
+                          border: 'none',
+                          cursor: hasInternedAt(currentUser, selectedCompany.id) && !currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? 'pointer' : 'not-allowed',
+                          width: '80%', // Make the button take up 80% of the parent width
+                          maxWidth: '300px' // Set a maximum width
+                        }}
+                        title={!hasInternedAt(currentUser, selectedCompany.id)
+                          ? "You need to complete an internship with this company before recommending"
+                          : currentUser?.recommendedCompanies?.includes(selectedCompany.id)
+                            ? "You've already recommended this company"
+                            : "Recommend this company to other students"}
+                      >
+                        {currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? 'Recommended' : 'Recommend Company'}
+                      </button>
+                      {!hasInternedAt(currentUser, selectedCompany.id) && (
+                        <p style={{
+                          color: '#64748b',
+                          fontSize: '0.875rem',
+                          marginTop: '0.5rem',
+                          fontStyle: 'italic',
+                          textAlign: 'center' // Center the text
+                        }}>
+                          You can recommend a company after completing an internship with them
+                        </p>
+                      )}
+                    </div>
                   )}
                   {isAdmin && (
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
