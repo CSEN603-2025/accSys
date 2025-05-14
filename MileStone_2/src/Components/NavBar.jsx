@@ -262,12 +262,21 @@ const NavBar = ({ currentUser, onLogout }) => {
               userSelect: 'none',
               border: dropdownOpen ? '2px solid #2563eb' : 'none',
               transition: 'border 0.15s',
+              overflow: 'hidden', // Add this to ensure the image is contained
             }}
             tabIndex={0}
             aria-haspopup="true"
             aria-expanded={dropdownOpen}
           >
-            {getUserInitials()}
+            {currentUser?.profilePicture ? (
+              <img
+                src={currentUser.profilePicture}
+                alt="Profile"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              getUserInitials()
+            )}
           </div>
           {dropdownOpen && (
             <div
