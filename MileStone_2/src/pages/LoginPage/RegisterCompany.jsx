@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './RegisterCompany.module.css';
+import { X, CheckCircle } from 'lucide-react'; // Import icons
 
 const RegisterCompany = () => {
     const navigate = useNavigate();
@@ -17,6 +18,7 @@ const RegisterCompany = () => {
     const [logo, setLogo] = useState(null);
     const [documents, setDocuments] = useState(null);
     const [errors, setErrors] = useState({});
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false); // New state for success popup
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -97,8 +99,11 @@ const RegisterCompany = () => {
         if (Object.keys(validationErrors).length === 0) {
             // Here you would typically send the data to your backend
             console.log('Form submitted successfully', { ...formData, logo, documents });
-            alert('Registration submitted successfully! Your account will be reviewed.');
-            navigate('/login');
+
+            // Show success popup
+            setShowSuccessPopup(true);
+
+            // Remove the auto-redirect timer
         } else {
             setErrors(validationErrors);
         }
@@ -266,6 +271,103 @@ const RegisterCompany = () => {
                     </div>
                 </form>
             </div>
+
+            {/* Success Popup */}
+            {showSuccessPopup && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '8px',
+                        padding: '2rem',
+                        width: '90%',
+                        maxWidth: '500px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+                        position: 'relative',
+                        textAlign: 'center'
+                    }}>
+                        <button
+                            onClick={() => {
+                                setShowSuccessPopup(false);
+                                navigate('/login');
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: '12px',
+                                right: '12px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '24px',
+                                color: '#64748b',
+                                display: 'flex'
+                            }}
+                        >
+                            <X size={24} />
+                        </button>
+
+                        <div style={{ marginBottom: '1.5rem', color: '#16a34a', display: 'flex', justifyContent: 'center' }}>
+                            <CheckCircle size={60} />
+                        </div>
+
+                        <h3 style={{
+                            fontSize: '1.5rem',
+                            fontWeight: 'bold',
+                            color: '#0b257a',
+                            marginBottom: '1rem'
+                        }}>
+                            Registration Submitted Successfully!
+                        </h3>
+
+                        <p style={{
+                            fontSize: '1rem',
+                            lineHeight: '1.5',
+                            color: '#4b5563',
+                            marginBottom: '0.75rem'
+                        }}>
+                            Thank you for registering your company. Your application will be reviewed by our team.
+                        </p>
+
+                        <p style={{
+                            fontSize: '1rem',
+                            lineHeight: '1.5',
+                            color: '#4b5563',
+                            marginBottom: '1.5rem'
+                        }}>
+                            You will receive an email notification once your request has been reviewed.
+                        </p>
+
+                        <button
+                            onClick={() => {
+                                setShowSuccessPopup(false);
+                                navigate('/login');
+                            }}
+                            style={{
+                                background: '#0b257a',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.375rem',
+                                padding: '0.75rem 1.5rem',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                width: '100%'
+                            }}
+                        >
+                            Go to Login
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
