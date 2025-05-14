@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
 import { mockInternships, mockReports } from '../../DummyData/mockUsers';
-import { Eye, Edit2, Trash2, Upload, Calendar, Search, Building2 } from 'lucide-react';
+import { Eye, Edit2, Trash2, Upload, Calendar, Search, Building2, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 const STATUS_COLORS = {
   pending: { bg: '#fef3c7', color: '#b45309' },
@@ -104,16 +105,18 @@ const StudentInternships = ({ currentUser }) => {
   const handleOpenEvaluationForm = () => {
     setShowEvaluationForm(true);
     setShowReportForm(false);
-    const existingEvaluation = evaluations.find(e => e.internship?.id === selected.id);
-    if (existingEvaluation) {
-      setEvaluationForm({
-        feedback: existingEvaluation.feedback,
-        recommend: existingEvaluation.recommend
-      });
-      setEditingEvaluationId(existingEvaluation.id);
-    } else {
-      setEvaluationForm({ feedback: '', recommend: false });
-      setEditingEvaluationId(null);
+    if (selected) {
+      const existingEvaluation = evaluations.find(e => e.internship?.id === selected.id);
+      if (existingEvaluation) {
+        setEvaluationForm({
+          feedback: existingEvaluation.feedback,
+          recommend: existingEvaluation.recommend
+        });
+        setEditingEvaluationId(existingEvaluation.id);
+      } else {
+        setEvaluationForm({ feedback: '', recommend: false });
+        setEditingEvaluationId(null);
+      }
     }
   };
 
@@ -262,6 +265,58 @@ const StudentInternships = ({ currentUser }) => {
   const getEvaluationsForInternship = (internshipId) =>
     evaluations.filter(evaluation => evaluation.internship?.id === internshipId);
 
+  const handleDownloadReport = (report) => {
+    try {
+      // Generate PDF using jsPDF
+      const doc = new jsPDF();
+      let yOffset = 20; // Starting y position
+      const margin = 10; // Left margin
+      const maxWidth = 190; // Maximum width for text
+      
+      // Add title
+      doc.setFontSize(16);
+      const title = report.title || 'Untitled Report';
+      doc.text(title, margin, yOffset);
+      yOffset += 10;
+      
+      // Add submission date
+      doc.setFontSize(12);
+      const submissionDate = `Submitted on: ${formatDate(report.submissionDate)}`;
+      doc.text(submissionDate, margin, yOffset);
+      yOffset += 15;
+      
+      // Add content
+      doc.setFontSize(12);
+      doc.text('Content:', margin, yOffset);
+      yOffset += 7;
+      
+      // Add content text with proper wrapping
+      doc.setFontSize(11);
+      const content = report.content || 'No content provided';
+      const splitContent = doc.splitTextToSize(content, maxWidth);
+      doc.text(splitContent, margin, yOffset);
+      yOffset += (splitContent.length * 7) + 10; // Add space after content
+      
+      // Add courses
+      doc.setFontSize(12);
+      doc.text('Courses Used:', margin, yOffset);
+      yOffset += 7;
+      
+      // Add courses text with proper wrapping
+      doc.setFontSize(11);
+      const courses = (report.courses || []).join(', ') || 'No courses specified';
+      const splitCourses = doc.splitTextToSize(courses, maxWidth);
+      doc.text(splitCourses, margin, yOffset);
+      
+      // Save the PDF
+      const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      doc.save(`${safeTitle}_report.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
+  };
+
   // Only show content if user is logged in
   if (!currentUser) {
     return <div style={{ padding: 40, textAlign: 'center', color: '#b91c1c', fontWeight: 600 }}>Please log in to view your reports and internships.</div>;
@@ -373,7 +428,7 @@ const StudentInternships = ({ currentUser }) => {
               let statusText = isAccepted ? 'Current' : 'Completed';
 
               return (
-                <div key={internship.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', minWidth: 320, flex: 1, maxWidth: 370, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div key={`internship-${internship.id}`} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', minWidth: 320, flex: 1, maxWidth: 370, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ fontWeight: 600, fontSize: 18 }}>{internship.title}</div>
                   <div style={{ color: '#64748b', fontSize: 15 }}>{internship.company?.companyName || 'Company'}</div>
                   <div style={{ fontSize: 14, background: statusColor.bg, color: statusColor.color, borderRadius: 6, padding: '2px 12px', display: 'inline-block', fontWeight: 600 }}>{statusText}</div>
@@ -517,7 +572,7 @@ const StudentInternships = ({ currentUser }) => {
                           <div style={{ color: '#64748b' }}>No evaluations submitted yet.</div>
                         ) : (
                           getEvaluationsForInternship(selected.id).map((evaluation) => (
-                            <div key={evaluation.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
+                            <div key={`evaluation-${evaluation.id}`} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(evaluation.createdAt)}</div>
                               </div>
@@ -614,12 +669,18 @@ const StudentInternships = ({ currentUser }) => {
                           <div style={{ color: '#64748b' }}>No reports submitted yet.</div>
                         ) : (
                           getReportsForInternship(selected.id).map((report) => (
-                            <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
+                            <div key={`report-${report.id}`} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
                               <div style={{ fontWeight: 600 }}>{report.title}</div>
                               <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
                               <div style={{ fontSize: 15, marginTop: 8 }}>{report.content}</div>
                               <div style={{ color: '#1746a2', fontSize: 15, marginTop: 8 }}>Courses: {(report.courses || []).join(', ')}</div>
                               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                                <button 
+                                  onClick={() => handleDownloadReport(report)} 
+                                  style={{ background: '#e0e7ef', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                                >
+                                  <Download size={16} /> Download
+                                </button>
                                 <button 
                                   onClick={() => handleEditReport(report)} 
                                   style={{ background: '#e0f2fe', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}
