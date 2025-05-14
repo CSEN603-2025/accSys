@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Building2, CheckCircle2, XCircle, ChevronDown, Search } from "lucide-react";
+import { Users, Building2, CheckCircle2, XCircle, ChevronDown, Search, Eye } from "lucide-react";
 import { mockUsers } from "../DummyData/mockUsers";
 import NavBar from "../Components/NavBar";
 import SideBar from "../Components/SideBar";
@@ -288,8 +288,10 @@ export default function CompaniesPage({ currentUser }) {
                   {userRole !== 'student' && (
                     <th style={{ padding: '1rem', textAlign: 'left', width: '15%' }}>Status</th>
                   )}
-                  {isAdmin && <th style={{ padding: '1rem', textAlign: 'left', width: '20%' }}>Actions</th>}
-                  <th style={{ padding: '1rem', textAlign: 'left', width: '15%' }}>Details</th>
+                  {/* Consolidate actions and details for SCAD admin into one column */}
+                  <th style={{ padding: '1rem', textAlign: 'left', width: isAdmin ? '30%' : '15%' }}>
+                    {isAdmin ? 'Actions' : 'Details'}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -327,76 +329,78 @@ export default function CompaniesPage({ currentUser }) {
                           </span>
                         </td>
                       )}
-                      {isAdmin && (
-                        <td style={{ padding: '1rem' }}>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            {!company.isApproved && (
-                              <>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleApprove(company);
-                                  }}
-                                  style={{
-                                    padding: '0.5rem 1rem',
-                                    borderRadius: '0.375rem',
-                                    background: '#16a34a',
-                                    color: 'white',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem'
-                                  }}
-                                >
-                                  <CheckCircle2 size={16} />
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleReject(company);
-                                  }}
-                                  style={{
-                                    padding: '0.5rem 1rem',
-                                    borderRadius: '0.375rem',
-                                    background: '#dc2626',
-                                    color: 'white',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem'
-                                  }}
-                                >
-                                  <XCircle size={16} />
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                      {/* Add View Details button with grey color */}
+
+                      {/* Consolidated actions column */}
                       <td style={{ padding: '1rem' }}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedCompany(company);
-                          }}
-                          style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '0.375rem',
-                            background: '#1746a2',
-                            color: 'white',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                          }}
-                        >
-                          View Details
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCompany(company);
+                            }}
+                            style={{
+                              padding: '0.5rem 1rem',
+                              borderRadius: '0.375rem',
+                              background: '#1746a2',
+                              color: 'white',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '0.875rem',
+                              fontWeight: 500,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            View Details
+                          </button>
+                          {isAdmin && !company.isApproved && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApprove(company);
+                                }}
+                                style={{
+                                  padding: '0.5rem 1rem',
+                                  borderRadius: '0.375rem',
+                                  background: '#16a34a',
+                                  color: 'white',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem'
+                                }}
+                              >
+                                <CheckCircle2 size={16} />
+
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReject(company);
+                                }}
+                                style={{
+                                  padding: '0.5rem 1rem',
+                                  borderRadius: '0.375rem',
+                                  background: '#dc2626',
+                                  color: 'white',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem'
+                                }}
+                              >
+                                <XCircle size={16} />
+
+                              </button>
+                            </>
+                          )}
+                          {/* View Details button now appears in the same column */}
+
+                        </div>
                       </td>
                     </tr>
                   );
@@ -491,10 +495,10 @@ export default function CompaniesPage({ currentUser }) {
                   {selectedCompany.postedInternships?.length > 0 ? (
                     <ul style={{ listStyle: 'none', padding: 0 }}>
                       {selectedCompany.postedInternships.map(internship => (
-                        <li 
-                          key={internship.id} 
+                        <li
+                          key={internship.id}
                           onClick={() => handleInternshipClick(internship.id)}
-                          style={{ 
+                          style={{
                             marginBottom: '0.75rem',
                             padding: '0.75rem',
                             borderRadius: '0.375rem',
@@ -512,7 +516,7 @@ export default function CompaniesPage({ currentUser }) {
                             {userRole === 'student' && ` (${getInternshipDuration(internship.startDate, internship.endDate)} months)`}
                           </div>
                           {userRole !== 'student' && (
-                            <div style={{ 
+                            <div style={{
                               display: 'inline-block',
                               marginTop: '0.5rem',
                               padding: '0.25rem 0.75rem',
