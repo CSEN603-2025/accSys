@@ -3,7 +3,7 @@ import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
 import { mockUsers, mockInternships, mockReports } from '../../DummyData/mockUsers';
 import jsPDF from 'jspdf';
-import { Search, Filter, ChevronDown } from 'lucide-react';
+import { Search, Filter, ChevronDown, X } from 'lucide-react';
 
 // Example: courses per major (expand as needed)
 const COURSES_BY_MAJOR = {
@@ -53,6 +53,8 @@ const StudentReports = ({ currentUser }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const isStudent = currentUser?.role === 'student';
   const isFaculty = currentUser?.role === 'faculty';
@@ -255,6 +257,192 @@ const StudentReports = ({ currentUser }) => {
     return reports.filter(report => report.status === status);
   };
 
+  // Report Modal Component
+  const ReportModal = ({ report, onClose }) => {
+    if (!report) return null;
+
+    const statusColors = {
+      submitted: { bg: '#e0e7ff', text: '#2563eb' },
+      flagged: { bg: '#fff7ed', text: '#b45309' },
+      rejected: { bg: '#fee2e2', text: '#b91c1c' },
+      approved: { bg: '#dcfce7', text: '#16a34a' }
+    };
+
+    const status = (report?.status || 'submitted').toLowerCase();
+    const statusStyle = statusColors[status] || { bg: '#f1f5f9', text: '#64748b' };
+
+    const handleStatusChange = (newStatus) => {
+      // Update the report status
+      report.status = newStatus;
+      // Notify the student
+      if (report.student) {
+        report.student.addNotification(
+          `Your report "${report.title}" has been ${newStatus}`
+        );
+      }
+      // Close the modal
+      onClose();
+    };
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '32px',
+          width: '90%',
+          maxWidth: '800px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          position: 'relative'
+        }}>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '8px'
+            }}
+          >
+            <X size={24} color="#64748b" />
+          </button>
+
+          {/* Report Header */}
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '8px' }}>{report?.title || 'Untitled Report'}</h2>
+              <div style={{
+                padding: '6px 12px',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '500',
+                background: statusStyle.bg,
+                color: statusStyle.text
+              }}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </div>
+            </div>
+            <div style={{ color: '#64748b', fontSize: '15px' }}>
+              Submitted by: <span style={{ fontWeight: '500', color: '#334155' }}>{report?.student?.username || 'Unknown Student'}</span>
+            </div>
+            <div style={{ color: '#64748b', fontSize: '15px' }}>
+              {report?.student?.major && `Major: ${report.student.major}`}
+            </div>
+            <div style={{ color: '#64748b', fontSize: '15px' }}>
+              Submitted on: {formatDate(report?.submissionDate)}
+            </div>
+          </div>
+
+          {/* Report Content */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: '#334155' }}>Report Content</h3>
+            <div style={{
+              background: '#f8fafc',
+              padding: '20px',
+              borderRadius: '8px',
+              fontSize: '15px',
+              lineHeight: '1.6',
+              color: '#334155',
+              whiteSpace: 'pre-wrap'
+            }}>
+              {report?.content || 'No content provided'}
+            </div>
+          </div>
+
+          {/* Courses Section */}
+          {report?.courses?.length > 0 && (
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: '#334155' }}>Courses Used</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {report.courses.map((course, idx) => (
+                  <span key={idx} style={{
+                    background: '#e0e7ff',
+                    color: '#2563eb',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    {course}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+            <button
+              onClick={() => handleDownload(report)}
+              style={{
+                background: '#e0e7ff',
+                color: '#2563eb',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+            >
+              Download Report
+            </button>
+            {(isFaculty || isSCAD) && (
+              <div style={{ position: 'relative' }}>
+                <select
+                  value={status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    padding: '10px 20px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    color: '#334155',
+                    appearance: 'none',
+                    paddingRight: '40px'
+                  }}
+                >
+                  <option value="submitted">Set as Submitted</option>
+                  <option value="flagged">Set as Flagged</option>
+                  <option value="rejected">Set as Rejected</option>
+                  <option value="approved">Set as Approved</option>
+                </select>
+                <div style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none'
+                }}>
+                  <ChevronDown size={16} color="#64748b" />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Report Card Component
   const ReportCard = ({ report }) => {
     const statusColors = {
@@ -264,7 +452,6 @@ const StudentReports = ({ currentUser }) => {
       approved: { bg: '#dcfce7', text: '#16a34a' }
     };
 
-    // Add default status and null check
     const status = (report?.status || 'submitted').toLowerCase();
     const statusStyle = statusColors[status] || { bg: '#f1f5f9', text: '#64748b' };
 
@@ -299,15 +486,18 @@ const StudentReports = ({ currentUser }) => {
         </div>
 
         <div style={{ marginBottom: '16px' }}>
-          <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Content:</div>
-          <div style={{ color: '#334155', fontSize: '15px' }}>{report?.content || 'No content provided'}</div>
+          <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Content Preview:</div>
+          <div style={{ color: '#334155', fontSize: '15px' }}>
+            {(report?.content || 'No content provided').slice(0, 150)}
+            {(report?.content?.length || 0) > 150 ? '...' : ''}
+          </div>
         </div>
 
         {report?.courses?.length > 0 && (
           <div style={{ marginBottom: '16px' }}>
             <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Courses Used:</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {report.courses.map((course, idx) => (
+              {report.courses.slice(0, 3).map((course, idx) => (
                 <span key={idx} style={{
                   background: '#f1f5f9',
                   padding: '4px 12px',
@@ -318,6 +508,17 @@ const StudentReports = ({ currentUser }) => {
                   {course}
                 </span>
               ))}
+              {report.courses.length > 3 && (
+                <span style={{
+                  background: '#f1f5f9',
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  fontSize: '14px',
+                  color: '#64748b'
+                }}>
+                  +{report.courses.length - 3} more
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -328,7 +529,10 @@ const StudentReports = ({ currentUser }) => {
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button
-              onClick={() => handleDownload(report)}
+              onClick={() => {
+                setSelectedReport(report);
+                setShowReportModal(true);
+              }}
               style={{
                 background: '#e0e7ff',
                 color: '#2563eb',
@@ -340,25 +544,8 @@ const StudentReports = ({ currentUser }) => {
                 cursor: 'pointer'
               }}
             >
-              Download
+              View Report
             </button>
-            {(isFaculty || isSCAD) && (
-              <button
-                onClick={() => handleStatusChange(report, 'approved')}
-                style={{
-                  background: '#dcfce7',
-                  color: '#16a34a',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '8px 16px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer'
-                }}
-              >
-                Approve
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -688,6 +875,17 @@ const StudentReports = ({ currentUser }) => {
           )}
         </div>
       </div>
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <ReportModal
+          report={selectedReport}
+          onClose={() => {
+            setShowReportModal(false);
+            setSelectedReport(null);
+          }}
+        />
+      )}
     </div>
   );
 };
