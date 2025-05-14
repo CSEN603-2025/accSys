@@ -10,17 +10,17 @@ import {
 } from '../models/models.js';
 
 // ===== SCAD Admin =====
-const scadAdmin = new SCAD(1, "scadAdmin", "admin@scad.edu", "adminpass");
+const scadAdmin = new SCAD(1, "scadAdmin", "admin@scad.edu", "123");
 
 // ===== Faculty Members =====
-const faculty1 = new Faculty(2, "profJohn", "john@univ.edu", "password123", "Computer Science");
-const faculty2 = new Faculty(3, "profSara", "sara@univ.edu", "password123", "Information Systems");
-const faculty3 = new Faculty(4, "profAli", "ali@univ.edu", "password123", "AI & Robotics");
+const faculty1 = new Faculty(2, "profJohn", "john@univ.edu", "123", "Computer Science");
+const faculty2 = new Faculty(3, "profSara", "sara@univ.edu", "123", "Information Systems");
+const faculty3 = new Faculty(4, "profAli", "ali@univ.edu", "123", "AI & Robotics");
 
 // ===== Students =====
 const student1 = new Student(5, "Ziad", "ziad@student.edu", "123", "CS", 3.7, 5);
-const student2 = new Student(6, "Karim", "karim@student.edu", "pass123", "IS", 3.5, 4);
-const student3 = new Student(7, "Khairy", "layla@student.edu", "pass123", "Robotics", 3.9, 6);
+const student2 = new Student(6, "Karim", "karim@student.edu", "123", "IS", 3.5, 4);
+const student3 = new Student(7, "Khairy", "layla@student.edu", "123", "Robotics", 3.9, 6);
 
 // ===== Companies and Internships =====
 const companies = [];

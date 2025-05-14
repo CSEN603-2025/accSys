@@ -58,20 +58,26 @@ export default function CompaniesPage({ currentUser }) {
     return { ...company, recommendations: recCount };
   });
 
-  // Filter companies by user interests or major
-  const relevantCompanies = companiesWithRecommendations.filter(company => {
-    const industry = company.industry?.toLowerCase() || "";
-    return userInterests.includes(industry) || industry.includes(userMajor);
-  });
+  // Filter and sort companies - only show approved companies to students
+  const companiesForDisplay = userRole === 'student'
+    ? companiesWithRecommendations.filter(company => company.isApproved)
+    : companiesWithRecommendations;
 
   // Filter and sort companies
-  const filteredCompanies = (showRelevant ? relevantCompanies : companiesWithRecommendations)
+  const filteredCompanies = (showRelevant ?
+    // If showing relevant, first filter by user's interests or major
+    companiesForDisplay.filter(company => {
+      const industry = company.industry?.toLowerCase() || "";
+      return userInterests.includes(industry) || industry.includes(userMajor);
+    })
+    : companiesForDisplay) // Otherwise show all companies (that are approved for students)
     .filter(company => {
       const matchesSearch = company.companyName.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesIndustry = !selectedIndustry || company.industry === selectedIndustry;
       return matchesSearch && matchesIndustry;
     })
     .sort((a, b) => {
+      // Sort logic remains unchanged
       if (sortByRecommendations) {
         return (b.recommendations || 0) - (a.recommendations || 0);
       }
@@ -251,8 +257,13 @@ export default function CompaniesPage({ currentUser }) {
                   {userRole === 'student' && (
                     <th style={{ padding: '1rem', textAlign: 'left' }}>Recommendations</th>
                   )}
-                  <th style={{ padding: '1rem', textAlign: 'left' }}>Status</th>
+                  {/* Show status column only for non-student users */}
+                  {userRole !== 'student' && (
+                    <th style={{ padding: '1rem', textAlign: 'left' }}>Status</th>
+                  )}
                   {isAdmin && <th style={{ padding: '1rem', textAlign: 'left' }}>Actions</th>}
+                  {/* Add header for View Details column */}
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>Details</th>
                 </tr>
               </thead>
               <tbody>
@@ -278,18 +289,21 @@ export default function CompaniesPage({ currentUser }) {
                           {company.recommendations || 0} recommendations
                         </td>
                       )}
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '1rem',
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          background: company.isApproved ? '#dcfce7' : '#fee2e2',
-                          color: company.isApproved ? '#166534' : '#991b1b'
-                        }}>
-                          {company.isApproved ? 'Approved' : 'Pending'}
-                        </span>
-                      </td>
+                      {/* Show status cell only for non-student users */}
+                      {userRole !== 'student' && (
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '1rem',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            background: company.isApproved ? '#dcfce7' : '#fee2e2',
+                            color: company.isApproved ? '#166534' : '#991b1b'
+                          }}>
+                            {company.isApproved ? 'Approved' : 'Pending'}
+                          </span>
+                        </td>
+                      )}
                       {isAdmin && (
                         <td style={{ padding: '1rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -340,6 +354,27 @@ export default function CompaniesPage({ currentUser }) {
                           </div>
                         </td>
                       )}
+                      {/* Add View Details button with grey color */}
+                      <td style={{ padding: '1rem' }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCompany(company);
+                          }}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.375rem',
+                            background: '#64748b', // Changed from #1746a2 (blue) to #64748b (grey)
+                            color: 'white',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                          }}
+                        >
+                          View Details
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -368,9 +403,33 @@ export default function CompaniesPage({ currentUser }) {
                 width: '100%',
                 maxWidth: '600px',
                 maxHeight: '80vh',
-                overflowY: 'auto'
+                overflowY: 'auto',
+                position: 'relative'  /* Add position relative for absolute positioning of close button */
               }}>
-                <h2 style={{ fontWeight: 700, marginBottom: '1rem' }}>{selectedCompany.companyName}</h2>
+                {/* Add close button in the top-right corner */}
+                <button
+                  onClick={() => setSelectedCompany(null)}
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    padding: 0
+                  }}
+                >
+                  ×
+                </button>
+                <h2 style={{ fontWeight: 700, marginBottom: '1rem', paddingRight: '2rem' }}>{selectedCompany.companyName}</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <h3 style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Company Information</h3>
