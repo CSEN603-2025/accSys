@@ -76,7 +76,7 @@ export default function CompaniesPage({ currentUser }) {
         return (b.recommendations || 0) - (a.recommendations || 0);
       }
       if (sortBy === 'name') {
-        return sortOrder === 'asc' 
+        return sortOrder === 'asc'
           ? a.companyName.localeCompare(b.companyName)
           : b.companyName.localeCompare(a.companyName);
       } else {
@@ -135,8 +135,8 @@ export default function CompaniesPage({ currentUser }) {
 
           {/* Search and Filter Section */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
-              <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <div style={{ position: 'relative', flex: 1, minWidth: '250px', maxWidth: '350px' }}> {/* Changed minWidth and added maxWidth */}
+              <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} /> {/* Decreased icon size and adjusted left padding */}
               <input
                 type="text"
                 placeholder="Search companies..."
@@ -144,11 +144,13 @@ export default function CompaniesPage({ currentUser }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 1rem 0.75rem 2.5rem',
-                  borderRadius: '0.5rem',
+                  padding: '0.6rem 0.75rem 0.6rem 2.25rem', /* Reduced padding */
+                  borderRadius: '8px',
                   border: '1px solid #e2e8f0',
-                  fontSize: '1rem',
-                  outline: 'none'
+                  fontSize: '0.9rem', /* Reduced font size */
+                  outline: 'none',
+                  background: '#f1f5f9',
+                  height: '45px' /* Set specific height */
                 }}
               />
             </div>
@@ -212,10 +214,10 @@ export default function CompaniesPage({ currentUser }) {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                  <th 
-                    style={{ 
-                      padding: '1rem', 
-                      textAlign: 'left', 
+                  <th
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
                       cursor: 'pointer',
                       userSelect: 'none'
                     }}
@@ -223,15 +225,15 @@ export default function CompaniesPage({ currentUser }) {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       Company Name
-                      <ChevronDown size={16} style={{ 
+                      <ChevronDown size={16} style={{
                         transform: sortBy === 'name' && sortOrder === 'desc' ? 'rotate(180deg)' : 'none',
                         opacity: sortBy === 'name' ? 1 : 0.5
                       }} />
                     </div>
                   </th>
-                  <th 
-                    style={{ 
-                      padding: '1rem', 
+                  <th
+                    style={{
+                      padding: '1rem',
                       textAlign: 'left',
                       cursor: 'pointer',
                       userSelect: 'none'
@@ -240,7 +242,7 @@ export default function CompaniesPage({ currentUser }) {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       Industry
-                      <ChevronDown size={16} style={{ 
+                      <ChevronDown size={16} style={{
                         transform: sortBy === 'industry' && sortOrder === 'desc' ? 'rotate(180deg)' : 'none',
                         opacity: sortBy === 'industry' ? 1 : 0.5
                       }} />
@@ -258,11 +260,11 @@ export default function CompaniesPage({ currentUser }) {
                   const alreadyRecommended = currentUser?.recommendedCompanies?.includes(company.id);
                   const canRecommend = userRole === 'student' && hasInternedAt(currentUser, company.id);
                   const recommendDisabled = userRole !== 'student' || alreadyRecommended || !canRecommend;
-                  
+
                   return (
-                    <tr 
-                      key={company.id} 
-                      style={{ 
+                    <tr
+                      key={company.id}
+                      style={{
                         borderBottom: '1px solid #e2e8f0',
                         cursor: 'pointer',
                         background: selectedCompany?.id === company.id ? '#f8fafc' : 'transparent'
@@ -291,46 +293,50 @@ export default function CompaniesPage({ currentUser }) {
                       {isAdmin && (
                         <td style={{ padding: '1rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleApprove(company);
-                              }}
-                              style={{
-                                padding: '0.5rem 1rem',
-                                borderRadius: '0.375rem',
-                                background: '#16a34a',
-                                color: 'white',
-                                border: 'none',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem'
-                              }}
-                            >
-                              <CheckCircle2 size={16} />
-                              Approve
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleReject(company);
-                              }}
-                              style={{
-                                padding: '0.5rem 1rem',
-                                borderRadius: '0.375rem',
-                                background: '#dc2626',
-                                color: 'white',
-                                border: 'none',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem'
-                              }}
-                            >
-                              <XCircle size={16} />
-                              Reject
-                            </button>
+                            {!company.isApproved && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApprove(company);
+                                  }}
+                                  style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '0.375rem',
+                                    background: '#16a34a',
+                                    color: 'white',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                  }}
+                                >
+                                  <CheckCircle2 size={16} />
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReject(company);
+                                  }}
+                                  style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '0.375rem',
+                                    background: '#dc2626',
+                                    color: 'white',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                  }}
+                                >
+                                  <XCircle size={16} />
+                                  Reject
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       )}
@@ -414,40 +420,44 @@ export default function CompaniesPage({ currentUser }) {
                   )}
                   {isAdmin && (
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                      <button
-                        onClick={() => handleApprove(selectedCompany)}
-                        style={{
-                          padding: '0.75rem 1.5rem',
-                          borderRadius: '0.375rem',
-                          background: '#16a34a',
-                          color: 'white',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem'
-                        }}
-                      >
-                        <CheckCircle2 size={16} />
-                        Approve Company
-                      </button>
-                      <button
-                        onClick={() => handleReject(selectedCompany)}
-                        style={{
-                          padding: '0.75rem 1.5rem',
-                          borderRadius: '0.375rem',
-                          background: '#dc2626',
-                          color: 'white',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem'
-                        }}
-                      >
-                        <XCircle size={16} />
-                        Reject Company
-                      </button>
+                      {!selectedCompany.isApproved && (
+                        <>
+                          <button
+                            onClick={() => handleApprove(selectedCompany)}
+                            style={{
+                              padding: '0.75rem 1.5rem',
+                              borderRadius: '0.375rem',
+                              background: '#16a34a',
+                              color: 'white',
+                              border: 'none',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            <CheckCircle2 size={16} />
+                            Approve Company
+                          </button>
+                          <button
+                            onClick={() => handleReject(selectedCompany)}
+                            style={{
+                              padding: '0.75rem 1.5rem',
+                              borderRadius: '0.375rem',
+                              background: '#dc2626',
+                              color: 'white',
+                              border: 'none',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            <XCircle size={16} />
+                            Reject Company
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={() => setSelectedCompany(null)}
                         style={{

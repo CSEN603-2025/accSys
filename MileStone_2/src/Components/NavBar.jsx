@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Search, User, Settings, LogOut, BriefcaseBusiness } from 'lucide-react';
+import { Bell, User, Settings, LogOut, BriefcaseBusiness } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageTitle } from '../pages/PageTitle';
 
@@ -62,7 +62,7 @@ const NavBar = ({ currentUser, onLogout }) => {
 
   const formatTimeAgo = (date) => {
     if (!date) return 'Just now';
-    
+
     const now = new Date();
     const diff = now - new Date(date);
     const minutes = Math.floor(diff / 60000);
@@ -77,14 +77,14 @@ const NavBar = ({ currentUser, onLogout }) => {
 
   const getUserInitials = () => {
     if (!currentUser) return 'U';
-    
+
     // For company users, use company name
     if (currentUser.role === 'company' && currentUser.companyName) {
       const words = currentUser.companyName.split(' ').filter(word => word.length > 0);
       if (words.length === 0) return 'C';
       return words.map(word => word[0]).join('').toUpperCase().substring(0, 2);
     }
-    
+
     // For other users, use username
     const words = currentUser.username.split(' ').filter(word => word.length > 0);
     if (words.length === 0) return 'U';
@@ -93,12 +93,12 @@ const NavBar = ({ currentUser, onLogout }) => {
 
   const getDisplayName = () => {
     if (!currentUser) return 'User';
-    
+
     // For company users, show company name
     if (currentUser.role === 'company' && currentUser.companyName) {
       return currentUser.companyName;
     }
-    
+
     // For other users, show username
     return currentUser.username || 'User';
   };
@@ -137,53 +137,20 @@ const NavBar = ({ currentUser, onLogout }) => {
       </div>
       {/* Right Side: Search, Notification, Avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, height: 40 }}>
-        {/* Search Bar */}
-        <div style={{ position: 'relative', width: 340, height: 40, display: 'flex', alignItems: 'center' }}>
-          <span style={{
-            position: 'absolute',
-            left: 12,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#a0aec0',
-            fontSize: 18,
-            pointerEvents: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            height: '100%',
-          }}>
-            <Search size={18} />
-          </span>
-          <input
-            type="text"
-            placeholder="Search companies or internships..."
-            style={{
-              width: '100%',
-              height: 40,
-              padding: '8px 14px 8px 38px',
-              borderRadius: 8,
-              border: '1px solid #e2e8f0',
-              background: '#f1f5f9',
-              fontSize: 15,
-              outline: 'none',
-              boxSizing: 'border-box',
-              display: 'block',
-            }}
-          />
-        </div>
         {/* Notification Bell */}
         <div style={{ position: 'relative' }}>
-          <button 
+          <button
             className="notification-bell"
             onClick={() => setNotificationsOpen(open => !open)}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer', 
-              position: 'relative', 
-              height: 40, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center' 
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              position: 'relative',
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
             <span role="img" aria-label="bell" style={{ fontSize: 22, color: '#64748b', display: 'flex', alignItems: 'center', height: '100%' }}>
@@ -225,8 +192,8 @@ const NavBar = ({ currentUser, onLogout }) => {
                 zIndex: 10,
               }}
             >
-              <div style={{ 
-                padding: '0.75rem 1rem', 
+              <div style={{
+                padding: '0.75rem 1rem',
                 borderBottom: '1px solid #e2e8f0',
                 display: 'flex',
                 justifyContent: 'space-between',

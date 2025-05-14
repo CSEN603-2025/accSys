@@ -122,11 +122,11 @@ const StudentInternships = ({ currentUser }) => {
       setReports((prev) => prev.map((r) =>
         r.id === editingReportId
           ? {
-              ...r,
-              title: reportForm.title,
-              content: reportForm.content,
-              courses: reportForm.courses || [],
-            }
+            ...r,
+            title: reportForm.title,
+            content: reportForm.content,
+            courses: reportForm.courses || [],
+          }
           : r
       ));
     } else {
@@ -205,7 +205,15 @@ const StudentInternships = ({ currentUser }) => {
             placeholder="Search by job title or company name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ width: 350, padding: 10, borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 24 }}
+            style={{
+              width: '350px',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              marginBottom: '24px',
+              background: '#f1f5f9',
+              outline: 'none'
+            }}
           />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
             {filteredInternships.map(internship => {

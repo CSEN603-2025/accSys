@@ -40,6 +40,18 @@ companyNames.forEach(([name, industry], idx) => {
   companies.push(company);
 });
 
+// Add a non-approved company
+const newCompany = new Company(
+  20,
+  "nextech",
+  "info@nextech.com",
+  "123",
+  "NexTech Solutions",
+  "Healthcare Technology"
+);
+// Keep isApproved as false (default value)
+companies.push(newCompany);
+
 const internships = [
   new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote", "2025-06-01", "2025-08-30"),
   new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote", "2025-06-01", "2025-08-30"),

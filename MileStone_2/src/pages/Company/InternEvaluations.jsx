@@ -12,14 +12,14 @@ const InternEvaluations = ({ currentUser }) => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
       <SideBar userRole={currentUser?.role?.toLowerCase() || 'company'} activeSection="evaluations" />
-      
+
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <NavBar currentUser={currentUser} />
-        
+
         <div style={{ padding: '2rem', flex: 1 }}>
           {/* Header row with title, search, and button */}
-          <div style={{ 
-            display: 'flex', 
+          <div style={{
+            display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: 32
@@ -32,7 +32,7 @@ const InternEvaluations = ({ currentUser }) => {
                 Manage and submit performance evaluations for your interns
               </div>
             </div>
-            
+
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               {/* Search Bar */}
               <div style={{ position: 'relative', width: 250, height: 40 }}>
@@ -55,32 +55,31 @@ const InternEvaluations = ({ currentUser }) => {
                   placeholder="Search evaluations..."
                   style={{
                     width: '100%',
-                    height: 40,
+                    height: '40px',
                     padding: '8px 14px 8px 38px',
-                    borderRadius: 8,
+                    borderRadius: '8px',
                     border: '1px solid #e2e8f0',
                     background: '#f1f5f9',
-                    fontSize: 15,
+                    fontSize: '15px',
                     outline: 'none',
-                    boxSizing: 'border-box',
                   }}
                 />
               </div>
 
               {/* New Evaluation Button */}
-              <button 
+              <button
                 onClick={handleSubmitInternshipEvaluation}
-                style={{ 
+                style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: '#1746a2', 
-                  color: '#fff', 
-                  border: 'none', 
-                  borderRadius: 8, 
-                  padding: '10px 24px', 
-                  fontWeight: 600, 
-                  fontSize: 16, 
+                  background: '#1746a2',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '10px 24px',
+                  fontWeight: 600,
+                  fontSize: 16,
                   cursor: 'pointer',
                   height: 40,
                   transition: 'background-color 0.2s'
@@ -95,10 +94,10 @@ const InternEvaluations = ({ currentUser }) => {
           </div>
 
           {/* Empty state */}
-          <div style={{ 
-            background: '#fff', 
-            borderRadius: 12, 
-            boxShadow: '0 1px 4px #e2e8f0', 
+          <div style={{
+            background: '#fff',
+            borderRadius: 12,
+            boxShadow: '0 1px 4px #e2e8f0',
             padding: '2rem',
             display: 'flex',
             flexDirection: 'column',

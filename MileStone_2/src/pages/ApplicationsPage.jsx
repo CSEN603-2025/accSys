@@ -45,12 +45,12 @@ const ApplicationCard = ({ application, showStudent, onViewDetails }) => {
       overflow: 'hidden',
     }}>
       {/* Left: Main Info */}
-      <div style={{ 
-        flex: 1, 
-        padding: window.innerWidth < 768 ? '24px 20px' : '44px 64px', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center' 
+      <div style={{
+        flex: 1,
+        padding: window.innerWidth < 768 ? '24px 20px' : '44px 64px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center'
       }}>
         <div style={{ display: 'flex', flexDirection: window.innerWidth < 480 ? 'column' : 'row', alignItems: window.innerWidth < 480 ? 'flex-start' : 'center', marginBottom: 8 }}>
           <h3 style={{ fontSize: window.innerWidth < 480 ? 18 : 22, fontWeight: 700, margin: 0, marginRight: 16 }}>{internship.title}</h3>
@@ -98,16 +98,16 @@ const ApplicationCard = ({ application, showStudent, onViewDetails }) => {
         <div style={{ color: '#334155', fontSize: 15, marginBottom: 18, textAlign: 'center' }}>
           {`${internship.startDate instanceof Date ? internship.startDate.toLocaleDateString() : new Date(internship.startDate).toLocaleDateString()} - ${internship.endDate instanceof Date ? internship.endDate.toLocaleDateString() : new Date(internship.endDate).toLocaleDateString()}`}
         </div>
-        <button style={{ 
-          background: '#1746a2', 
-          color: '#fff', 
-          border: 'none', 
-          borderRadius: 8, 
-          padding: '12px 0', 
-          width: '100%', 
-          fontWeight: 600, 
-          fontSize: 16, 
-          cursor: 'pointer', 
+        <button style={{
+          background: '#1746a2',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 8,
+          padding: '12px 0',
+          width: '100%',
+          fontWeight: 600,
+          fontSize: 16,
+          cursor: 'pointer',
           transition: 'background 0.2s',
           maxWidth: window.innerWidth < 1024 ? '300px' : '100%'
         }}
@@ -138,18 +138,18 @@ const ApplicationsPage = ({ currentUser }) => {
       case 'student':
         // Students see their own applications
         return currentUser.applications || [];
-        
+
       case 'company':
         // Companies see applications for their internships
-        return mockApplications.filter(app => 
+        return mockApplications.filter(app =>
           app.internship.company.id === currentUser.id
         );
-        
+
       case 'faculty':
       case 'scad':
         // Faculty and SCAD see all applications
         return mockApplications;
-        
+
       default:
         return [];
     }
@@ -204,24 +204,24 @@ const ApplicationsPage = ({ currentUser }) => {
   };
 
   // Header styles
-  const headerBox = { 
-    marginBottom: 32, 
-    maxWidth: '95%', 
-    marginLeft: 'auto', 
+  const headerBox = {
+    marginBottom: 32,
+    maxWidth: '95%',
+    marginLeft: 'auto',
     marginRight: 'auto',
     padding: window.innerWidth < 768 ? '0 20px' : '0'
   };
-  const headerTitle = { 
-    fontWeight: 700, 
-    fontSize: window.innerWidth < 480 ? 24 : 28, 
-    color: '#334155', 
-    marginBottom: 2, 
-    marginTop: 0 
+  const headerTitle = {
+    fontWeight: 700,
+    fontSize: window.innerWidth < 480 ? 24 : 28,
+    color: '#334155',
+    marginBottom: 2,
+    marginTop: 0
   };
-  const headerDesc = { 
-    color: '#64748b', 
-    fontSize: window.innerWidth < 480 ? 15 : 17, 
-    marginBottom: 0 
+  const headerDesc = {
+    color: '#64748b',
+    fontSize: window.innerWidth < 480 ? 15 : 17,
+    marginBottom: 0
   };
   const actionsRow = { display: 'flex', gap: 12 };
   const actionBtn = { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#1746a2', fontWeight: 600, fontSize: 15, cursor: 'pointer', transition: 'background 0.2s' };
@@ -236,19 +236,19 @@ const ApplicationsPage = ({ currentUser }) => {
         </div>
       </div>
       {/* Status filter and search */}
-      <div style={{ 
-        maxWidth: '95%', 
-        margin: '0 auto', 
-        marginBottom: 24, 
-        display: 'flex', 
+      <div style={{
+        maxWidth: '95%',
+        margin: '0 auto',
+        marginBottom: 24,
+        display: 'flex',
         flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-        alignItems: window.innerWidth < 768 ? 'flex-start' : 'center', 
+        alignItems: window.innerWidth < 768 ? 'flex-start' : 'center',
         gap: 16,
         padding: window.innerWidth < 768 ? '0 20px' : '0'
       }}>
-        <div style={{ 
-          display: 'flex', 
-          flexWrap: 'wrap', 
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
           gap: 8,
           marginBottom: window.innerWidth < 768 ? 16 : 0
         }}>
@@ -279,12 +279,12 @@ const ApplicationsPage = ({ currentUser }) => {
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
-            padding: '8px 16px',
-            borderRadius: 8,
+            padding: '8px 16px 8px 38px', // Added left padding for icon
+            borderRadius: '8px',
             border: '1px solid #e2e8f0',
-            fontSize: 15,
-            width: window.innerWidth < 768 ? '100%' : 260,
-            background: '#f8fafc',
+            fontSize: '15px',
+            width: window.innerWidth < 768 ? '100%' : '260px',
+            background: '#f1f5f9',
             outline: 'none',
           }}
         />
@@ -300,26 +300,26 @@ const ApplicationsPage = ({ currentUser }) => {
       </div>
       {/* Modal for application details */}
       {selected && (
-        <div style={{ 
-          position: 'fixed', 
-          top: 0, 
-          left: 0, 
-          width: '100vw', 
-          height: '100vh', 
-          background: 'rgba(0,0,0,0.18)', 
-          zIndex: 1000, 
-          display: 'flex', 
-          alignItems: 'center', 
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.18)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
           padding: window.innerWidth < 768 ? '20px' : '0'
         }}>
-          <div style={{ 
-            background: '#fff', 
-            borderRadius: 12, 
-            padding: window.innerWidth < 768 ? '24px' : '36px', 
+          <div style={{
+            background: '#fff',
+            borderRadius: 12,
+            padding: window.innerWidth < 768 ? '24px' : '36px',
             width: '100%',
-            maxWidth: 540, 
-            boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
+            maxWidth: 540,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
             position: 'relative',
             maxHeight: '90vh',
             overflowY: 'auto'
