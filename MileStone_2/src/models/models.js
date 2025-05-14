@@ -208,6 +208,7 @@ export class Application {
         this.submissionDate = submissionDate;
         this.applicationData = applicationData; // Additional user info
     }
+    
 }
 
 // ===== Report Class =====
@@ -218,5 +219,9 @@ export class Report {
         this.internship = internship;
         this.content = content;
         this.submissionDate = submissionDate;
+        this.status = 'submitted'; // Default status
+        this.rejectionReason = null;
+        this.flagReason = null;
+        this.courses = [];
     }
 }
