@@ -515,7 +515,25 @@ const CompanyHome = ({ currentUser }) => {
             <div style={{ flex: 1, background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem' }}>
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Manage Interns</div>
               <div style={{ color: '#64748b', fontSize: 15, marginBottom: 18 }}>View and manage your current interns</div>
-              <button style={{ width: '100%', background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '12px 0', fontWeight: 500, fontSize: 16, color: '#1746a2', cursor: 'pointer' }}>View Interns</button>
+              <Link 
+                to="/company/interns"
+                style={{ 
+                  display: 'block',
+                  width: '100%', 
+                  background: '#f1f5f9', 
+                  border: 'none', 
+                  borderRadius: 8, 
+                  padding: '12px 0', 
+                  fontWeight: 500, 
+                  fontSize: 16, 
+                  color: '#1746a2', 
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  textAlign: 'center'
+                }}
+              >
+                View Interns
+              </Link>
             </div>
             <div style={{ flex: 1, background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem' }}>
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Intern Evaluations</div>

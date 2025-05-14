@@ -295,51 +295,17 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
               padding: '0.25rem' /* Reduced from 0.5rem to 0.25rem */
             }}>
               <div></div> {/* Empty div to maintain flex layout */}
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {/* Move search bar to filter controls section */}
-                {isCompany && (
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8,
-                    padding: '8px 16px',
-                    fontSize: 15,
-                    cursor: 'pointer'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={myInternshipsOnly}
-                      onChange={e => setMyInternshipsOnly(e.target.checked)}
-                    />
-                    My Internships Only
-                  </label>
-                )}
-              </div>
             </div>
 
             {/* Filter controls with search bar */}
             <div style={{
               display: 'flex',
               gap: 16,
-              marginBottom: 16, /* You can adjust this value if needed */
-              marginTop: 0, /* Ensures no extra space at the top */
+              marginBottom: 16,
+              marginTop: 0,
               alignItems: 'center',
               flexWrap: 'wrap'
             }}>
-              {/* Remove the "Internships" label */}
-              {/* <h3 style={{
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#334155',
-                margin: 0,
-                paddingRight: 16
-              }}>
-                Internships
-              </h3> */}
-
               {/* Add search bar here */}
               <div style={{ position: 'relative', minWidth: '200px' }}>
                 <Search size={18} style={{
@@ -381,6 +347,26 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 <option value='paid'>Paid</option>
                 <option value='unpaid'>Unpaid</option>
               </select>
+              {isCompany && (
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  fontSize: 15,
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={myInternshipsOnly}
+                    onChange={e => setMyInternshipsOnly(e.target.checked)}
+                  />
+                  My Internships Only
+                </label>
+              )}
             </div>
             {/* Table */}
             <div style={{ overflowX: 'auto', width: '100%' }}>
