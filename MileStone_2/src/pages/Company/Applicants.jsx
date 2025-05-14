@@ -103,13 +103,55 @@ const Applicants = ({ currentUser }) => {
     if (!application) return null;
 
     const handleStatusChange = (newStatus) => {
-      // Update the application status in your data
+      // Get the student and internship
+      const student = mockUsers.find(u => u.username === application.student);
+      const internship = mockInternships.find(i => i.id === application.internshipId);
+
+      if (!student || !internship) return;
+
+      if (newStatus === 'finalized') {
+        // Create a new StudentInternship instance
+        const newInternship = {
+          id: Date.now(),
+          company: currentUser,
+          title: internship.title,
+          description: internship.description,
+          location: internship.location,
+          startDate: internship.startDate,
+          endDate: internship.endDate,
+          status: 'active'
+        };
+
+        // Move student to current interns
+        student.currentInternship = newInternship;
+        currentUser.currentInterns = currentUser.currentInterns || [];
+        currentUser.currentInterns.push(student);
+
+        // Set up automatic transition to past interns
+        const endDate = new Date(internship.endDate);
+        const now = new Date();
+        const timeUntilEnd = endDate.getTime() - now.getTime();
+        
+        if (timeUntilEnd > 0) {
+          setTimeout(() => {
+            // Move from current to past interns
+            student.pastInternships = student.pastInternships || [];
+            student.pastInternships.push(student.currentInternship);
+            student.currentInternship = null;
+            
+            currentUser.pastInterns = currentUser.pastInterns || [];
+            currentUser.pastInterns.push(student);
+            currentUser.currentInterns = currentUser.currentInterns.filter(i => i.id !== student.id);
+          }, timeUntilEnd);
+        }
+      }
+
+      // Update the application status
       applications = applications.map(app => 
         app.id === application.id ? { ...app, status: newStatus } : app
       );
       
-      // Update the student's application status in mockUsers
-      const student = mockUsers.find(u => u.username === application.student);
+      // Update the student's application status
       if (student) {
         student.applications = student.applications.map(app =>
           app.id === application.id ? { ...app, status: newStatus } : app

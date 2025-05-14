@@ -296,29 +296,6 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
               padding: '0.25rem'
             }}>
               <div></div> {/* Empty div to maintain flex layout */}
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {/* Move search bar to filter controls section */}
-                {isCompany && (
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8,
-                    padding: '8px 16px',
-                    fontSize: 15,
-                    cursor: 'pointer'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={myInternshipsOnly}
-                      onChange={e => setMyInternshipsOnly(e.target.checked)}
-                    />
-                    My Internships Only
-                  </label>
-                )}
-              </div>
             </div>
 
             {/* Filter controls with search bar */}
@@ -371,6 +348,26 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 <option value='paid'>Paid</option>
                 <option value='unpaid'>Unpaid</option>
               </select>
+              {isCompany && (
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  fontSize: 15,
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={myInternshipsOnly}
+                    onChange={e => setMyInternshipsOnly(e.target.checked)}
+                  />
+                  My Internships Only
+                </label>
+              )}
               <button
                 onClick={() => setShowVideoModal(true)}
                 style={{
