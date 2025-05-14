@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
 import { mockInternships, mockReports } from '../../DummyData/mockUsers';
-import { Eye, Edit2, Trash2, Upload } from 'lucide-react';
+import { Eye, Edit2, Trash2, Upload, Calendar, Search } from 'lucide-react';
 
 const STATUS_COLORS = {
   pending: { bg: '#fef3c7', color: '#b45309' },
@@ -51,7 +51,6 @@ const StudentInternships = ({ currentUser }) => {
   const major = currentUser?.major || 'CS';
   const availableCourses = COURSES_BY_MAJOR[major] || [];
 
-  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedInternship, setSelectedInternship] = useState(null);
   const [showReportForm, setShowReportForm] = useState(false);
@@ -61,6 +60,8 @@ const StudentInternships = ({ currentUser }) => {
   const [reports, setReports] = useState(currentUser?.reports || []);
   const [editingReportId, setEditingReportId] = useState(null);
   const [notifiedInternships, setNotifiedInternships] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Format date helper function
   const formatDate = (date) => {
@@ -187,27 +188,31 @@ const StudentInternships = ({ currentUser }) => {
     }
   };
 
-  // Filter internships by status
-  const getInternshipsByStatus = (status) => {
-    return internships.filter(internship => internship.status === status);
-  };
-
-  // Get all completed internships
-  const completedInternships = getInternshipsByStatus('completed');
-  // Get all active/accepted internships
-  const activeInternships = getInternshipsByStatus('accepted');
-  // Get all pending internships
-  const pendingInternships = getInternshipsByStatus('pending');
-
   // Only show content if user is logged in
   if (!currentUser) {
     return <div style={{ padding: 40, textAlign: 'center', color: '#b91c1c', fontWeight: 600 }}>Please log in to view your reports and internships.</div>;
   }
 
-  const filteredInternships = internships.filter(i =>
-    i.title.toLowerCase().includes(search.toLowerCase()) ||
-    (i.company?.companyName || '').toLowerCase().includes(search.toLowerCase())
-  );
+  // Filter internships based on status and search
+  const filteredInternships = internships.filter(internship => {
+    const now = new Date();
+    const startDate = new Date(internship.startDate);
+    const endDate = new Date(internship.endDate);
+    const isAccepted = internship.status === 'accepted';
+    const isPast = endDate < now && !isAccepted;
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = searchQuery === '' || 
+      (internship.title?.toLowerCase().includes(searchLower) || 
+       internship.company?.companyName?.toLowerCase().includes(searchLower));
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'current' && !isAccepted) return false;
+      if (statusFilter === 'completed' && !isPast) return false;
+    }
+
+    return matchesSearch;
+  });
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
@@ -216,130 +221,123 @@ const StudentInternships = ({ currentUser }) => {
         <NavBar currentUser={currentUser} />
         <div style={{ maxWidth: 1100, margin: '2rem auto', padding: 0 }}>
           <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>My Internships</h2>
-          <input
-            type="text"
-            placeholder="Search by job title or company name..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{
-              width: '350px',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              marginBottom: '24px',
-              background: '#f1f5f9',
-              outline: 'none'
-            }}
-          />
 
-          {/* Completed Internships Section */}
-          {completedInternships.length > 0 && (
-            <>
-              <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16, color: '#1746a2' }}>Completed Internships</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginBottom: 32 }}>
-                {completedInternships.map(internship => {
-                  const status = getStatus(internship);
-                  const statusColor = STATUS_COLORS[status] || {};
-                  return (
-                    <div key={internship.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', minWidth: 320, flex: 1, maxWidth: 370, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ fontWeight: 600, fontSize: 18 }}>{internship.title}</div>
-                      <div style={{ color: '#64748b', fontSize: 15 }}>{internship.company?.companyName || 'Company'}</div>
-                      <div style={{ fontSize: 14, background: statusColor.bg, color: statusColor.color, borderRadius: 6, padding: '2px 12px', display: 'inline-block', fontWeight: 600 }}>{status.charAt(0).toUpperCase() + status.slice(1)}</div>
-                      <div style={{ color: '#64748b', fontSize: 14 }}>{internship.location}</div>
-                      <div style={{ color: '#64748b', fontSize: 14 }}>
-                        {formatDate(internship.startDate)} - {formatDate(internship.endDate)}
-                      </div>
+          {/* Search and Filter Bar */}
+          <div style={{ 
+            display: 'flex', 
+            gap: 16, 
+            marginBottom: 24,
+            position: 'sticky',
+            top: 0,
+            background: '#f8fafc',
+            padding: '16px 0',
+            zIndex: 10,
+            width: '100%',
+            maxWidth: 1100
+          }}>
+            <div style={{ 
+              position: 'relative', 
+              width: 300,
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <Search size={18} style={{ 
+                position: 'absolute', 
+                left: 12, 
+                color: '#64748b',
+                pointerEvents: 'none'
+              }} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by company name or job title..."
+                style={{
+                  width: '100%',
+                  padding: '8px 14px 8px 40px',
+                  borderRadius: 8,
+                  border: '1px solid #e2e8f0',
+                  background: '#fff',
+                  fontSize: 15,
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  height: 40
+                }}
+              />
+            </div>
+
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 8,
+                border: '1px solid #e2e8f0',
+                background: '#fff',
+                fontSize: 15,
+                width: 160,
+                height: 40
+              }}
+            >
+              <option value="all">All Status</option>
+              <option value="current">Current</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+
+          {/* Internships List */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+            {filteredInternships.map(internship => {
+              const status = getStatus(internship);
+              const statusColor = STATUS_COLORS[status] || {};
+              const now = new Date();
+              const startDate = new Date(internship.startDate);
+              const endDate = new Date(internship.endDate);
+              const isAccepted = internship.status === 'accepted';
+              const isPast = endDate < now && !isAccepted;
+
+              let statusText = isAccepted ? 'Current' : 'Completed';
+
+              return (
+                <div key={internship.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', minWidth: 320, flex: 1, maxWidth: 370, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ fontWeight: 600, fontSize: 18 }}>{internship.title}</div>
+                  <div style={{ color: '#64748b', fontSize: 15 }}>{internship.company?.companyName || 'Company'}</div>
+                  <div style={{ fontSize: 14, background: statusColor.bg, color: statusColor.color, borderRadius: 6, padding: '2px 12px', display: 'inline-block', fontWeight: 600 }}>{statusText}</div>
+                  <div style={{ color: '#64748b', fontSize: 14 }}>{internship.location}</div>
+                  <div style={{ color: '#64748b', fontSize: 14 }}>
+                    {formatDate(internship.startDate)} - {formatDate(internship.endDate)}
+                  </div>
+                  <button
+                    onClick={() => handleViewDetails(internship)}
+                    style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, marginTop: 8, cursor: 'pointer' }}
+                  >
+                    View Details
+                  </button>
+                  {!isAccepted && (
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'center' }}>
                       <button
-                        onClick={() => handleViewDetails(internship)}
-                        style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, marginTop: 8, cursor: 'pointer' }}
+                        onClick={() => { handleViewDetails(internship); handleOpenReportForm(); }}
+                        style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, cursor: 'pointer', flex: 1 }}
                       >
-                        View Details
+                        Add Report
                       </button>
-                      <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'center' }}>
-                        <button
-                          onClick={() => { handleViewDetails(internship); handleOpenReportForm(); }}
-                          style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, cursor: 'pointer', flex: 1 }}
-                        >
-                          Add Report
-                        </button>
-                        <button
-                          onClick={() => { handleViewDetails(internship); handleOpenEvaluationForm(); }}
-                          style={{ background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, cursor: 'pointer', flex: 1 }}
-                        >
-                          Evaluate
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          {/* Active Internships Section */}
-          {activeInternships.length > 0 && (
-            <>
-              <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16, color: '#16a34a' }}>Active Internships</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginBottom: 32 }}>
-                {activeInternships.map(internship => {
-                  const status = getStatus(internship);
-                  const statusColor = STATUS_COLORS[status] || {};
-                  return (
-                    <div key={internship.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', minWidth: 320, flex: 1, maxWidth: 370, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ fontWeight: 600, fontSize: 18 }}>{internship.title}</div>
-                      <div style={{ color: '#64748b', fontSize: 15 }}>{internship.company?.companyName || 'Company'}</div>
-                      <div style={{ fontSize: 14, background: statusColor.bg, color: statusColor.color, borderRadius: 6, padding: '2px 12px', display: 'inline-block', fontWeight: 600 }}>{status.charAt(0).toUpperCase() + status.slice(1)}</div>
-                      <div style={{ color: '#64748b', fontSize: 14 }}>{internship.location}</div>
-                      <div style={{ color: '#64748b', fontSize: 14 }}>
-                        {formatDate(internship.startDate)} - {formatDate(internship.endDate)}
-                      </div>
                       <button
-                        onClick={() => handleViewDetails(internship)}
-                        style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, marginTop: 8, cursor: 'pointer' }}
+                        onClick={() => { handleViewDetails(internship); handleOpenEvaluationForm(); }}
+                        style={{ background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, cursor: 'pointer', flex: 1 }}
                       >
-                        View Details
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          {/* Pending Applications Section */}
-          {pendingInternships.length > 0 && (
-            <>
-              <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16, color: '#b45309' }}>Pending Applications</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginBottom: 32 }}>
-                {pendingInternships.map(internship => {
-                  const status = getStatus(internship);
-                  const statusColor = STATUS_COLORS[status] || {};
-                  return (
-                    <div key={internship.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', minWidth: 320, flex: 1, maxWidth: 370, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ fontWeight: 600, fontSize: 18 }}>{internship.title}</div>
-                      <div style={{ color: '#64748b', fontSize: 15 }}>{internship.company?.companyName || 'Company'}</div>
-                      <div style={{ fontSize: 14, background: statusColor.bg, color: statusColor.color, borderRadius: 6, padding: '2px 12px', display: 'inline-block', fontWeight: 600 }}>{status.charAt(0).toUpperCase() + status.slice(1)}</div>
-                      <div style={{ color: '#64748b', fontSize: 14 }}>{internship.location}</div>
-                      <div style={{ color: '#64748b', fontSize: 14 }}>
-                        {formatDate(internship.startDate)} - {formatDate(internship.endDate)}
-                      </div>
-                      <button
-                        onClick={() => handleViewDetails(internship)}
-                        style={{ background: '#1746a2', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, marginTop: 8, cursor: 'pointer' }}
-                      >
-                        View Details
+                        Evaluate
                       </button>
                     </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           {/* Show message if no internships */}
-          {internships.length === 0 && (
-            <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
-              No internships found. Start by applying to available opportunities!
+          {filteredInternships.length === 0 && (
+            <div style={{ color: '#64748b', padding: '1rem 0' }}>
+              {searchQuery ? 'No internships found matching your search.' : 'No internships found. Start by applying to available opportunities!'}
             </div>
           )}
 

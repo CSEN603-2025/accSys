@@ -111,11 +111,12 @@ export class SCAD extends User {
 
 // ===== Company Class =====
 export class Company extends User {
-    constructor(id, username, email, password, companyName = "", industry = "", logoPath = "") {
+    constructor(id, username, email, password, companyName = "", industry = "", logoPath = "", description = "") {
         super(id, username, email, "company", password);
         this.logoPath = logoPath;
         this.companyName = companyName;
         this.industry = industry;
+        this.description = description;
         this.postedInternships = [];
         this.isApproved = false;
         this.currentInterns = [];
@@ -143,7 +144,7 @@ export class Company extends User {
 
 // ===== Internship Base Class =====
 export class Internship {
-    constructor(id, company, title, description, location, startDate, endDate) {
+    constructor(id, company, title, description, location, startDate, endDate, skills = []) {
         this.id = id;
         this.company = company; // Full Company object
         this.title = title;
@@ -151,15 +152,17 @@ export class Internship {
         this.location = location;
         this.startDate = new Date(startDate);
         this.endDate = new Date(endDate);
+        this.skills = skills;
     }
 }
 
 // ===== InternshipPost Class =====
 export class InternshipPost extends Internship {
-    constructor(id, company, title, description, location, startDate, endDate) {
+    constructor(id, company, title, description, location, compensation,startDate, endDate) {
         super(id, company, title, description, location, startDate, endDate);
         this.applicants = [];
         this.isApproved = false;
+        this.compensation = compensation;
     }
 
     addApplicant(application) {
