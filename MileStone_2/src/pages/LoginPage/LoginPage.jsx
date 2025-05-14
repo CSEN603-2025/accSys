@@ -81,22 +81,30 @@ const LoginPage = ({ onLogin }) => {
                         Sign In
                     </button>
 
-                    {/* Add "New Company?" label */}
+                    {/* Add "New Company?" label with properly styled link */}
                     <div style={{
                         textAlign: 'center',
                         margin: '16px 0 8px',
                         color: '#4b5563',
                         fontSize: '14px',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '8px'
                     }}>
                         New Company?
+                        <Link
+                            to="/register-company"
+                            style={{
+                                color: '#1746a2',
+                                textDecoration: 'underline',
+                                fontWeight: '600'
+                            }}
+                        >
+                            Register Here
+                        </Link>
                     </div>
-
-                    <Link to="/register-company" className={styles.registerLink}>
-                        <button className={styles.registerButton}>
-                            Register Company
-                        </button>
-                    </Link>
                 </div>
             </div>
         </div>
