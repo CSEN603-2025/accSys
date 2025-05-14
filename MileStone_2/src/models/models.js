@@ -111,8 +111,9 @@ export class SCAD extends User {
 
 // ===== Company Class =====
 export class Company extends User {
-    constructor(id, username, email, password, companyName = "", industry = "") {
+    constructor(id, username, email, password, companyName = "", industry = "", logoPath = "") {
         super(id, username, email, "company", password);
+        this.logoPath = logoPath;
         this.companyName = companyName;
         this.industry = industry;
         this.postedInternships = [];

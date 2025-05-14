@@ -51,7 +51,10 @@ const StudentReports = ({ currentUser }) => {
   const [notifiedInternships, setNotifiedInternships] = useState([]);
 
   // Use mockInternships if user has no internships
-  const internships = currentUser?.currentInternship ? [currentUser.currentInternship] : mockInternships;
+  const internships = [
+    ...(currentUser?.currentInternship ? [currentUser.currentInternship] : []),
+    ...(currentUser?.pastInternships || [])
+  ];
   const major = currentUser?.major || 'CS';
   const availableCourses = COURSES_BY_MAJOR[major] || [];
 

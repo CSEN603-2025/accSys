@@ -9,6 +9,10 @@ import {
   Report,
 } from '../models/models.js';
 
+import logo1 from '../assets/logo1.svg';
+import logo2 from '../assets/logo2.svg';
+import logo3 from '../assets/logo3.svg';
+
 // ===== SCAD Admin =====
 const scadAdmin = new SCAD(1, "scadAdmin", "admin@scad.edu", "123");
 
@@ -26,17 +30,18 @@ const student3 = new Student(7, "Khairy", "layla@student.edu", "123", "Robotics"
 const companies = [];
 
 const companyNames = [
-  ["TechNova", "Software"],
-  ["BioSync", "Biotech"],
-  ["Finverse", "Fintech"],
-  ["EcoDrive", "Sustainability"],
-  ["CyberLink", "Cybersecurity"],
-  ["RoboSphere", "AI & Robotics"]
+  ["TechNova", "Software", logo1],
+  ["BioSync", "Biotech", logo2],
+  ["Finverse", "Fintech", logo3],
+  ["EcoDrive", "Sustainability", logo1],
+  ["CyberLink", "Cybersecurity", logo2],
+  ["RoboSphere", "AI & Robotics", logo3]
 ];
 
-companyNames.forEach(([name, industry], idx) => {
+companyNames.forEach(([name, industry, logo], idx) => {
   const company = new Company(10 + idx, name.toLowerCase(), `${name.toLowerCase()}@corp.com`, "123", name, industry);
   company.isApproved = true;
+  company.logoUrl = logo;
   companies.push(company);
 });
 
@@ -49,6 +54,7 @@ const newCompany = new Company(
   "NexTech Solutions",
   "Healthcare Technology"
 );
+newCompany.logoUrl = logo1;  // Assign a default logo even for non-approved companies
 // Keep isApproved as false (default value)
 companies.push(newCompany);
 
@@ -84,9 +90,23 @@ student1.currentInternship = new StudentInternship(300, companies[0], internship
 student1.currentInternship.updateStatus("completed");
 
 // Add a completed internship to Ziad's past internships
-const completedInternship = new StudentInternship(303, companies[1], "Bioinformatics Research Intern", "Worked on medical data analysis and machine learning models.", "Cairo", "2024-01-01", "2024-04-30");
-completedInternship.updateStatus("completed");
-student1.addPastInternship(completedInternship);
+const completedInternship1 = new StudentInternship(303, companies[1], "Bioinformatics Research Intern", "Worked on medical data analysis and machine learning models.", "Cairo", "2024-01-01", "2024-04-30");
+completedInternship1.updateStatus("completed");
+student1.addPastInternship(completedInternship1);
+
+// Add more completed internships for Ziad
+const completedInternship2 = new StudentInternship(304, companies[2], "Financial Data Analyst", "Developed automated trading algorithms and financial models.", "Dubai", "2023-06-01", "2023-08-30");
+completedInternship2.updateStatus("completed");
+student1.addPastInternship(completedInternship2);
+
+const completedInternship3 = new StudentInternship(305, companies[4], "Security Research Intern", "Conducted penetration testing and security audits.", "Remote", "2023-01-15", "2023-03-15");
+completedInternship3.updateStatus("completed");
+student1.addPastInternship(completedInternship3);
+
+// Add an accepted internship for the future
+const acceptedInternship = new StudentInternship(306, companies[5], "AI Research Assistant", "Working on cutting-edge ML models and research.", "Cairo", "2025-06-01", "2025-08-30");
+acceptedInternship.updateStatus("accepted");
+student1.addPastInternship(acceptedInternship);
 
 companies[2].hireIntern(internships[4], student2);
 student2.currentInternship = new StudentInternship(301, companies[2], internships[4].title, internships[4].description, internships[4].location, internships[4].startDate, internships[4].endDate);
