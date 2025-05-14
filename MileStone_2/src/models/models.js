@@ -33,10 +33,12 @@ export class Student extends User {
         this.semesterNumber = semesterNumber;
         this.applications = [];
         this.reports = [];
+        this.evaluations = [];
         this.interests = [];
         this.pastInternships = [];
         this.currentInternship = null;
         this.activities = [];
+        this.recommendedCompanies = [];
     }
 
     addInterest(interest) {
@@ -71,6 +73,16 @@ export class Student extends User {
     submitReport(report) {
         this.reports.push(report);
         this.addNotification(`Submitted report for: ${report.internship.title}`);
+    }
+
+    submitEvaluation(evaluation) {
+        this.evaluations.push(evaluation);
+        if (evaluation.recommend && evaluation.internship?.company?.id) {
+            if (!this.recommendedCompanies.includes(evaluation.internship.company.id)) {
+                this.recommendedCompanies.push(evaluation.internship.company.id);
+            }
+        }
+        this.addNotification(`Submitted evaluation for: ${evaluation.internship.title}`);
     }
 }
 
