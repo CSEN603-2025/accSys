@@ -33,10 +33,12 @@ export class Student extends User {
         this.semesterNumber = semesterNumber;
         this.applications = [];
         this.reports = [];
+        this.evaluations = [];
         this.interests = [];
         this.pastInternships = [];
         this.currentInternship = null;
         this.activities = [];
+        this.recommendedCompanies = [];
     }
 
     addInterest(interest) {
@@ -71,6 +73,16 @@ export class Student extends User {
     submitReport(report) {
         this.reports.push(report);
         this.addNotification(`Submitted report for: ${report.internship.title}`);
+    }
+
+    submitEvaluation(evaluation) {
+        this.evaluations.push(evaluation);
+        if (evaluation.recommend && evaluation.internship?.company?.id) {
+            if (!this.recommendedCompanies.includes(evaluation.internship.company.id)) {
+                this.recommendedCompanies.push(evaluation.internship.company.id);
+            }
+        }
+        this.addNotification(`Submitted evaluation for: ${evaluation.internship.title}`);
     }
 }
 
@@ -111,10 +123,12 @@ export class SCAD extends User {
 
 // ===== Company Class =====
 export class Company extends User {
-    constructor(id, username, email, password, companyName = "", industry = "") {
+    constructor(id, username, email, password, companyName = "", industry = "", logoPath = "", description = "") {
         super(id, username, email, "company", password);
+        this.logoPath = logoPath;
         this.companyName = companyName;
         this.industry = industry;
+        this.description = description;
         this.postedInternships = [];
         this.isApproved = false;
         this.currentInterns = [];
@@ -142,7 +156,7 @@ export class Company extends User {
 
 // ===== Internship Base Class =====
 export class Internship {
-    constructor(id, company, title, description, location, startDate, endDate) {
+    constructor(id, company, title, description, location, startDate, endDate, skills = []) {
         this.id = id;
         this.company = company; // Full Company object
         this.title = title;
@@ -150,15 +164,17 @@ export class Internship {
         this.location = location;
         this.startDate = new Date(startDate);
         this.endDate = new Date(endDate);
+        this.skills = skills;
     }
 }
 
 // ===== InternshipPost Class =====
 export class InternshipPost extends Internship {
-    constructor(id, company, title, description, location, startDate, endDate) {
+    constructor(id, company, title, description, location, compensation,startDate, endDate) {
         super(id, company, title, description, location, startDate, endDate);
         this.applicants = [];
         this.isApproved = false;
+        this.compensation = compensation;
     }
 
     addApplicant(application) {

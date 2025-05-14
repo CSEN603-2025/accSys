@@ -9,6 +9,10 @@ import {
   Report,
 } from '../models/models.js';
 
+import logo1 from '../assets/logo1.svg';
+import logo2 from '../assets/logo2.svg';
+import logo3 from '../assets/logo3.svg';
+
 // ===== SCAD Admin =====
 const scadAdmin = new SCAD(1, "scadAdmin", "admin@scad.edu", "123");
 
@@ -26,17 +30,27 @@ const student3 = new Student(7, "Khairy", "layla@student.edu", "123", "Robotics"
 const companies = [];
 
 const companyNames = [
-  ["TechNova", "Software"],
-  ["BioSync", "Biotech"],
-  ["Finverse", "Fintech"],
-  ["EcoDrive", "Sustainability"],
-  ["CyberLink", "Cybersecurity"],
-  ["RoboSphere", "AI & Robotics"]
+  ["TechNova", "Software", logo1],
+  ["BioSync", "Biotech", logo2],
+  ["Finverse", "Fintech", logo3],
+  ["EcoDrive", "Sustainability", logo1],
+  ["CyberLink", "Cybersecurity", logo2],
+  ["RoboSphere", "AI & Robotics", logo3]
 ];
 
-companyNames.forEach(([name, industry], idx) => {
-  const company = new Company(10 + idx, name.toLowerCase(), `${name.toLowerCase()}@corp.com`, "123", name, industry);
+companyNames.forEach(([name, industry, logo], idx) => {
+  const company = new Company(
+    10 + idx, 
+    name.toLowerCase(), 
+    `${name.toLowerCase()}@corp.com`, 
+    "123", 
+    name, 
+    industry, 
+    logo,
+    `${name} is a leading company in the ${industry} industry. We specialize in innovative solutions and cutting-edge technology. Our team is dedicated to excellence and continuous improvement.`,
+  );
   company.isApproved = true;
+  company.logoUrl = logo;
   companies.push(company);
 });
 
@@ -47,20 +61,23 @@ const newCompany = new Company(
   "info@nextech.com",
   "123",
   "NexTech Solutions",
-  "Healthcare Technology"
+  "Healthcare Technology",
+  logo1,
+  "NexTech Solutions is a pioneering healthcare technology company focused on developing innovative solutions that bridge the gap between healthcare and technology. We are committed to improving patient care through digital transformation."
 );
+newCompany.logoUrl = logo1;  // Assign a default logo even for non-approved companies
 // Keep isApproved as false (default value)
 companies.push(newCompany);
 
 const internships = [
-  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote", "2025-06-01", "2025-08-30"),
-  new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote", "2025-06-01", "2025-08-30"),
-  new InternshipPost(102, companies[1], "Bioinformatics Intern", "Analyze medical data.", "Cairo", "2025-06-01", "2025-09-01"),
-  new InternshipPost(103, companies[2], "Quant Intern", "Financial modeling in Python.", "Dubai", "2025-06-15", "2025-09-15"),
-  new InternshipPost(104, companies[2], "Data Analyst Intern", "Help automate dashboards.", "Remote", "2025-06-01", "2025-08-01"),
-  new InternshipPost(105, companies[3], "Sustainability Intern", "Research energy tech.", "Berlin", "2025-07-01", "2025-09-30"),
-  new InternshipPost(106, companies[4], "Cybersecurity Intern", "Audit and test systems.", "Online", "2025-06-01", "2025-08-30"),
-  new InternshipPost(107, companies[5], "AI Research Intern", "Train and deploy models.", "Cairo", "2025-06-01", "2025-09-01")
+  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote",4500, "2025-06-01", "2025-08-30"),
+  new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote",0, "2025-06-01", "2025-08-30"),
+  new InternshipPost(102, companies[1], "Bioinformatics Intern", "Analyze medical data.", "Cairo",5000, "2025-06-01", "2025-09-01"),
+  new InternshipPost(103, companies[2], "Quant Intern", "Financial modeling in Python.", "Dubai",15000, "2025-06-15", "2025-09-15"),
+  new InternshipPost(104, companies[2], "Data Analyst Intern", "Help automate dashboards.", "Remote",20000, "2025-06-01", "2025-08-01"),
+  new InternshipPost(105, companies[3], "Sustainability Intern", "Research energy tech.", "Berlin",3000, "2025-07-01", "2025-09-30"),
+  new InternshipPost(106, companies[4], "Cybersecurity Intern", "Audit and test systems.", "Online",0, "2025-06-01", "2025-08-30"),
+  new InternshipPost(107, companies[5], "AI Research Intern", "Train and deploy models.", "Cairo",0, "2025-06-01", "2025-09-01")
 ];
 
 // Approve internships
@@ -84,9 +101,23 @@ student1.currentInternship = new StudentInternship(300, companies[0], internship
 student1.currentInternship.updateStatus("completed");
 
 // Add a completed internship to Ziad's past internships
-const completedInternship = new StudentInternship(303, companies[1], "Bioinformatics Research Intern", "Worked on medical data analysis and machine learning models.", "Cairo", "2024-01-01", "2024-04-30");
-completedInternship.updateStatus("completed");
-student1.addPastInternship(completedInternship);
+const completedInternship1 = new StudentInternship(303, companies[1], "Bioinformatics Research Intern", "Worked on medical data analysis and machine learning models.", "Cairo", "2024-01-01", "2024-04-30");
+completedInternship1.updateStatus("completed");
+student1.addPastInternship(completedInternship1);
+
+// Add more completed internships for Ziad
+const completedInternship2 = new StudentInternship(304, companies[2], "Financial Data Analyst", "Developed automated trading algorithms and financial models.", "Dubai", "2023-06-01", "2023-08-30");
+completedInternship2.updateStatus("completed");
+student1.addPastInternship(completedInternship2);
+
+const completedInternship3 = new StudentInternship(305, companies[4], "Security Research Intern", "Conducted penetration testing and security audits.", "Remote", "2023-01-15", "2023-03-15");
+completedInternship3.updateStatus("completed");
+student1.addPastInternship(completedInternship3);
+
+// Add an accepted internship for the future
+const acceptedInternship = new StudentInternship(306, companies[5], "AI Research Assistant", "Working on cutting-edge ML models and research.", "Cairo", "2025-06-01", "2025-08-30");
+acceptedInternship.updateStatus("accepted");
+student1.addPastInternship(acceptedInternship);
 
 companies[2].hireIntern(internships[4], student2);
 student2.currentInternship = new StudentInternship(301, companies[2], internships[4].title, internships[4].description, internships[4].location, internships[4].startDate, internships[4].endDate);

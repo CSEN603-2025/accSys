@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { mockUsers, mockInternships, mockApplications } from '../DummyData/mockUsers';
-import { Plus, Filter, Eye, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Filter, Eye, CheckCircle2, XCircle, Search } from 'lucide-react';
 import NavBar from '../Components/NavBar';
 import SideBar from '../Components/SideBar';
 
@@ -160,17 +160,27 @@ const ApplicationsPage = ({ currentUser }) => {
 
   // Apply search filter
   if (search.trim()) {
+    const searchLower = search.toLowerCase();
     applications = applications.filter(app =>
-      app.internship.title.toLowerCase().includes(search.toLowerCase()) ||
-      app.internship.company.companyName.toLowerCase().includes(search.toLowerCase()) ||
-      (isCompany && app.student.username.toLowerCase().includes(search.toLowerCase()))
+      app.internship.title.toLowerCase().includes(searchLower) ||
+      app.internship.company.companyName.toLowerCase().includes(searchLower) ||
+      (app.student && app.student.username.toLowerCase().includes(searchLower)) ||
+      (app.internship.location && app.internship.location.toLowerCase().includes(searchLower)) ||
+      (app.internship.description && app.internship.description.toLowerCase().includes(searchLower))
     );
   }
 
   // Apply status filter
-  if (statusFilter) {
-    applications = applications.filter(app => app.status === statusFilter);
+  if (statusFilter && statusFilter !== 'all') {
+    applications = applications.filter(app => app.status.toLowerCase() === statusFilter.toLowerCase());
   }
+
+  // Sort applications by date (most recent first)
+  applications.sort((a, b) => {
+    const dateA = new Date(a.submissionDate);
+    const dateB = new Date(b.submissionDate);
+    return dateB - dateA;
+  });
 
   const handleView = (application) => {
     setSelected(application);
@@ -273,21 +283,38 @@ const ApplicationsPage = ({ currentUser }) => {
             </button>
           ))}
         </div>
-        <input
-          type="text"
-          placeholder="Search company or internship..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{
-            padding: '8px 16px 8px 38px', // Added left padding for icon
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0',
-            fontSize: '15px',
-            width: window.innerWidth < 768 ? '100%' : '260px',
-            background: '#f1f5f9',
-            outline: 'none',
-          }}
-        />
+        <div style={{ position: 'relative', width: window.innerWidth < 768 ? '100%' : '260px' }}>
+          <Search 
+            size={18} 
+            style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#64748b'
+            }} 
+          />
+          <input
+            type="text"
+            placeholder="Search applications..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 16px 10px 40px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              fontSize: '15px',
+              background: '#fff',
+              outline: 'none',
+              transition: 'all 0.2s',
+              '&:focus': {
+                borderColor: '#1746a2',
+                boxShadow: '0 0 0 2px rgba(23, 70, 162, 0.1)'
+              }
+            }}
+          />
+        </div>
       </div>
       <div style={{ maxWidth: '95%', margin: '0 auto' }}>
         {applications.length === 0 ? (
