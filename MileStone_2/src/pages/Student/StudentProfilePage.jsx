@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
-import { User, Upload, X } from 'lucide-react';
+import { User, Upload, X, Edit2, AlertCircle } from 'lucide-react'; // Added AlertCircle icon
 
 // Define major options
 const MAJOR_OPTIONS = [
@@ -52,6 +52,10 @@ const StudentProfilePage = ({ currentUser }) => {
   const [newActivity, setNewActivity] = useState({ name: '', role: '', description: '' });
   const [profileImagePreview, setProfileImagePreview] = useState(profile.profilePicture);
   const fileInputRef = useRef(null);
+  const [formErrors, setFormErrors] = useState({
+    name: false,
+    email: false
+  });
 
   // Update preview when currentUser changes
   useEffect(() => {
@@ -97,6 +101,19 @@ const StudentProfilePage = ({ currentUser }) => {
   };
 
   const handleProfileSave = () => {
+    // Validate required fields
+    const errors = {
+      name: !profile.name.trim(),
+      email: !profile.email.trim()
+    };
+
+    setFormErrors(errors);
+
+    // If there are errors, don't proceed with save
+    if (errors.name || errors.email) {
+      return;
+    }
+
     // Update currentUser data if available
     if (currentUser) {
       currentUser.username = profile.name;
@@ -207,51 +224,62 @@ const StudentProfilePage = ({ currentUser }) => {
 
             {editMode ? (
               <div className="edit-profile-mode">
-                <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'center' }}>
-                  <div style={{
-                    position: 'relative',
-                    width: 120,
-                    height: 120,
-                    borderRadius: '50%',
-                    background: profileImagePreview ? 'transparent' : '#1746a2',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                  }} onClick={triggerFileInput}>
-                    {profileImagePreview ? (
-                      <img
-                        src={profileImagePreview}
-                        alt="Profile"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <span style={{
-                        fontWeight: 700,
-                        fontSize: 42,
-                        color: '#fff'
-                      }}>
-                        {getUserInitials()}
-                      </span>
-                    )}
+                <div style={{ marginBottom: 30, display: 'flex', justifyContent: 'center', position: 'relative' }}>
+                  <div style={{ position: 'relative' }}>
                     <div style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      background: 'rgba(23, 70, 162, 0.8)',
-                      color: '#fff',
-                      textAlign: 'center',
-                      padding: '4px 0',
-                      fontSize: 12,
-                      fontWeight: 500
-                    }}>
-                      <Upload size={14} style={{ marginRight: 4, display: 'inline' }} />
-                      Change
+                      width: 120,
+                      height: 120,
+                      borderRadius: '50%',
+                      background: profileImagePreview ? 'transparent' : '#1746a2',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                    }} onClick={triggerFileInput}>
+                      {profileImagePreview ? (
+                        <img
+                          src={profileImagePreview}
+                          alt="Profile"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <span style={{
+                          fontWeight: 700,
+                          fontSize: 42,
+                          color: '#fff'
+                        }}>
+                          {getUserInitials()}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Edit icon positioned outside the avatar - bottom right */}
+                    <div
+                      onClick={triggerFileInput}
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: -10,
+                        background: '#1746a2',
+                        color: '#fff',
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '2px solid #fff',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        cursor: 'pointer',
+                        zIndex: 2
+                      }}
+                    >
+                      <Edit2 size={16} />
                     </div>
                   </div>
+
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -261,55 +289,252 @@ const StudentProfilePage = ({ currentUser }) => {
                   />
                 </div>
 
-                <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
-                  <input name="name" value={profile.name} onChange={handleProfileChange} placeholder="Name" style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
-                  <input name="email" value={profile.email} onChange={handleProfileChange} placeholder="Email" style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
-                </div>
-                <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
-                  <input name="phone" value={profile.phone} onChange={handleProfileChange} placeholder="Phone" style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
+                {/* Vertical form layout with labels */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+                  {/* Name field */}
+                  <div>
+                    <label
+                      htmlFor="name"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: formErrors.name ? '#ef4444' : '#4b5563'
+                      }}
+                    >
+                      Full Name <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      value={profile.name}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your full name"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: `1px solid ${formErrors.name ? '#ef4444' : '#d1d5db'}`,
+                        borderRadius: '0.375rem',
+                        backgroundColor: formErrors.name ? '#fef2f2' : 'transparent'
+                      }}
+                    />
+                    {formErrors.name && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#ef4444',
+                        fontSize: 12,
+                        marginTop: 4
+                      }}>
+                        <AlertCircle size={12} style={{ marginRight: 4 }} />
+                        Full Name is required
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Email field */}
+                  <div>
+                    <label
+                      htmlFor="email"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: formErrors.email ? '#ef4444' : '#4b5563'
+                      }}
+                    >
+                      Email Address <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      value={profile.email}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your email address"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: `1px solid ${formErrors.email ? '#ef4444' : '#d1d5db'}`,
+                        borderRadius: '0.375rem',
+                        backgroundColor: formErrors.email ? '#fef2f2' : 'transparent'
+                      }}
+                    />
+                    {formErrors.email && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#ef4444',
+                        fontSize: 12,
+                        marginTop: 4
+                      }}>
+                        <AlertCircle size={12} style={{ marginRight: 4 }} />
+                        Email Address is required
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Phone field */}
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      Phone Number
+                    </label>
+                    <input
+                      id="phone"
+                      name="phone"
+                      value={profile.phone}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your phone number"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                    />
+                  </div>
 
                   {/* Major dropdown */}
-                  <select
-                    name="major"
-                    value={profile.major}
-                    onChange={handleProfileChange}
-                    style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }}
-                  >
-                    <option value="">Select Major</option>
-                    {MAJOR_OPTIONS.map(major => (
-                      <option key={major} value={major}>{major}</option>
-                    ))}
-                  </select>
+                  <div>
+                    <label
+                      htmlFor="major"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      Major
+                    </label>
+                    <select
+                      id="major"
+                      name="major"
+                      value={profile.major}
+                      onChange={handleProfileChange}
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                    >
+                      <option value="">Select Major</option>
+                      {MAJOR_OPTIONS.map(major => (
+                        <option key={major} value={major}>{major}</option>
+                      ))}
+                    </select>
+                  </div>
 
                   {/* Semester number dropdown */}
-                  <select
-                    name="semesterNumber"
-                    value={profile.semesterNumber}
-                    onChange={handleProfileChange}
-                    style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }}
-                  >
-                    {SEMESTER_OPTIONS.map(num => (
-                      <option key={num} value={num}>{`Semester ${num}`}</option>
-                    ))}
-                  </select>
+                  <div>
+                    <label
+                      htmlFor="semesterNumber"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      Current Semester
+                    </label>
+                    <select
+                      id="semesterNumber"
+                      name="semesterNumber"
+                      value={profile.semesterNumber}
+                      onChange={handleProfileChange}
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                    >
+                      {SEMESTER_OPTIONS.map(num => (
+                        <option key={num} value={num}>{`Semester ${num}`}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Graduation Year field */}
+                  <div>
+                    <label
+                      htmlFor="graduationYear"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      Expected Graduation Year
+                    </label>
+                    <input
+                      id="graduationYear"
+                      name="graduationYear"
+                      value={profile.graduationYear}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your expected graduation year"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                    />
+                  </div>
+
+                  {/* GPA field */}
+                  <div>
+                    <label
+                      htmlFor="gpa"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      GPA (0-4)
+                    </label>
+                    <input
+                      id="gpa"
+                      name="gpa"
+                      value={profile.gpa}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your GPA"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                      type="number"
+                      min="0"
+                      max="4"
+                      step="0.01"
+                    />
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-                  <input name="graduationYear" value={profile.graduationYear} onChange={handleProfileChange} placeholder="Graduation Year" style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
-                  <input
-                    name="gpa"
-                    value={profile.gpa}
-                    onChange={handleProfileChange}
-                    placeholder="GPA"
-                    style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }}
-                    type="number"
-                    min="0"
-                    max="4"
-                    step="0.01"
-                  />
-                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                  <button onClick={handleProfileCancel} style={{ background: '#e2e8f0', color: '#1746a2', padding: '8px 18px', borderRadius: 6, border: 'none' }}>Cancel</button>
-                  <button onClick={handleProfileSave} style={{ background: '#1746a2', color: '#fff', padding: '8px 18px', borderRadius: 6, border: 'none' }}>Save Changes</button>
+                  <button onClick={handleProfileCancel} style={{ background: '#e2e8f0', color: '#1746a2', padding: '10px 20px', borderRadius: 6, border: 'none', fontWeight: 500 }}>Cancel</button>
+                  <button onClick={handleProfileSave} style={{ background: '#1746a2', color: '#fff', padding: '10px 20px', borderRadius: 6, border: 'none', fontWeight: 500 }}>Save Changes</button>
                 </div>
               </div>
             ) : (
