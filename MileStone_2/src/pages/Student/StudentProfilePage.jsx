@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
+import { User, Upload, X, Edit2, AlertCircle } from 'lucide-react'; // Added AlertCircle icon
 
 // Define major options
 const MAJOR_OPTIONS = [
@@ -35,19 +36,34 @@ const StudentProfilePage = ({ currentUser }) => {
     graduationYear: currentUser?.graduationYear || '',
     gpa: currentUser?.gpa || '',
     semesterNumber: currentUser?.semesterNumber || 1,
+    profilePicture: currentUser?.profilePicture || null,
   };
   const initialInterests = currentUser?.interests || [];
   const initialInternships = currentUser?.internships || [];
   const initialActivities = currentUser?.activities || [];
 
   const [profile, setProfile] = useState(initialProfile);
-  const [editProfile, setEditProfile] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [interests, setInterests] = useState(initialInterests);
   const [newInterest, setNewInterest] = useState('');
   const [internships, setInternships] = useState(initialInternships);
   const [newInternship, setNewInternship] = useState({ company: '', role: '', duration: '', description: '' });
   const [activities, setActivities] = useState(initialActivities);
   const [newActivity, setNewActivity] = useState({ name: '', role: '', description: '' });
+  const [profileImagePreview, setProfileImagePreview] = useState(profile.profilePicture);
+  const fileInputRef = useRef(null);
+  const [formErrors, setFormErrors] = useState({
+    name: false,
+    email: false
+  });
+
+  // Update preview when currentUser changes
+  useEffect(() => {
+    if (currentUser?.profilePicture) {
+      setProfileImagePreview(currentUser.profilePicture);
+      setProfile(prev => ({ ...prev, profilePicture: currentUser.profilePicture }));
+    }
+  }, [currentUser?.profilePicture]);
 
   // Profile handlers
   const handleProfileChange = (e) => {
@@ -65,9 +81,39 @@ const StudentProfilePage = ({ currentUser }) => {
     }
   };
 
-  const handleProfileEdit = () => setEditProfile(true);
+  const handleProfileEdit = () => setEditMode(true);
+
+  const handleProfileImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageDataUrl = reader.result;
+        setProfileImagePreview(imageDataUrl);
+        setProfile(prev => ({ ...prev, profilePicture: imageDataUrl }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
+  };
 
   const handleProfileSave = () => {
+    // Validate required fields
+    const errors = {
+      name: !profile.name.trim(),
+      email: !profile.email.trim()
+    };
+
+    setFormErrors(errors);
+
+    // If there are errors, don't proceed with save
+    if (errors.name || errors.email) {
+      return;
+    }
+
     // Update currentUser data if available
     if (currentUser) {
       currentUser.username = profile.name;
@@ -77,14 +123,16 @@ const StudentProfilePage = ({ currentUser }) => {
       currentUser.graduationYear = profile.graduationYear;
       currentUser.gpa = profile.gpa;
       currentUser.semesterNumber = profile.semesterNumber;
+      currentUser.profilePicture = profile.profilePicture;
     }
 
-    setEditProfile(false);
+    setEditMode(false);
   };
 
   const handleProfileCancel = () => {
     setProfile(initialProfile);
-    setEditProfile(false);
+    setProfileImagePreview(initialProfile.profilePicture);
+    setEditMode(false);
   };
 
   // Interests handlers
@@ -151,6 +199,15 @@ const StudentProfilePage = ({ currentUser }) => {
     });
   };
 
+  // Helper function to get user initials for avatar
+  const getUserInitials = () => {
+    if (!profile.name) return 'U';
+
+    const words = profile.name.split(' ').filter(word => word.length > 0);
+    if (words.length === 0) return 'U';
+    return words.map(word => word[0]).join('').toUpperCase().substring(0, 2);
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
       {/* Sidebar */}
@@ -161,74 +218,423 @@ const StudentProfilePage = ({ currentUser }) => {
         <NavBar currentUser={currentUser} />
         {/* Profile Content */}
         <div style={{ maxWidth: 900, margin: '2rem auto', padding: '2rem', background: '#fff', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-          <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Student Profile</h2>
           {/* Profile Card */}
           <div style={{ marginBottom: 32, padding: 24, border: '1px solid #e2e8f0', borderRadius: 10 }}>
             <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>Personal Information</h3>
-            {editProfile ? (
-              <>
-                <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
-                  <input name="name" value={profile.name} onChange={handleProfileChange} placeholder="Name" style={{ flex: 1, padding: 8 }} />
-                  <input name="email" value={profile.email} onChange={handleProfileChange} placeholder="Email" style={{ flex: 1, padding: 8 }} />
-                </div>
-                <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
-                  <input name="phone" value={profile.phone} onChange={handleProfileChange} placeholder="Phone" style={{ flex: 1, padding: 8 }} />
 
-                  {/* Major dropdown */}
-                  <select
-                    name="major"
-                    value={profile.major}
-                    onChange={handleProfileChange}
-                    style={{ flex: 1, padding: 8 }}
-                  >
-                    <option value="">Select Major</option>
-                    {MAJOR_OPTIONS.map(major => (
-                      <option key={major} value={major}>{major}</option>
-                    ))}
-                  </select>
+            {editMode ? (
+              <div className="edit-profile-mode">
+                <div style={{ marginBottom: 30, display: 'flex', justifyContent: 'center', position: 'relative' }}>
+                  <div style={{ position: 'relative' }}>
+                    <div style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: '50%',
+                      background: profileImagePreview ? 'transparent' : '#1746a2',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                    }} onClick={triggerFileInput}>
+                      {profileImagePreview ? (
+                        <img
+                          src={profileImagePreview}
+                          alt="Profile"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <span style={{
+                          fontWeight: 700,
+                          fontSize: 42,
+                          color: '#fff'
+                        }}>
+                          {getUserInitials()}
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Semester number dropdown */}
-                  <select
-                    name="semesterNumber"
-                    value={profile.semesterNumber}
-                    onChange={handleProfileChange}
-                    style={{ flex: 1, padding: 8 }}
-                  >
-                    {SEMESTER_OPTIONS.map(num => (
-                      <option key={num} value={num}>{`Semester ${num}`}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
-                  <input name="graduationYear" value={profile.graduationYear} onChange={handleProfileChange} placeholder="Graduation Year" style={{ flex: 1, padding: 8 }} />
+                    {/* Edit icon positioned outside the avatar - bottom right */}
+                    <div
+                      onClick={triggerFileInput}
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: -10,
+                        background: '#1746a2',
+                        color: '#fff',
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '2px solid #fff',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        cursor: 'pointer',
+                        zIndex: 2
+                      }}
+                    >
+                      <Edit2 size={16} />
+                    </div>
+                  </div>
+
                   <input
-                    name="gpa"
-                    value={profile.gpa}
-                    onChange={handleProfileChange}
-                    placeholder="GPA"
-                    style={{ flex: 1, padding: 8 }}
-                    type="number"
-                    min="0"
-                    max="4"
-                    step="0.01"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfileImageUpload}
+                    style={{ display: 'none' }}
                   />
                 </div>
-                <button onClick={handleProfileSave} style={{ marginRight: 12, background: '#1746a2', color: '#fff', padding: '8px 18px', borderRadius: 6, border: 'none' }}>Save</button>
-                <button onClick={handleProfileCancel} style={{ background: '#e2e8f0', color: '#1746a2', padding: '8px 18px', borderRadius: 6, border: 'none' }}>Cancel</button>
-              </>
+
+                {/* Vertical form layout with labels */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+                  {/* Name field */}
+                  <div>
+                    <label
+                      htmlFor="name"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: formErrors.name ? '#ef4444' : '#4b5563'
+                      }}
+                    >
+                      Full Name <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      value={profile.name}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your full name"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: `1px solid ${formErrors.name ? '#ef4444' : '#d1d5db'}`,
+                        borderRadius: '0.375rem',
+                        backgroundColor: formErrors.name ? '#fef2f2' : 'transparent'
+                      }}
+                    />
+                    {formErrors.name && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#ef4444',
+                        fontSize: 12,
+                        marginTop: 4
+                      }}>
+                        <AlertCircle size={12} style={{ marginRight: 4 }} />
+                        Full Name is required
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Email field */}
+                  <div>
+                    <label
+                      htmlFor="email"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: formErrors.email ? '#ef4444' : '#4b5563'
+                      }}
+                    >
+                      Email Address <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      value={profile.email}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your email address"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: `1px solid ${formErrors.email ? '#ef4444' : '#d1d5db'}`,
+                        borderRadius: '0.375rem',
+                        backgroundColor: formErrors.email ? '#fef2f2' : 'transparent'
+                      }}
+                    />
+                    {formErrors.email && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#ef4444',
+                        fontSize: 12,
+                        marginTop: 4
+                      }}>
+                        <AlertCircle size={12} style={{ marginRight: 4 }} />
+                        Email Address is required
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Phone field */}
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      Phone Number
+                    </label>
+                    <input
+                      id="phone"
+                      name="phone"
+                      value={profile.phone}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your phone number"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                    />
+                  </div>
+
+                  {/* Major dropdown */}
+                  <div>
+                    <label
+                      htmlFor="major"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      Major
+                    </label>
+                    <select
+                      id="major"
+                      name="major"
+                      value={profile.major}
+                      onChange={handleProfileChange}
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                    >
+                      <option value="">Select Major</option>
+                      {MAJOR_OPTIONS.map(major => (
+                        <option key={major} value={major}>{major}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Semester number dropdown */}
+                  <div>
+                    <label
+                      htmlFor="semesterNumber"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      Current Semester
+                    </label>
+                    <select
+                      id="semesterNumber"
+                      name="semesterNumber"
+                      value={profile.semesterNumber}
+                      onChange={handleProfileChange}
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                    >
+                      {SEMESTER_OPTIONS.map(num => (
+                        <option key={num} value={num}>{`Semester ${num}`}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Graduation Year field */}
+                  <div>
+                    <label
+                      htmlFor="graduationYear"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      Expected Graduation Year
+                    </label>
+                    <input
+                      id="graduationYear"
+                      name="graduationYear"
+                      value={profile.graduationYear}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your expected graduation year"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                    />
+                  </div>
+
+                  {/* GPA field */}
+                  <div>
+                    <label
+                      htmlFor="gpa"
+                      style={{
+                        display: 'block',
+                        marginBottom: 6,
+                        fontWeight: 500,
+                        fontSize: 14,
+                        color: '#4b5563'
+                      }}
+                    >
+                      GPA (0-4)
+                    </label>
+                    <input
+                      id="gpa"
+                      name="gpa"
+                      value={profile.gpa}
+                      onChange={handleProfileChange}
+                      placeholder="Enter your GPA"
+                      style={{
+                        width: '100%',
+                        padding: 10,
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem'
+                      }}
+                      type="number"
+                      min="0"
+                      max="4"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                  <button onClick={handleProfileCancel} style={{ background: '#e2e8f0', color: '#1746a2', padding: '10px 20px', borderRadius: 6, border: 'none', fontWeight: 500 }}>Cancel</button>
+                  <button onClick={handleProfileSave} style={{ background: '#1746a2', color: '#fff', padding: '10px 20px', borderRadius: 6, border: 'none', fontWeight: 500 }}>Save Changes</button>
+                </div>
+              </div>
             ) : (
               <>
-                <div style={{ marginBottom: 8 }}><b>Name:</b> {profile.name}</div>
-                <div style={{ marginBottom: 8 }}><b>Email:</b> {profile.email}</div>
-                <div style={{ marginBottom: 8 }}><b>Phone:</b> {profile.phone}</div>
-                <div style={{ marginBottom: 8 }}><b>Major:</b> {profile.major}</div>
-                <div style={{ marginBottom: 8 }}><b>Graduation Year:</b> {profile.graduationYear}</div>
-                <div style={{ marginBottom: 8 }}><b>GPA:</b> {profile.gpa}</div>
-                <div style={{ marginBottom: 8 }}><b>Semester Number:</b> {profile.semesterNumber}</div>
-                <button onClick={handleProfileEdit} style={{ background: '#1746a2', color: '#fff', padding: '8px 18px', borderRadius: 6, border: 'none' }}>Edit</button>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  width: '100%',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between'
+                }}>
+                  {/* Left side with avatar and personal info */}
+                  <div style={{
+                    width: '30%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    paddingRight: 20
+                  }}>
+                    {/* Profile avatar - matching NavBar style */}
+                    <div style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: '50%',
+                      background: '#1746a2',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                      fontSize: 42,
+                      marginBottom: 16,
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                      overflow: 'hidden'
+                    }}>
+                      {profile.profilePicture ? (
+                        <img
+                          src={profile.profilePicture}
+                          alt="Profile"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        getUserInitials()
+                      )}
+                    </div>
+
+                    {/* Name and email */}
+                    <div style={{
+                      textAlign: 'center',
+                      marginBottom: 16,
+                      width: '100%'
+                    }}>
+                      <div style={{
+                        fontWeight: 700,
+                        fontSize: 18,
+                        marginBottom: 4
+                      }}>
+                        {profile.name}
+                      </div>
+                      <div style={{
+                        color: '#64748b',
+                        fontSize: 14,
+                        wordBreak: 'break-word'
+                      }}>
+                        {profile.email}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right side with additional details */}
+                  <div style={{
+                    width: '40%',
+                    textAlign: 'left'
+                  }}>
+                    <div style={{ marginBottom: 10 }}><b>Phone:</b> {profile.phone || 'Not specified'}</div>
+                    <div style={{ marginBottom: 10 }}><b>Major:</b> {profile.major || 'Not specified'}</div>
+                    <div style={{ marginBottom: 10 }}><b>Graduation Year:</b> {profile.graduationYear || 'Not specified'}</div>
+                    <div style={{ marginBottom: 10 }}><b>GPA:</b> {profile.gpa || 'Not specified'}</div>
+                    <div style={{ marginBottom: 0 }}><b>Semester Number:</b> {profile.semesterNumber || 'Not specified'}</div>
+                    <button
+                      onClick={handleProfileEdit}
+                      style={{
+                        background: '#1746a2',
+                        color: '#fff',
+                        padding: '8px 18px',
+                        borderRadius: 6,
+                        border: 'none',
+                        cursor: 'pointer',
+                        width: '75%',
+                        marginTop: 8
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
               </>
             )}
           </div>
+
           {/* Job Interests */}
           <div style={{ marginBottom: 32, padding: 24, border: '1px solid #e2e8f0', borderRadius: 10 }}>
             <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>Job Interests</h3>
@@ -240,7 +646,7 @@ const StudentProfilePage = ({ currentUser }) => {
                 </span>
               ))}
             </div>
-            <input value={newInterest} onChange={e => setNewInterest(e.target.value)} placeholder="Add new interest..." style={{ padding: 8, marginRight: 8 }} />
+            <input value={newInterest} onChange={e => setNewInterest(e.target.value)} placeholder="Add new interest..." style={{ padding: 8, marginRight: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
             <button
               onClick={handleAddInterest}
               disabled={!newInterest.trim() || interests.includes(newInterest.trim())}
@@ -270,23 +676,23 @@ const StudentProfilePage = ({ currentUser }) => {
               ))}
             </ul>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <input name="company" value={newInternship.company} onChange={handleInternshipChange} placeholder="Company" style={{ padding: 8 }} />
-              <input name="role" value={newInternship.role} onChange={handleInternshipChange} placeholder="Role" style={{ padding: 8 }} />
-              <input name="duration" value={newInternship.duration} onChange={handleInternshipChange} placeholder="Duration" style={{ padding: 8 }} />
+              <input name="company" value={newInternship.company} onChange={handleInternshipChange} placeholder="Company" style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
+              <input name="role" value={newInternship.role} onChange={handleInternshipChange} placeholder="Role" style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
+              <input name="duration" value={newInternship.duration} onChange={handleInternshipChange} placeholder="Duration" style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
             </div>
-            <textarea name="description" value={newInternship.description} onChange={handleInternshipChange} placeholder="Description" style={{ padding: 8, width: '100%', marginBottom: 8 }} />
+            <textarea name="description" value={newInternship.description} onChange={handleInternshipChange} placeholder="Description" style={{ padding: 8, width: '100%', marginBottom: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
             <button
               onClick={handleAddInternship}
               style={{
-                background: ( !newInternship.company || !newInternship.role ) ? '#cbd5e1' : '#1746a2',
-                color: ( !newInternship.company || !newInternship.role ) ? '#64748b' : '#fff',
+                background: (!newInternship.company || !newInternship.role) ? '#cbd5e1' : '#1746a2',
+                color: (!newInternship.company || !newInternship.role) ? '#64748b' : '#fff',
                 padding: '8px 18px',
                 borderRadius: 6,
                 border: 'none',
-                cursor: ( !newInternship.company || !newInternship.role ) ? 'not-allowed' : 'pointer',
-                opacity: ( !newInternship.company || !newInternship.role ) ? 0.7 : 1
+                cursor: (!newInternship.company || !newInternship.role) ? 'not-allowed' : 'pointer',
+                opacity: (!newInternship.company || !newInternship.role) ? 0.7 : 1
               }}
-              disabled={ !newInternship.company || !newInternship.role }
+              disabled={!newInternship.company || !newInternship.role}
             >Add Internship</button>
           </div>
           {/* College Activities */}
@@ -304,22 +710,22 @@ const StudentProfilePage = ({ currentUser }) => {
               ))}
             </ul>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <input name="name" value={newActivity.name} onChange={handleActivityChange} placeholder="Activity Name" style={{ padding: 8 }} />
-              <input name="role" value={newActivity.role} onChange={handleActivityChange} placeholder="Role" style={{ padding: 8 }} />
+              <input name="name" value={newActivity.name} onChange={handleActivityChange} placeholder="Activity Name" style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
+              <input name="role" value={newActivity.role} onChange={handleActivityChange} placeholder="Role" style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
             </div>
-            <textarea name="description" value={newActivity.description} onChange={handleActivityChange} placeholder="Description" style={{ padding: 8, width: '100%', marginBottom: 8 }} />
+            <textarea name="description" value={newActivity.description} onChange={handleActivityChange} placeholder="Description" style={{ padding: 8, width: '100%', marginBottom: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
             <button
               onClick={handleAddActivity}
               style={{
-                background: ( !newActivity.name || !newActivity.role ) ? '#cbd5e1' : '#1746a2',
-                color: ( !newActivity.name || !newActivity.role ) ? '#64748b' : '#fff',
+                background: (!newActivity.name || !newActivity.role) ? '#cbd5e1' : '#1746a2',
+                color: (!newActivity.name || !newActivity.role) ? '#64748b' : '#fff',
                 padding: '8px 18px',
                 borderRadius: 6,
                 border: 'none',
-                cursor: ( !newActivity.name || !newActivity.role ) ? 'not-allowed' : 'pointer',
-                opacity: ( !newActivity.name || !newActivity.role ) ? 0.7 : 1
+                cursor: (!newActivity.name || !newActivity.role) ? 'not-allowed' : 'pointer',
+                opacity: (!newActivity.name || !newActivity.role) ? 0.7 : 1
               }}
-              disabled={ !newActivity.name || !newActivity.role }
+              disabled={!newActivity.name || !newActivity.role}
             >Add Activity</button>
           </div>
         </div>

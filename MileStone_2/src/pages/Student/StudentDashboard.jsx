@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
-import { FileText, Clock, CheckCircle, FileCheck, Plus } from 'lucide-react';
+import { FileText, Clock, CheckCircle, FileCheck, Plus, Building2 } from 'lucide-react';
 
 const cardStyle = {
   background: '#fff',
@@ -44,7 +44,7 @@ const StudentDashboard = ({ currentUser }) => {
   // Calculate summary statistics
   const totalApplications = currentUser?.applications?.length || 0;
   const pendingApplications = currentUser?.applications?.filter(app => app.status === 'pending').length || 0;
-  const activeInternships = currentUser?.applications?.filter(app => app.status === 'approved').length || 0;
+  const activeInternships = currentUser?.currentInternship ? 1 : 0;
   const submittedReports = currentUser?.reports?.length || 0;
 
   // Get most recent application
@@ -131,46 +131,77 @@ const StudentDashboard = ({ currentUser }) => {
             <SummaryCard title="Reports" value={submittedReports} desc="Submitted reports" icon={<FileCheck size={24} color="#1746a2" />} />
           </div>
 
+          <div  style={{ fontWeight: 600, fontSize: 22 }}>Recent Application</div>
+          <div className="mb-4" style={{ color: '#64748b', fontSize: 14, marginBottom: 12 }}>Your most recent internship application</div>
           {/* Recent Application Section */}
-          <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', marginBottom: '2rem' }}>
-            <div style={{ fontWeight: 600, fontSize: 22 }}>Recent Application</div>
-            <div style={{ color: '#64748b', fontSize: 14, marginBottom: 12 }}>Your most recent internship application</div>
+          <div className='' style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', marginBottom: '2rem' }}>
             {recentApplication ? (
               <>
-                <div style={{ fontWeight: 500, fontSize: 18 }}>{recentApplication.internship.title}</div>
-                <div style={{ color: '#64748b', fontSize: 15 }}>{recentApplication.internship.company.companyName}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
-                  <span style={{ 
-                    background: getStatusColor(recentApplication.status).bg,
-                    color: getStatusColor(recentApplication.status).text,
-                    borderRadius: 8, 
-                    padding: '2px 10px', 
-                    fontSize: 13 
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1.5rem' }}>
+                  <div style={{ 
+                    width: '60px',
+                    height: '60px',
+                    minWidth: '60px',
+                    background: '#f1f5f9',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    padding: '8px'
                   }}>
-                    {recentApplication.status.charAt(0).toUpperCase() + recentApplication.status.slice(1)}
-                  </span>
-                  <span style={{ color: '#64748b', fontSize: 13 }}>
-                    Applied on {new Date(recentApplication.submissionDate).toLocaleDateString()}
-                  </span>
+                    {recentApplication.internship.company.logoUrl ? (
+                      <img 
+                        src={recentApplication.internship.company.logoUrl} 
+                        alt={`${recentApplication.internship.company.companyName} logo`}
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'contain'
+                        }}
+                      />
+                    ) : (
+                      <Building2 size={30} color="#94a3b8" />
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500, fontSize: 18 }}>{recentApplication.internship.title}</div>
+                    <div style={{ color: '#64748b', fontSize: 15 }}>{recentApplication.internship.company.companyName}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 0 }}>
+                      <span style={{ color: '#64748b', fontSize: 13 }}>
+                        Applied on {new Date(recentApplication.submissionDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12}}>
+                    <span style={{ 
+                      background: getStatusColor(recentApplication.status).bg,
+                      color: getStatusColor(recentApplication.status).text,
+                      borderRadius: 8, 
+                      padding: '2px 10px', 
+                      fontSize: 13 
+                    }}>
+                      {recentApplication.status.charAt(0).toUpperCase() + recentApplication.status.slice(1)}
+                    </span>
+                    <button 
+                      onClick={handleViewDetails}
+                      style={{ 
+                        padding: '6px 18px', 
+                        borderRadius: 8, 
+                        background: '#f1f5f9', 
+                        border: 'none', 
+                        fontWeight: 500, 
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s',
+                        '&:hover': {
+                          background: '#e2e8f0'
+                        }
+                      }}
+                    >
+                      View Details
+                    </button>
+                  </div>
                 </div>
-                <button 
-                  onClick={handleViewDetails}
-                  style={{ 
-                    marginTop: 16, 
-                    padding: '6px 18px', 
-                    borderRadius: 8, 
-                    background: '#f1f5f9', 
-                    border: 'none', 
-                    fontWeight: 500, 
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                    '&:hover': {
-                      background: '#e2e8f0'
-                    }
-                  }}
-                >
-                  View Details
-                </button>
               </>
             ) : (
               <div style={{ color: '#64748b', fontSize: 15, marginTop: 8 }}>No applications yet</div>

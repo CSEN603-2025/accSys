@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Users, Building2, CheckCircle2 } from "lucide-react";
+import { Users, Building2, CheckCircle2, XCircle, ChevronDown, Search } from "lucide-react";
 import { mockUsers } from "../DummyData/mockUsers";
 import NavBar from "../Components/NavBar";
 import SideBar from "../Components/SideBar";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const companies = mockUsers.filter(user => user.role === 'company');
 const students = mockUsers.filter(user => user.role === 'student');
@@ -25,23 +25,30 @@ function getPageTitle(pathname, userRole) {
 }
 
 export default function CompaniesPage({ currentUser }) {
-  const isAdmin = currentUser && (currentUser.role === 'scad' || currentUser.role === '');
+  const isAdmin = currentUser && currentUser.role === 'scad';
   const location = useLocation();
   const userRole = currentUser?.role?.toLowerCase();
   const pageTitle = getPageTitle(location.pathname, userRole);
+  const navigate = useNavigate();
 
-  // Toggle state for relevant companies
+  // State for company listing
   const [showRelevant, setShowRelevant] = useState(false);
-  // Search state
-  const [search, setSearch] = useState("");
-  // Sort by recommendations state
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortByRecommendations, setSortByRecommendations] = useState(false);
-  // Force update for recommend button
   const [, setForce] = useState(0);
+
+  // State for SCAD functionality
+  const [selectedIndustry, setSelectedIndustry] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
   // User info for filtering
   const userInterests = (currentUser?.interests || []).map(i => i.toLowerCase());
   const userMajor = currentUser?.major?.toLowerCase() || "";
+
+  // Get unique industries for filter
+  const industries = [...new Set(companies.map(company => company.industry))].filter(Boolean);
 
   // Count recommendations for each company
   const companiesWithRecommendations = companies.map(company => {
@@ -52,35 +59,54 @@ export default function CompaniesPage({ currentUser }) {
     return { ...company, recommendations: recCount };
   });
 
-  // Filter companies by user interests or major
-  const relevantCompanies = companiesWithRecommendations.filter(company => {
-    const industry = company.industry?.toLowerCase() || "";
-    return userInterests.includes(industry) || industry.includes(userMajor);
-  });
+  // Filter and sort companies - only show approved companies to students
+  const companiesForDisplay = userRole === 'student'
+    ? companiesWithRecommendations.filter(company => company.isApproved)
+    : companiesWithRecommendations;
 
-  // Filter by search (name or industry)
-  const filteredCompanies = (showRelevant ? relevantCompanies : companiesWithRecommendations).filter(company => {
-    const searchLower = search.toLowerCase();
-    return (
-      company.companyName.toLowerCase().includes(searchLower) ||
-      (company.industry && company.industry.toLowerCase().includes(searchLower))
-    );
-  });
+  // Filter and sort companies
+  const filteredCompanies = (showRelevant ?
+    // If showing relevant, first filter by user's interests or major
+    companiesForDisplay.filter(company => {
+      const industry = company.industry?.toLowerCase() || "";
+      return userInterests.includes(industry) || industry.includes(userMajor);
+    })
+    : companiesForDisplay) // Otherwise show all companies (that are approved for students)
+    .filter(company => {
+      const matchesSearch = company.companyName.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesIndustry = !selectedIndustry || company.industry === selectedIndustry;
+      return matchesSearch && matchesIndustry;
+    })
+    .sort((a, b) => {
+      // Sort logic remains unchanged
+      if (sortByRecommendations) {
+        return (b.recommendations || 0) - (a.recommendations || 0);
+      }
+      if (sortBy === 'name') {
+        return sortOrder === 'asc'
+          ? a.companyName.localeCompare(b.companyName)
+          : b.companyName.localeCompare(a.companyName);
+      } else {
+        return sortOrder === 'asc'
+          ? (a.industry || '').localeCompare(b.industry || '')
+          : (b.industry || '').localeCompare(a.industry || '');
+      }
+    });
 
-  // Sort by recommendations if toggled
-  let displayedCompanies = filteredCompanies;
-  if (sortByRecommendations) {
-    displayedCompanies = [...filteredCompanies].sort(
-      (a, b) => (b.recommendations || 0) - (a.recommendations || 0)
-    );
-  }
-
-  // Helper: has the student interned at this company?
+  // Helper: has the student completed an internship at this company?
   const hasInternedAt = (student, companyId) => {
-    return Array.isArray(student.internships) &&
+    // Check if the student has completed internships at this company
+    return (
+      Array.isArray(student.internships) &&
       student.internships.some(internship =>
-        internship.company === companyId ||
-        (internship.company && internship.company.id === companyId)
+      (internship.company === companyId ||
+        (internship.company && internship.company.id === companyId))
+      )
+    ) || (
+        // Also check if the student has a completed currentInternship at this company
+        student.currentInternship &&
+        student.currentInternship.status === "completed" &&
+        (student.currentInternship.company.id === companyId)
       );
   };
 
@@ -93,213 +119,474 @@ export default function CompaniesPage({ currentUser }) {
     }
   };
 
-  // Inline style objects
-  const pageBg = { background: "#f8fafc", minHeight: "100vh", display: "flex" };
-  const mainCol = { flex: 1, display: "flex", flexDirection: "column" };
-  const centerCol = { display: "flex", flexDirection: "column", alignItems: "center", width: "100%" };
-  const contentBox = { width: "100%", maxWidth: 1200, padding: "32px 32px 0 32px" };
-  const headerRow = { display: "flex", alignItems: "center", marginBottom: 24 };
-  const title = { fontWeight: 700, fontSize: 28, marginRight: "auto" };
-  const searchInput = {
-    background: "#fff",
-    border: "1px solid #e2e8f0",
-    borderRadius: 8,
-    padding: "8px 16px",
-    fontSize: 15,
-    width: 220,
-    outline: "none"
-  };
-  const addBtn = {
-    background: "#1746a2",
-    color: "#fff",
-    borderRadius: 8,
-    padding: "8px 18px",
-    fontWeight: 600,
-    fontSize: 15,
-    border: "none",
-    marginLeft: 8,
-    cursor: "pointer",
-    transition: "background 0.2s"
-  };
-  const approveBtn = {
-    background: "#16a34a",
-    color: "#fff",
-    borderRadius: 8,
-    padding: "8px 18px",
-    fontWeight: 600,
-    fontSize: 15,
-    border: "none",
-    marginLeft: 8,
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    transition: "background 0.2s"
-  };
-  const subheaderBox = { marginBottom: 20 };
-  const subheaderTitle = { fontWeight: 700, fontSize: 26, color: "#334155" };
-  const subheaderDesc = { color: "#64748b", fontSize: 16 };
-  const cardsRow = {
-    width: "100%",
-    maxWidth: 1200,
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 32,
-    justifyContent: "flex-start",
-    paddingLeft: 32,
-    paddingRight: 32
-  };
-  const card = {
-    background: "#fff",
-    borderRadius: 12,
-    boxShadow: "0 1px 4px #e2e8f0",
-    padding: "2rem 1.5rem 1.5rem 1.5rem",
-    minWidth: 320,
-    maxWidth: 340,
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    alignItems: "flex-start"
-  };
-  const cardTitle = { fontWeight: 700, fontSize: 22 };
-  const cardIndustry = { color: "#64748b", fontSize: 16 };
-  const cardRow = { color: "#64748b", fontSize: 15, display: "flex", alignItems: "center", gap: 6, marginTop: 8 };
-  const cardBtn = {
-    marginTop: 12,
-    width: "100%",
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0",
-    borderRadius: 8,
-    padding: "10px 0",
-    fontWeight: 600,
-    fontSize: 16,
-    color: "#334155",
-    cursor: "pointer"
+  const handleApprove = (company) => {
+    company.isApproved = true;
+    company.addNotification('Your company has been approved by SCAD office');
+    setSelectedCompany(null);
   };
 
-  // Add a new style for the search/actions row
-  const searchRow = {
-    width: "100%",
-    maxWidth: 1200,
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 32,
-    paddingLeft: 32,
-    paddingRight: 32,
+  const handleReject = (company) => {
+    company.isApproved = false;
+    company.addNotification('Your company application has been rejected by SCAD office');
+    setSelectedCompany(null);
+  };
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const handleInternshipClick = (internshipId) => {
+    setSelectedCompany(null);
+    navigate('/internships');
+  };
+
+  const getInternshipDuration = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const months =
+      (end.getFullYear() - start.getFullYear()) * 12 +
+      (end.getMonth() - start.getMonth());
+    return months + 1; // +1 to include the starting month
   };
 
   return (
-    <div style={pageBg}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
       <SideBar userRole={userRole || "student"} />
-      <div style={mainCol}>
-        <NavBar currentUser={currentUser} pageTitle={pageTitle} />
-        <div style={centerCol}>
-          <div style={contentBox}>
-            {/* Header */}
-            <div style={headerRow}>
-              <h2 style={title}></h2>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <NavBar currentUser={currentUser} />
+        <div style={{ padding: '2rem', flex: 1 }}>
+          <h1 style={{ fontWeight: 700, marginBottom: '2rem' }}>Companies</h1>
+
+          {/* Search and Filter Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
+            <div style={{ position: 'relative', width: '350px' }}>
+              <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <input
+                type="text"
+                placeholder="Search companies..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.6rem 0.75rem 0.6rem 2.25rem',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  background: '#f1f5f9',
+                  height: '45px'
+                }}
+              />
             </div>
-            {/* Subheader */}
-            <div style={subheaderBox}>
-              <div style={subheaderTitle}>Partner Companies</div>
-              <div style={subheaderDesc}>View and manage company partnerships</div>
-            </div>
-          </div>
-          {/* Search and Actions Row */}
-          <div style={searchRow}>
-            <button
-              style={{
-                ...addBtn,
-                background: showRelevant ? "#64748b" : "#1746a2",
-                marginLeft: 0,
-                marginRight: 8
-              }}
-              onClick={() => setShowRelevant(r => !r)}
-            >
-              {showRelevant ? "Show All Companies" : "Show Relevant Companies"}
-            </button>
-            <button
-              style={{
-                ...addBtn,
-                background: sortByRecommendations ? "#64748b" : "#1746a2",
-                marginLeft: 0,
-                marginRight: 8
-              }}
-              onClick={() => setSortByRecommendations(s => !s)}
-            >
-              {sortByRecommendations ? "Unsort" : "Sort by Recommendations"}
-            </button>
-            <input
-              type="text"
-              placeholder="Search companies..."
-              style={searchInput}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-            {currentUser && userRole !== 'student' && (
-              <button style={addBtn}>
-                <Building2 style={{ display: "inline-block", marginRight: 8 }} size={18} />
-                Add Company
-              </button>
-            )}
-            {isAdmin && (
-              <button style={approveBtn}>
-                <CheckCircle2 size={18} />
-                Approve Companies
-              </button>
-            )}
-          </div>
-          {/* Cards */}
-          <div style={cardsRow}>
-            {displayedCompanies.map((company) => {
-              const alreadyRecommended = currentUser?.recommendedCompanies?.includes(company.id);
-              const canRecommend = userRole === 'student' && hasInternedAt(currentUser, company.id);
-              const recommendDisabled = userRole !== 'student' || alreadyRecommended || !canRecommend;
-              let recommendLabel = 'Recommend';
-              if (alreadyRecommended) recommendLabel = 'Recommended';
-              else if (!canRecommend) recommendLabel = 'Recommend';
-              return (
-                <div
-                  key={company.companyName}
-                  style={card}
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <select
+                value={selectedIndustry}
+                onChange={(e) => setSelectedIndustry(e.target.value)}
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  minWidth: '200px',
+                  background: '#f1f5f9'
+                }}
+              >
+                <option value="">All Industries</option>
+                {industries.map(industry => (
+                  <option key={industry} value={industry}>{industry}</option>
+                ))}
+              </select>
+              {userRole === 'student' && (
+                <button
+                  onClick={() => setShowRelevant(!showRelevant)}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.5rem',
+                    background: showRelevant ? '#64748b' : '#1746a2',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
                 >
-                  <div style={cardTitle}>{company.companyName}</div>
-                  <div style={cardIndustry}>{company.industry}</div>
-                  <div style={cardRow}>
-                    <Building2 size={16} />
-                    {company.location || "Cairo, Egypt"}
-                  </div>
-                  <div style={cardRow}>
-                    <Users size={16} />
-                    0 active interns
-                  </div>
-                  <div style={cardRow}>
-                    <span>Recommended by {company.recommendations || 0} interns</span>
-                  </div>
-                  {userRole === 'student' && (
-                    <button
-                      style={{
-                        ...cardBtn,
-                        background: recommendDisabled ? '#cbd5e1' : '#1746a2',
-                        color: recommendDisabled ? '#64748b' : '#fff',
-                        cursor: recommendDisabled ? 'not-allowed' : 'pointer',
-                        marginTop: 8
-                      }}
-                      disabled={recommendDisabled}
-                      onClick={() => canRecommend && !alreadyRecommended && handleRecommend(company.id)}
-                      title={!canRecommend ? 'You must have interned at this company to recommend it.' : ''}
-                    >
-                      {recommendLabel}
-                    </button>
-                  )}
-                  <button style={cardBtn}>
-                    View Details
-                  </button>
-                </div>
-              );
-            })}
+                  {showRelevant ? 'Show All Companies' : 'Show Relevant Companies'}
+                </button>
+              )}
+              {userRole === 'student' && (
+                <button
+                  onClick={() => setSortByRecommendations(!sortByRecommendations)}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.5rem',
+                    background: sortByRecommendations ? '#64748b' : '#1746a2',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  {sortByRecommendations ? 'Unsort' : 'Sort by Recommendations'}
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Companies Table */}
+          <div style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <th
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      width: '30%'
+                    }}
+                    onClick={() => handleSort('name')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      Company Name
+                      <ChevronDown size={16} style={{
+                        transform: sortBy === 'name' && sortOrder === 'desc' ? 'rotate(180deg)' : 'none',
+                        opacity: sortBy === 'name' ? 1 : 0.5
+                      }} />
+                    </div>
+                  </th>
+                  <th
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      width: '25%'
+                    }}
+                    onClick={() => handleSort('industry')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      Industry
+                      <ChevronDown size={16} style={{
+                        transform: sortBy === 'industry' && sortOrder === 'desc' ? 'rotate(180deg)' : 'none',
+                        opacity: sortBy === 'industry' ? 1 : 0.5
+                      }} />
+                    </div>
+                  </th>
+                  {userRole === 'student' && (
+                    <th style={{ padding: '1rem', textAlign: 'left', width: '20%' }}>Recommendations</th>
+                  )}
+                  {userRole !== 'student' && (
+                    <th style={{ padding: '1rem', textAlign: 'left', width: '15%' }}>Status</th>
+                  )}
+                  {isAdmin && <th style={{ padding: '1rem', textAlign: 'left', width: '20%' }}>Actions</th>}
+                  <th style={{ padding: '1rem', textAlign: 'left', width: '15%' }}>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCompanies.map(company => {
+                  const alreadyRecommended = currentUser?.recommendedCompanies?.includes(company.id);
+                  const canRecommend = userRole === 'student' && hasInternedAt(currentUser, company.id);
+                  const recommendDisabled = userRole !== 'student' || alreadyRecommended || !canRecommend;
+
+                  return (
+                    <tr
+                      key={company.id}
+                      style={{
+                        borderBottom: '1px solid #e2e8f0',
+                      }}
+                    >
+                      <td style={{ padding: '1rem' }}>{company.companyName}</td>
+                      <td style={{ padding: '1rem' }}>{company.industry}</td>
+                      {userRole === 'student' && (
+                        <td style={{ padding: '1rem' }}>
+                          {company.recommendations || 0} recommendations
+                        </td>
+                      )}
+                      {/* Show status cell only for non-student users */}
+                      {userRole !== 'student' && (
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '1rem',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            background: company.isApproved ? '#dcfce7' : '#fee2e2',
+                            color: company.isApproved ? '#166534' : '#991b1b'
+                          }}>
+                            {company.isApproved ? 'Approved' : 'Pending'}
+                          </span>
+                        </td>
+                      )}
+                      {isAdmin && (
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            {!company.isApproved && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApprove(company);
+                                  }}
+                                  style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '0.375rem',
+                                    background: '#16a34a',
+                                    color: 'white',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                  }}
+                                >
+                                  <CheckCircle2 size={16} />
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReject(company);
+                                  }}
+                                  style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '0.375rem',
+                                    background: '#dc2626',
+                                    color: 'white',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                  }}
+                                >
+                                  <XCircle size={16} />
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                      {/* Add View Details button with grey color */}
+                      <td style={{ padding: '1rem' }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCompany(company);
+                          }}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.375rem',
+                            background: '#1746a2',
+                            color: 'white',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                          }}
+                        >
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Company Details Modal */}
+          {selectedCompany && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000
+            }}>
+              <div style={{
+                background: 'white',
+                borderRadius: '0.5rem',
+                padding: '2rem',
+                width: '100%',
+                maxWidth: '600px',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                position: 'relative'
+              }}>
+                <button
+                  onClick={() => setSelectedCompany(null)}
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    padding: 0
+                  }}
+                >
+                  ×
+                </button>
+                <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                  {/* Company Logo */}
+                  <div style={{
+                    width: '90px',
+                    height: '90px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                  }}>
+                    {selectedCompany.logoUrl ? (
+                      <img
+                        src={selectedCompany.logoUrl}
+                        alt={`${selectedCompany.companyName} logo`}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <Building2 size={48} color="#94a3b8" />
+                    )}
+                  </div>
+                  {/* Company Details */}
+                  <div style={{ flex: 1 }}>
+                    <h2 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>{selectedCompany.companyName}</h2>
+                    <div style={{ color: '#64748b', fontSize: 16, marginBottom: 8 }}>{selectedCompany.industry}</div>
+                    <p style={{ marginBottom: 4 }}><strong>Email:</strong> {selectedCompany.email}</p>
+                    {userRole !== 'student' && (
+                      <p style={{ marginBottom: 4 }}><strong>Status:</strong> {selectedCompany.isApproved ? 'Approved' : 'Pending'}</p>
+                    )}
+                    {userRole === 'student' && (
+                      <p style={{ marginBottom: 4 }}><strong>Recommendations:</strong> {selectedCompany.recommendations || 0}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Posted Internships - Moved to top */}
+                <div style={{ width: '100%', marginTop: 24 }}>
+                  <h3 style={{ fontWeight: 600, marginBottom: '1rem' }}>Posted Internships</h3>
+                  {selectedCompany.postedInternships?.length > 0 ? (
+                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                      {selectedCompany.postedInternships.map(internship => (
+                        <li 
+                          key={internship.id} 
+                          onClick={() => handleInternshipClick(internship.id)}
+                          style={{ 
+                            marginBottom: '0.75rem',
+                            padding: '0.75rem',
+                            borderRadius: '0.375rem',
+                            background: '#f8fafc',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s',
+                            '&:hover': {
+                              background: '#f1f5f9'
+                            }
+                          }}
+                        >
+                          <div style={{ fontWeight: 500 }}>{internship.title}</div>
+                          <div style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                            {internship.location} • {new Date(internship.startDate).toLocaleDateString()} - {new Date(internship.endDate).toLocaleDateString()}
+                            {userRole === 'student' && ` (${getInternshipDuration(internship.startDate, internship.endDate)} months)`}
+                          </div>
+                          {userRole !== 'student' && (
+                            <div style={{ 
+                              display: 'inline-block',
+                              marginTop: '0.5rem',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '1rem',
+                              fontSize: '0.75rem',
+                              background: internship.isApproved ? '#dcfce7' : '#fee2e2',
+                              color: internship.isApproved ? '#166534' : '#991b1b'
+                            }}>
+                              {internship.isApproved ? 'Approved' : 'Pending'}
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ textAlign: 'center', color: '#64748b' }}>No internships posted yet</p>
+                  )}
+                </div>
+
+                {/* Recommend Button */}
+                {userRole === 'student' && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    marginTop: '2rem',
+                    paddingTop: '1.5rem',
+                    borderTop: '1px solid #e2e8f0',
+                    width: '100%'
+                  }}>
+                    <button
+                      onClick={() => {
+                        const canRecommend = hasInternedAt(currentUser, selectedCompany.id);
+                        const alreadyRecommended = currentUser?.recommendedCompanies?.includes(selectedCompany.id);
+                        if (canRecommend && !alreadyRecommended) {
+                          handleRecommend(selectedCompany.id);
+                        }
+                      }}
+                      disabled={!hasInternedAt(currentUser, selectedCompany.id) || currentUser?.recommendedCompanies?.includes(selectedCompany.id)}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '0.375rem',
+                        background: hasInternedAt(currentUser, selectedCompany.id) && !currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? '#1746a2' : '#cbd5e1',
+                        color: 'white',
+                        border: 'none',
+                        cursor: hasInternedAt(currentUser, selectedCompany.id) && !currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? 'pointer' : 'not-allowed',
+                        width: '80%',
+                        maxWidth: '300px',
+                        marginBottom: 8
+                      }}
+                      title={!hasInternedAt(currentUser, selectedCompany.id)
+                        ? "You need to complete an internship with this company before recommending"
+                        : currentUser?.recommendedCompanies?.includes(selectedCompany.id)
+                          ? "You've already recommended this company"
+                          : "Recommend this company to other students"}
+                    >
+                      {currentUser?.recommendedCompanies?.includes(selectedCompany.id) ? 'Recommended' : 'Recommend Company'}
+                    </button>
+                    {!hasInternedAt(currentUser, selectedCompany.id) && (
+                      <p style={{
+                        color: '#64748b',
+                        fontSize: '0.875rem',
+                        marginTop: '0.5rem',
+                        fontStyle: 'italic',
+                        textAlign: 'center'
+                      }}>
+                        You can recommend a company after completing an internship with them
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

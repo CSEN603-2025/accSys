@@ -5,14 +5,18 @@ import "./index.css";
 import LoginPage from './pages/LoginPage/LoginPage';
 import StudentDashboard from './pages/Student/StudentDashboard';
 import FacultyHome from './pages/FacultyHome';
-import CompanyHome from './pages/CompanyHome';
+import CompanyHome from './pages/Company/CompanyHome';
+import InternEvaluations from './pages/Company/InternEvaluations';
+
 import ScadHome from './pages/ScadHome';
 import RegisterCompany from './pages/LoginPage/RegisterCompany';
 import CompaniesPage from './pages/CompaniesPage';
+import InternshipPage from './pages/InternshipPage';
 import StudentProfilePage from './pages/Student/StudentProfilePage';
 import SideBar from './Components/SideBar';
 import NavBar from './Components/NavBar';
-import InternshipPage from './pages/InternshipPage';
+import StudentReports from './pages/Student/StudentReports';
+import StudentInternships from './pages/Student/StudentInternships';
 import ApplicationsPage from './pages/ApplicationsPage';
 
 // Placeholder components for other roles
@@ -61,14 +65,19 @@ export default function App() {
       <Route path="/login" element={<LoginPage onLogin={setUser} />} />
       {/* Optional: direct access to dashboards */}
       <Route path="/student" element={<StudentDashboard currentUser={user} />} />
+      <Route path="/student/reports" element={<StudentReports currentUser={user} />} />
       <Route path="/faculty" element={<FacultyHome currentUser={user} />} />
       <Route path="/company" element={<CompanyHome currentUser={user} />} />
       <Route path="/scad" element={<ScadHome currentUser={user} />} />
       <Route path="/register-company" element={<RegisterCompany />} />
       <Route path="/companies" element={<CompaniesPage currentUser={user} />} />
+      <Route path="/intern-evaluations" element={<InternEvaluations currentUser={user} />} />
       <Route path="/internships" element={<InternshipPage currentUser={user} />} />
       <Route path="/student/profile" element={<StudentProfilePage currentUser={user} />} />
-      <Route path="/applications" element={<ApplicationsPage currentUser={user}/>}/>
+      <Route path="/student/studentinternships" element={<StudentInternships currentUser={user} />} />
+      <Route path="/applications" element={<ApplicationsPage currentUser={user} />} />
+
+
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />
       {/* Default route fallback */}

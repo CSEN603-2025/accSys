@@ -8,10 +8,11 @@ export function getPageTitle(pathname, userRole) {
     return "Dashboard";
   }
   if (pathname.startsWith("/companies")) return "Companies";
+  if (pathname.startsWith("/internships")) return "Internships"; // Add this line for internships
   if (pathname.startsWith("/student")) return "Student Dashboard";
   if (pathname.startsWith("/faculty")) return "Faculty Dashboard";
   if (pathname.startsWith("/company")) return "Company Dashboard";
   if (pathname.startsWith("/scad")) return "SCAD Dashboard";
+  if (pathname.startsWith("/applications")) return "Applications";
   return "Internship Portal";
-  if(pathname.startsWith("/applications")) return "Applications";
 }
