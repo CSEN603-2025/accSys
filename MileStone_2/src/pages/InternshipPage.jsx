@@ -3,29 +3,29 @@ import SideBar from '../Components/SideBar';
 import NavBar from '../Components/NavBar';
 import { mockUsers, mockInternships } from '../DummyData/mockUsers';
 
-import { Eye, Edit2, Trash2, Upload } from 'lucide-react';
+import { Eye, Edit2, Trash2, Upload, Search } from 'lucide-react';
 import { Application, InternshipPost } from '../models/models';
 
 // Check this code in InternshipPage.jsx
 const getInternshipsForUser = (currentUser) => {
   let internships = [...mockInternships]; // Start with all internships
-  
+
   if (!currentUser) return [];
 
   switch (currentUser.role.toLowerCase()) {
     case 'student':
       // Students see all approved internships
       return internships.filter(internship => internship.isApproved);
-      
+
     case 'company':
       // Companies see all internships
       return internships;
-      
+
     case 'faculty':
     case 'scad':
       // Faculty and SCAD see all internships
       return internships;
-      
+
     default:
       return [];
   }
@@ -47,12 +47,12 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
   const isSCAD = currentUser?.role === 'scad';
   const [applying, setApplying] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
-  const [applyData, setApplyData] = useState({ 
-    name: currentUser?.username || '', 
-    email: currentUser?.email || '', 
-    major: currentUser?.major || '', 
-    gpa: currentUser?.gpa || '', 
-    semester: currentUser?.semesterNumber || '' 
+  const [applyData, setApplyData] = useState({
+    name: currentUser?.username || '',
+    email: currentUser?.email || '',
+    major: currentUser?.major || '',
+    gpa: currentUser?.gpa || '',
+    semester: currentUser?.semesterNumber || ''
   });
   const [applySuccess, setApplySuccess] = useState(false);
   const [industryFilter, setIndustryFilter] = useState('');
@@ -74,12 +74,12 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
 
   // Get internships based on user role
   let internships = getInternshipsForUser(currentUser);
-  
+
   // Apply my internships filter for companies
   if (isCompany && myInternshipsOnly) {
     internships = internships.filter(i => i.company.id === currentUser.id);
   }
-  
+
   // Apply search filter
   if (search.trim()) {
     internships = internships.filter(i =>
@@ -187,7 +187,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    
+
     // Find the internship in mockInternships and update it
     const internshipIndex = mockInternships.findIndex(i => i.id === selected.id);
     if (internshipIndex !== -1) {
@@ -242,54 +242,41 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ maxWidth: 1800, margin: '2rem auto', padding: '0 1rem' }}>
-          {/* Title and subtitle */}
-          <div style={{ marginBottom: 24, marginTop: 24 }}>
-            <h1 style={{ fontSize: 32, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>Internships</h1>
-            <p style={{ fontSize: 16, color: '#64748b' }}>Browse and apply for internships</p>
+          {/* Title and subtitle - Updated structure */}
+          <div style={{ marginBottom: 16, marginTop: 16 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>
+              {isSCAD ? 'Browse Internships' : 'Browse and apply for internships'}
+            </h1>
           </div>
           {/* Card container */}
-          <div style={{ 
-            background: '#fff', 
-            borderRadius: 16, 
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)', 
-            padding: '1.5rem', 
-            marginTop: 18, 
-            maxWidth: 1800, 
-            marginLeft: 'auto', 
+          <div style={{
+            background: '#fff',
+            borderRadius: 16,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            padding: '1.5rem',
+            marginTop: 12, /* Reduced from 18 to 12 */
+            maxWidth: 1800,
+            marginLeft: 'auto',
             marginRight: 'auto',
             overflowX: 'auto'
           }}>
             {/* Search and filter row */}
-            <div style={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              marginBottom: 18, 
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 8, /* Reduced from 18 to 8 */
               gap: 12,
-              padding: '0.5rem'
+              padding: '0.25rem' /* Reduced from 0.5rem to 0.25rem */
             }}>
-              <div style={{ fontWeight: 700, fontSize: 24 }}>Internships</div>
+              <div></div> {/* Empty div to maintain flex layout */}
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <input
-                  type="text"
-                  placeholder="Search internships..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  style={{
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8,
-                    padding: '8px 16px',
-                    fontSize: 15,
-                    minWidth: 200,
-                    maxWidth: 300,
-                    outline: 'none',
-                  }}
-                />
+                {/* Move search bar to filter controls section */}
                 {isCompany && (
-                  <label style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 8,
                     background: '#f8fafc',
                     border: '1px solid #e2e8f0',
@@ -308,8 +295,53 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 )}
               </div>
             </div>
-            {/* Filter controls */}
-            <div style={{ display: 'flex', gap: 16, marginBottom: 18, alignItems: 'center' }}>
+
+            {/* Filter controls with search bar */}
+            <div style={{
+              display: 'flex',
+              gap: 16,
+              marginBottom: 16, /* You can adjust this value if needed */
+              marginTop: 0, /* Ensures no extra space at the top */
+              alignItems: 'center',
+              flexWrap: 'wrap'
+            }}>
+              {/* Remove the "Internships" label */}
+              {/* <h3 style={{
+                fontSize: '18px',
+                fontWeight: 600,
+                color: '#334155',
+                margin: 0,
+                paddingRight: 16
+              }}>
+                Internships
+              </h3> */}
+
+              {/* Add search bar here */}
+              <div style={{ position: 'relative', minWidth: '200px' }}>
+                <Search size={18} style={{
+                  position: 'absolute',
+                  left: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#64748b'
+                }} />
+                <input
+                  type="text"
+                  placeholder="Search internships..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '8px 16px 8px 38px',
+                    fontSize: '15px',
+                    width: '200px',
+                    outline: 'none',
+                    background: '#f1f5f9'
+                  }}
+                />
+              </div>
+
               <select value={industryFilter} onChange={e => setIndustryFilter(e.target.value)} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 15 }}>
                 <option value=''>All Industries</option>
                 {industries.map(ind => <option key={ind} value={ind}>{ind}</option>)}
@@ -352,15 +384,15 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{internship.title || '-'}</td>
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{internship.location || '-'}</td>
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
-                        {internship.startDate && internship.endDate ? 
-                          `${Math.round((new Date(internship.endDate) - new Date(internship.startDate)) / (1000 * 60 * 60 * 24 * 30))}m` : 
+                        {internship.startDate && internship.endDate ?
+                          `${Math.round((new Date(internship.endDate) - new Date(internship.startDate)) / (1000 * 60 * 60 * 24 * 30))}m` :
                           '-'}
                       </td>
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
                         {internship.paid ? <span style={{ color: '#16a34a', fontWeight: 600 }}>Paid</span> : <span style={{ color: '#991b1b', fontWeight: 600 }}>Unpaid</span>}
                       </td>
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
-                        <span style={{ 
+                        <span style={{
                           background: isOwnInternship(internship) ? '#e0e7ff' : '#f1f5f9',
                           color: isOwnInternship(internship) ? '#1746a2' : '#64748b',
                           borderRadius: 8,
@@ -387,7 +419,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                       )}
                       <td style={{ padding: '14px 16px', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <button 
+                          <button
                             onClick={() => handleView(internship)}
                             style={{
                               background: '#f1f5f9',
@@ -406,7 +438,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                           </button>
                           {isOwnInternship(internship) && (
                             <>
-                              <button 
+                              <button
                                 onClick={() => handleEdit(internship)}
                                 style={{
                                   background: '#1746a2',
@@ -423,7 +455,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                               >
                                 <Edit2 size={18} />
                               </button>
-                              <button 
+                              <button
                                 onClick={() => handleDelete(internship)}
                                 style={{
                                   background: '#fee2e2',
@@ -443,7 +475,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                             </>
                           )}
                           {isStudent && internship.isApproved && (
-                            <button 
+                            <button
                               onClick={() => openApplyModal(internship)}
                               style={{
                                 background: '#1746a2',
@@ -472,40 +504,40 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
         </div>
         {/* Modal for internship details */}
         {showModal && selected && (
-          <div style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            width: '100vw', 
-            height: '100vh', 
-            background: 'rgba(0,0,0,0.18)', 
-            zIndex: 1000, 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.18)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             padding: '1rem'
           }}>
-            <div style={{ 
-              background: '#fff', 
-              borderRadius: 12, 
-              padding: '1.5rem', 
-              width: '100%', 
-              maxWidth: 540, 
+            <div style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: '1.5rem',
+              width: '100%',
+              maxWidth: 540,
               maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
-              position: 'relative' 
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+              position: 'relative'
             }}>
-              <button 
-                onClick={() => { setShowModal(false); setSelected(null); }} 
-                style={{ 
-                  position: 'absolute', 
-                  top: 12, 
-                  right: 12, 
-                  background: 'none', 
-                  border: 'none', 
-                  fontSize: 22, 
-                  color: '#64748b', 
+              <button
+                onClick={() => { setShowModal(false); setSelected(null); }}
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 22,
+                  color: '#64748b',
                   cursor: 'pointer',
                   padding: '4px',
                   display: 'flex',
@@ -516,8 +548,8 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 10, paddingRight: '2rem' }}>{selected.title}</h3>
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Company:</b> {selected.company.companyName}</div>
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Location:</b> {selected.location}</div>
-              <div style={{ color: '#64748b', marginBottom: 8 }}><b>Duration:</b> {selected.startDate && selected.endDate ? 
-                `${Math.round((new Date(selected.endDate) - new Date(selected.startDate)) / (1000 * 60 * 60 * 24 * 30))} months` : 
+              <div style={{ color: '#64748b', marginBottom: 8 }}><b>Duration:</b> {selected.startDate && selected.endDate ?
+                `${Math.round((new Date(selected.endDate) - new Date(selected.startDate)) / (1000 * 60 * 60 * 24 * 30))} months` :
                 '-'}</div>
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Status:</b> {selected.isApproved ? 'Approved' : 'Pending'}</div>
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Skills Required:</b> {Array.isArray(selected.skills) ? selected.skills.join(', ') : '-'}</div>
@@ -527,16 +559,16 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
               <div style={{ color: '#334155', marginBottom: 18 }}><b>Job Description:</b> {selected.description}</div>
               {isStudent && selected.isApproved && (
                 <button
-                  style={{ 
-                    background: '#1746a2', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: 6, 
-                    padding: '0.75rem 1.5rem', 
-                    fontWeight: 600, 
-                    fontSize: '1rem', 
-                    cursor: 'pointer', 
-                    width: '100%' 
+                  style={{
+                    background: '#1746a2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '0.75rem 1.5rem',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    width: '100%'
                   }}
                   onClick={() => { setShowModal(false); openApplyModal(selected); }}
                 >
@@ -546,32 +578,32 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
               {isOwnInternship(selected) && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                   <button
-                    style={{ 
-                      background: '#1746a2', 
-                      color: '#fff', 
-                      border: 'none', 
-                      borderRadius: 6, 
-                      padding: '0.75rem 1.5rem', 
-                      fontWeight: 600, 
-                      fontSize: '1rem', 
-                      cursor: 'pointer', 
-                      flex: 1 
+                    style={{
+                      background: '#1746a2',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '0.75rem 1.5rem',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      flex: 1
                     }}
                     onClick={() => { setShowModal(false); handleEdit(selected); }}
                   >
                     Edit
                   </button>
                   <button
-                    style={{ 
-                      background: '#fee2e2', 
-                      color: '#991b1b', 
-                      border: 'none', 
-                      borderRadius: 6, 
-                      padding: '0.75rem 1.5rem', 
-                      fontWeight: 600, 
-                      fontSize: '1rem', 
-                      cursor: 'pointer', 
-                      flex: 1 
+                    style={{
+                      background: '#fee2e2',
+                      color: '#991b1b',
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '0.75rem 1.5rem',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      flex: 1
                     }}
                     onClick={() => handleDelete(selected)}
                   >
@@ -584,40 +616,40 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
         )}
         {/* Modal for editing internship */}
         {showEditModal && selected && (
-          <div style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            width: '100vw', 
-            height: '100vh', 
-            background: 'rgba(0,0,0,0.18)', 
-            zIndex: 1000, 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.18)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             padding: '1rem'
           }}>
-            <div style={{ 
-              background: '#fff', 
-              borderRadius: 12, 
-              padding: '1.5rem', 
-              width: '100%', 
-              maxWidth: 540, 
+            <div style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: '1.5rem',
+              width: '100%',
+              maxWidth: 540,
               maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
-              position: 'relative' 
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+              position: 'relative'
             }}>
-              <button 
-                onClick={() => { setShowEditModal(false); setSelected(null); }} 
-                style={{ 
-                  position: 'absolute', 
-                  top: 12, 
-                  right: 12, 
-                  background: 'none', 
-                  border: 'none', 
-                  fontSize: 22, 
-                  color: '#64748b', 
+              <button
+                onClick={() => { setShowEditModal(false); setSelected(null); }}
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 22,
+                  color: '#64748b',
                   cursor: 'pointer',
                   padding: '4px',
                   display: 'flex',
@@ -693,16 +725,16 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 </div>
                 <button
                   type="submit"
-                  style={{ 
-                    background: '#1746a2', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: 6, 
-                    padding: '0.75rem 1.5rem', 
-                    fontWeight: 600, 
-                    fontSize: '1rem', 
-                    cursor: 'pointer', 
-                    width: '100%' 
+                  style={{
+                    background: '#1746a2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '0.75rem 1.5rem',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    width: '100%'
                   }}
                 >
                   Save Changes
@@ -713,40 +745,40 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
         )}
         {/* Modal for applying to internship */}
         {showApplyModal && selected && (
-          <div style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            width: '100vw', 
-            height: '100vh', 
-            background: 'rgba(0,0,0,0.18)', 
-            zIndex: 1100, 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.18)',
+            zIndex: 1100,
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             padding: '1rem'
           }}>
-            <div style={{ 
-              background: '#fff', 
-              borderRadius: 12, 
-              padding: '1.5rem', 
-              width: '100%', 
-              maxWidth: 540, 
+            <div style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: '1.5rem',
+              width: '100%',
+              maxWidth: 540,
               maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.10)', 
-              position: 'relative' 
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+              position: 'relative'
             }}>
-              <button 
-                onClick={() => { setShowApplyModal(false); setApplySuccess(false); }} 
-                style={{ 
-                  position: 'absolute', 
-                  top: 12, 
-                  right: 12, 
-                  background: 'none', 
-                  border: 'none', 
-                  fontSize: 22, 
-                  color: '#64748b', 
+              <button
+                onClick={() => { setShowApplyModal(false); setApplySuccess(false); }}
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 22,
+                  color: '#64748b',
                   cursor: 'pointer',
                   padding: '4px',
                   display: 'flex',
@@ -757,9 +789,9 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 10, paddingRight: '2rem' }}>Apply for {selected.title}</h3>
 
               <div style={{ color: '#64748b', marginBottom: 8 }}><b>Company:</b> {selected.company.companyName}</div>
-              <form onSubmit={handleApplySubmit} style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
+              <form onSubmit={handleApplySubmit} style={{
+                display: 'flex',
+                flexDirection: 'column',
                 gap: 16,
                 marginTop: 24
               }}>
@@ -819,17 +851,17 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <button 
-                    type="button" 
-                    onClick={() => document.getElementById('cv-upload').click()} 
-                    style={{ 
-                      background: '#f1f5f9', 
-                      border: '1px solid #e2e8f0', 
-                      borderRadius: 8, 
-                      padding: '0.75rem', 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('cv-upload').click()}
+                    style={{
+                      background: '#f1f5f9',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 8,
+                      padding: '0.75rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: 8,
                       width: '100%',
                       justifyContent: 'center'
@@ -844,17 +876,17 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <button 
-                    type="button" 
-                    onClick={() => document.getElementById('coverLetter-upload').click()} 
-                    style={{ 
-                      background: '#f1f5f9', 
-                      border: '1px solid #e2e8f0', 
-                      borderRadius: 8, 
-                      padding: '0.75rem', 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('coverLetter-upload').click()}
+                    style={{
+                      background: '#f1f5f9',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 8,
+                      padding: '0.75rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: 8,
                       width: '100%',
                       justifyContent: 'center'
@@ -869,17 +901,17 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <button 
-                    type="button" 
-                    onClick={() => document.getElementById('certificates-upload').click()} 
-                    style={{ 
-                      background: '#f1f5f9', 
-                      border: '1px solid #e2e8f0', 
-                      borderRadius: 8, 
-                      padding: '0.75rem', 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('certificates-upload').click()}
+                    style={{
+                      background: '#f1f5f9',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 8,
+                      padding: '0.75rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: 8,
                       width: '100%',
                       justifyContent: 'center'
@@ -896,14 +928,14 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 <button
                   type="submit"
                   disabled={applying}
-                  style={{ 
-                    background: '#1746a2', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: 6, 
-                    padding: '0.75rem 1.5rem', 
-                    fontWeight: 600, 
-                    fontSize: '1rem', 
+                  style={{
+                    background: '#1746a2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '0.75rem 1.5rem',
+                    fontWeight: 600,
+                    fontSize: '1rem',
                     cursor: applying ? 'not-allowed' : 'pointer',
                     opacity: applying ? 0.7 : 1,
                     width: '100%'
@@ -913,11 +945,11 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 </button>
               </form>
               {applySuccess && (
-                <div style={{ 
-                  background: '#dcfce7', 
-                  color: '#16a34a', 
-                  padding: '0.75rem 1rem', 
-                  borderRadius: 6, 
+                <div style={{
+                  background: '#dcfce7',
+                  color: '#16a34a',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 6,
                   marginTop: 16,
                   textAlign: 'center',
                   fontWeight: 500

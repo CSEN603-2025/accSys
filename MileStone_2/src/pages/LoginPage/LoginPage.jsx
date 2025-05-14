@@ -4,20 +4,25 @@ import { mockUsers } from "../../DummyData/mockUsers";
 import styles from "./LoginPage.module.css";
 
 const LoginPage = ({ onLogin }) => {
-    const [role, setRole] = useState("student");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
 
     const handleLogin = () => {
+        // Find user matching the credentials without filtering by role
         const user = mockUsers.find(
-            (u) => u.username === username && u.password === password && u.role === role
+            (u) => u.username === username && u.password === password
         );
+
         if (user) {
+            // User found - login with detected role
             onLogin(user);
             navigate("/");
         } else {
-            alert("Invalid credentials");
+            // Show error message
+            setErrorMessage("Invalid username or password");
+            setTimeout(() => setErrorMessage(""), 3000); // Clear error after 3 seconds
         }
     };
 
@@ -37,23 +42,24 @@ const LoginPage = ({ onLogin }) => {
                     </p>
                 </div>
                 <div className={styles.body}>
-                    <div className={styles.roleSelector}>
-                        {["student", "faculty", "company", "scad"].map((r) => (
-                            <button
-                                key={r}
-                                className={`${styles.roleButton} ${role === r ? styles.activeRole : styles.inactiveRole}`}
-                                onClick={() => setRole(r)}
-                            >
-                                {r.charAt(0).toUpperCase() + r.slice(1)}
-                            </button>
-                        ))}
-                    </div>
+                    {errorMessage && (
+                        <div style={{
+                            backgroundColor: "#fee2e2",
+                            color: "#991b1b",
+                            padding: "8px 12px",
+                            borderRadius: "4px",
+                            marginBottom: "16px",
+                            textAlign: "center"
+                        }}>
+                            {errorMessage}
+                        </div>
+                    )}
                     <div className={styles.formGroup}>
                         <label className={styles.label}>Username</label>
                         <input
                             className={styles.input}
                             type="text"
-                            placeholder={`Enter ${role} username`}
+                            placeholder="Enter username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
@@ -67,9 +73,6 @@ const LoginPage = ({ onLogin }) => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <div className={styles.forgotPassword}>
-                            <a href="#" className={styles.forgotPasswordLink}>Forgot password?</a>
-                        </div>
                     </div>
                     <button
                         className={styles.submitButton}
@@ -78,13 +81,22 @@ const LoginPage = ({ onLogin }) => {
                         Sign In
                     </button>
 
-                    {role === "company" && (
-                        <Link to="/register-company" className={styles.registerLink}>
-                            <button className={styles.registerButton}>
-                                Register Company
-                            </button>
-                        </Link>
-                    )}
+                    {/* Add "New Company?" label */}
+                    <div style={{
+                        textAlign: 'center',
+                        margin: '16px 0 8px',
+                        color: '#4b5563',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                    }}>
+                        New Company?
+                    </div>
+
+                    <Link to="/register-company" className={styles.registerLink}>
+                        <button className={styles.registerButton}>
+                            Register Company
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>
