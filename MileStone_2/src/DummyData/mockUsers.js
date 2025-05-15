@@ -40,7 +40,16 @@ const companyNames = [
 ];
 
 companyNames.forEach(([name, industry, logo], idx) => {
-  const company = new Company(10 + idx, name.toLowerCase(), `${name.toLowerCase()}@corp.com`, "123", name, industry);
+  const company = new Company(
+    10 + idx, 
+    name.toLowerCase(), 
+    `${name.toLowerCase()}@corp.com`, 
+    "123", 
+    name, 
+    industry, 
+    logo,
+    `${name} is a leading company in the ${industry} industry. We specialize in innovative solutions and cutting-edge technology. Our team is dedicated to excellence and continuous improvement.`,
+  );
   company.isApproved = true;
   company.logoUrl = logo;
   companies.push(company);
@@ -53,21 +62,23 @@ const newCompany = new Company(
   "info@nextech.com",
   "123",
   "NexTech Solutions",
-  "Healthcare Technology"
+  "Healthcare Technology",
+  logo1,
+  "NexTech Solutions is a pioneering healthcare technology company focused on developing innovative solutions that bridge the gap between healthcare and technology. We are committed to improving patient care through digital transformation."
 );
 newCompany.logoUrl = logo1;  // Assign a default logo even for non-approved companies
 // Keep isApproved as false (default value)
 companies.push(newCompany);
 
 const internships = [
-  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote", "2025-06-01", "2025-08-30"),
-  new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote", "2025-06-01", "2025-08-30"),
-  new InternshipPost(102, companies[1], "Bioinformatics Intern", "Analyze medical data.", "Cairo", "2025-06-01", "2025-09-01"),
-  new InternshipPost(103, companies[2], "Quant Intern", "Financial modeling in Python.", "Dubai", "2025-06-15", "2025-09-15"),
-  new InternshipPost(104, companies[2], "Data Analyst Intern", "Help automate dashboards.", "Remote", "2025-06-01", "2025-08-01"),
-  new InternshipPost(105, companies[3], "Sustainability Intern", "Research energy tech.", "Berlin", "2025-07-01", "2025-09-30"),
-  new InternshipPost(106, companies[4], "Cybersecurity Intern", "Audit and test systems.", "Online", "2025-06-01", "2025-08-30"),
-  new InternshipPost(107, companies[5], "AI Research Intern", "Train and deploy models.", "Cairo", "2025-06-01", "2025-09-01")
+  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote",4500, "2025-06-01", "2025-08-30"),
+  new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote",0, "2025-06-01", "2025-08-30"),
+  new InternshipPost(102, companies[1], "Bioinformatics Intern", "Analyze medical data.", "Cairo",5000, "2025-06-01", "2025-09-01"),
+  new InternshipPost(103, companies[2], "Quant Intern", "Financial modeling in Python.", "Dubai",15000, "2025-06-15", "2025-09-15"),
+  new InternshipPost(104, companies[2], "Data Analyst Intern", "Help automate dashboards.", "Remote",20000, "2025-06-01", "2025-08-01"),
+  new InternshipPost(105, companies[3], "Sustainability Intern", "Research energy tech.", "Berlin",3000, "2025-07-01", "2025-09-30"),
+  new InternshipPost(106, companies[4], "Cybersecurity Intern", "Audit and test systems.", "Online",0, "2025-06-01", "2025-08-30"),
+  new InternshipPost(107, companies[5], "AI Research Intern", "Train and deploy models.", "Cairo",0, "2025-06-01", "2025-09-01")
 ];
 
 // Approve internships
@@ -123,7 +134,34 @@ const report1 = new Report(400, student1, student1.currentInternship, "Worked on
 const report2 = new Report(401, student2, student2.currentInternship, "Built analytics dashboards in Tableau.");
 const report3 = new Report(402, student3, student3.currentInternship, "Researched GPT model fine-tuning methods.");
 
+// Add rejected and flagged reports for Ziad's completed internships
+const rejectedReport = new Report(403, student1, completedInternship1, "Implemented machine learning models for data analysis.");
+rejectedReport.status = "rejected";
+rejectedReport.rejectionReason = "Insufficient technical details and lack of proper documentation.";
+rejectedReport.courses = ["Machine Learning", "Data Structures", "Algorithms"];
+
+const flaggedReport = new Report(404, student1, completedInternship2, "Developed financial trading algorithms.");
+flaggedReport.status = "flagged";
+flaggedReport.flagReason = "Content appears to be copied from another source. Please provide original work.";
+flaggedReport.courses = ["Data Structures", "Algorithms", "Database Systems"];
+
+// Add new flagged report for BioSync internship
+const flaggedReportBioSync = new Report(405, student1, completedInternship1, "Developed bioinformatics pipeline for DNA sequence analysis.");
+flaggedReportBioSync.status = "flagged";
+flaggedReportBioSync.flagReason = "Report contains technical inaccuracies and incomplete methodology description.";
+flaggedReportBioSync.courses = ["Machine Learning", "Database Systems", "Algorithms"];
+
+// Add new rejected report for Finverse internship
+const rejectedReportFinverse = new Report(406, student1, completedInternship2, "Implemented automated trading strategies using Python.");
+rejectedReportFinverse.status = "rejected";
+rejectedReportFinverse.rejectionReason = "Report lacks quantitative analysis and risk assessment of trading strategies.";
+rejectedReportFinverse.courses = ["Data Structures", "Algorithms", "Database Systems"];
+
 student1.submitReport(report1);
+student1.submitReport(rejectedReport);
+student1.submitReport(flaggedReport);
+student1.submitReport(flaggedReportBioSync);
+student1.submitReport(rejectedReportFinverse);
 student2.submitReport(report2);
 student3.submitReport(report3);
 
@@ -139,6 +177,6 @@ export const mockUsers = [
   ...companies
 ];
 
-export const mockReports = [report1, report2, report3];
+export const mockReports = [report1, report2, report3, rejectedReport, flaggedReport, flaggedReportBioSync, rejectedReportFinverse];
 export const mockInternships = internships;
 export const mockApplications = [application1, application2, application3];

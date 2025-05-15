@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/GucLogo.png'; // Adjust the path to your logo image
-import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award } from 'lucide-react';
+import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award , FileUser} from 'lucide-react';
 
 // Role-specific navigation links with their corresponding paths
 const roleLinks = {
@@ -19,15 +19,14 @@ const roleLinks = {
     { icon: <Users />, label: 'Students', path: '/faculty/students' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    { icon: <FileText />, label: 'Applications', path: '/faculty/applications' },
-    { icon: <Edit />, label: 'Reports', path: '/faculty/reports' },
-    { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
+    { icon: <Edit />, label: 'Reports', path: '/student/reports' },
+    { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
   ],
   company: [
     { icon: <House />, label: 'Dashboard', path: '/company' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    { icon: <FileText />, label: 'Postings', path: '/company/postings' },
-    { icon: <Users />, label: 'Applicants', path: '/company/applicants' },
+    { icon: <FileUser />, label: 'Applicants', path: '/applicants' },
+    { icon: <Users />, label: 'Interns', path: '/company/interns' },
     { icon: <Star />, label: 'Evaluations', path: '/intern-evaluations' },
   ],
   scad: [
@@ -35,9 +34,9 @@ const roleLinks = {
     { icon: <Users />, label: 'Students', path: '/scad/students' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    { icon: <ClipboardList />, label: 'Applications', path: '/scad/applications' },
-    { icon: <Award />, label: 'Evaluations', path: '/scad/evaluations' },
-    { icon: <Settings />, label: 'Settings', path: '/scad/settings' },
+    { icon: <Edit />, label: 'Reports', path: '/student/reports' },
+
+    { icon: <Star />, label: 'Evaluations', path: '/scad/evaluations' },
   ],
 };
 

@@ -646,7 +646,8 @@ const StudentProfilePage = ({ currentUser }) => {
                 </span>
               ))}
             </div>
-            <input value={newInterest} onChange={e => setNewInterest(e.target.value)} placeholder="Add new interest..." style={{ padding: 8, marginRight: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
+            <input value={newInterest} onChange={e => setNewInterest(e.target.value)} placeholder="Add new interest..." style={{ padding: 8, marginRight: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem', marginBottom: '10px' }} />
+            <br/>
             <button
               onClick={handleAddInterest}
               disabled={!newInterest.trim() || interests.includes(newInterest.trim())}
@@ -663,7 +664,7 @@ const StudentProfilePage = ({ currentUser }) => {
           </div>
           {/* Previous Internships */}
           <div style={{ marginBottom: 32, padding: 24, border: '1px solid #e2e8f0', borderRadius: 10 }}>
-            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>Previous Internships</h3>
+            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>Previous Internships/Part-time Jobs</h3>
             <ul style={{ marginBottom: 16 }}>
               {internships.map((intern, idx) => (
                 <li key={idx} style={{ marginBottom: 10, background: '#f1f5f9', padding: 12, borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -693,7 +694,7 @@ const StudentProfilePage = ({ currentUser }) => {
                 opacity: (!newInternship.company || !newInternship.role) ? 0.7 : 1
               }}
               disabled={!newInternship.company || !newInternship.role}
-            >Add Internship</button>
+            >Add</button>
           </div>
           {/* College Activities */}
           <div style={{ marginBottom: 0, padding: 24, border: '1px solid #e2e8f0', borderRadius: 10 }}>
@@ -726,7 +727,7 @@ const StudentProfilePage = ({ currentUser }) => {
                 opacity: (!newActivity.name || !newActivity.role) ? 0.7 : 1
               }}
               disabled={!newActivity.name || !newActivity.role}
-            >Add Activity</button>
+            >Add</button>
           </div>
         </div>
       </div>
