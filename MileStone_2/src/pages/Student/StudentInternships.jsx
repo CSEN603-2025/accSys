@@ -4,8 +4,6 @@ import NavBar from '../../Components/NavBar';
 import { mockInternships, mockReports } from '../../DummyData/mockUsers';
 import { Eye, Edit2, Trash2, Upload, Calendar, Search, Building2, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { Eye, Edit2, Trash2, Upload, Calendar, Search, Building2 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
 
 const STATUS_COLORS = {
   pending: { bg: '#fef3c7', color: '#b45309' },
