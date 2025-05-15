@@ -9,6 +9,7 @@ import CompanyHome from './pages/Company/CompanyHome';
 import InternEvaluations from './pages/Company/InternEvaluations';
 import Applicants from './pages/Company/Applicants';
 import CompanyInterns from './pages/Company/CompanyInterns';
+import Workshops from './pages/Student/Workshops';
 
 import ScadHome from './pages/ScadHome';
 import ScadStudentList from './pages/ScadStudentList';
@@ -21,6 +22,7 @@ import NavBar from './Components/NavBar';
 import StudentReports from './pages/Student/StudentReports';
 import StudentInternships from './pages/Student/StudentInternships';
 import ApplicationsPage from './pages/ApplicationsPage';
+import WorkshopView from './pages/Student/WorkshopView';
 
 // Placeholder components for other roles
 const FacultyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
@@ -82,6 +84,26 @@ export default function App() {
       <Route path="/applications" element={<ApplicationsPage currentUser={user} />} />
       <Route path="/applicants" element={<Applicants currentUser={user} />} />
       <Route path="/company/interns" element={<CompanyInterns currentUser={user} />} />
+      <Route path="/workshops" element={
+        user && (user.role === 'scad' || (user.role === 'student' && user.isProStudent)) 
+          ? <Workshops currentUser={user} /> 
+          : <Navigate to="/" />
+      } />
+      <Route path="/workshop/:id/live" element={
+        user && user.role === 'student' && user.isProStudent 
+          ? <Workshops currentUser={user} /> 
+          : <Navigate to="/" />
+      } />
+      <Route 
+        path="/workshop/:id/view" 
+        element={
+          user && user.isProStudent ? (
+            <WorkshopView currentUser={user} />
+          ) : (
+            <Navigate to="/" />
+          )
+        } 
+      />
 
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />

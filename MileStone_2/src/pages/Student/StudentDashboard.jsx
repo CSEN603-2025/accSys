@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
-import { FileText, Clock, CheckCircle, FileCheck, Plus, Building2 } from 'lucide-react';
+import { FileText, Clock, CheckCircle, FileCheck, Plus, Building2, Award, Calendar, User } from 'lucide-react';
 
 const cardStyle = {
   background: '#fff',
@@ -229,6 +229,78 @@ const StudentDashboard = ({ currentUser }) => {
               onClick={() => handleQuickAccess('/student/evaluation')}
             />
           </div>
+
+          {/* Certificates Section */}
+          {currentUser?.isProStudent && (
+            <div style={{ marginTop: '2rem' }}>
+              <div style={{ fontWeight: 600, fontSize: 22 }}>Workshop Certificates</div>
+              <div className="mb-4" style={{ color: '#64748b', fontSize: 14, marginBottom: 12 }}>
+                Your earned workshop certificates
+              </div>
+              <div style={{ 
+                display: 'grid', 
+                gap: '1.5rem', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))'
+              }}>
+                {currentUser.workshopCertificates?.map((certificate, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      background: '#fff',
+                      borderRadius: 12,
+                      boxShadow: '0 1px 4px #e2e8f0',
+                      padding: '1.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1rem'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Award size={24} color="#1746a2" />
+                      <h3 style={{ margin: 0, fontWeight: 600 }}>{certificate.workshop.title}</h3>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b' }}>
+                      <Calendar size={16} />
+                      <span>Issued on {new Date(certificate.issueDate).toLocaleDateString()}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b' }}>
+                      <User size={16} />
+                      <span>Speaker: {certificate.workshop.speaker.name}</span>
+                    </div>
+                    <button
+                      onClick={() => {/* Handle certificate download */}}
+                      style={{
+                        padding: '8px 16px',
+                        background: '#1746a2',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <FileText size={16} />
+                      Download Certificate
+                    </button>
+                  </div>
+                ))}
+                {(!currentUser.workshopCertificates || currentUser.workshopCertificates.length === 0) && (
+                  <div style={{ 
+                    color: '#64748b', 
+                    fontSize: 15, 
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '2rem'
+                  }}>
+                    No certificates earned yet. Complete workshops to earn certificates!
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         {/* New Application Button */}
         <button 

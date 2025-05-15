@@ -16,5 +16,7 @@ export function getPageTitle(pathname, userRole) {
   if (pathname.startsWith("/scad")) return "SCAD Dashboard";
   if (pathname.startsWith("/applications")) return "Applications";
   if (pathname.startsWith("/profile")) return "Profile";
+  if (pathname.startsWith("/workshops")) return "Workshops";
+  if (pathname.startsWith("/workshop/")) return "Workshop ";
   return "Internship Portal";
 }

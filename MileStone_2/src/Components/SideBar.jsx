@@ -2,24 +2,25 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/GucLogo.png'; // Adjust the path to your logo image
-import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award , FileUser} from 'lucide-react';
+import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award , FileUser, GraduationCap } from 'lucide-react';
 
 // Role-specific navigation links with their corresponding paths
 const roleLinks = {
   student: [
     { icon: <House />, label: 'Dashboard', path: '/student' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
-    { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
+    { icon: <BriefcaseBusiness />, label: 'Internships', path: '/student/studentinternships' },
     { icon: <FileText />, label: 'Applications', path: '/applications' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
     { icon: <Star />, label: 'Evaluation', path: '/student/evaluation' },
+    { icon: <GraduationCap />, label: 'Workshops', path: '/workshops' },
   ],
   faculty: [
     { icon: <House />, label: 'Dashboard', path: '/faculty' },
     { icon: <Users />, label: 'Students', path: '/faculty/students' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    { icon: <Edit />, label: 'Reports', path: '/student/reports' },
+    { icon: <Edit />, label: 'Reports', path: '/faculty/reports' },
     { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
   ],
   company: [
@@ -35,8 +36,8 @@ const roleLinks = {
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
-
     { icon: <Star />, label: 'Evaluations', path: '/scad/evaluations' },
+    { icon: <GraduationCap />, label: 'Workshops', path: '/workshops' },
   ],
 };
 
