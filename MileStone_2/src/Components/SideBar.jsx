@@ -25,11 +25,9 @@ const roleLinks = {
   company: [
     { icon: <House />, label: 'Dashboard', path: '/company' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    //{ icon: <FileText />, label: 'Postings', path: '/company/postings' },
     { icon: <FileUser />, label: 'Applicants', path: '/applicants' },
-    { icon: <Users />, label: 'Interns', path: '/intern-page' },
+    { icon: <Users />, label: 'Interns', path: '/company/interns' },
     { icon: <Star />, label: 'Evaluations', path: '/intern-evaluations' },
-
   ],
   scad: [
     { icon: <House />, label: 'Dashboard', path: '/scad' },
