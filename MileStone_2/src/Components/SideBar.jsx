@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/GucLogo.png'; // Adjust the path to your logo image
-import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award , FileUser} from 'lucide-react';
+import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award, FileUser, Video } from 'lucide-react';
 
 // Role-specific navigation links with their corresponding paths
 const roleLinks = {
@@ -12,7 +12,9 @@ const roleLinks = {
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <FileText />, label: 'Applications', path: '/applications' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
-    { icon: <Star />, label: 'Evaluation', path: '/student/evaluation' },
+    { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
+    { icon: <Video />, label: 'Video Calls', path: '/student/video' },
+
   ],
   faculty: [
     { icon: <House />, label: 'Dashboard', path: '/faculty' },
@@ -20,7 +22,7 @@ const roleLinks = {
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
-    { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
+    { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
   ],
   company: [
     { icon: <House />, label: 'Dashboard', path: '/company' },
@@ -40,18 +42,21 @@ const roleLinks = {
   ],
 };
 
-const SideBar = ({ userRole }) => {
+const SideBar = ({ userRole, currentUser }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const links = roleLinks[userRole] || roleLinks.student;
+
+  // Check if the user is a pro student - simplified condition to ensure it works on all pages
+  const isProStudent = currentUser?.role === 'student' && currentUser?.isProStudent === true;
 
   const handleNavigation = (path) => {
     // If we're already on the dashboard path, don't navigate
     if (location.pathname === path) {
       return;
     }
-    
+
     // For dashboard navigation, ensure we go to the role-specific path
     if (path === `/${userRole}`) {
       navigate(path);
@@ -116,6 +121,29 @@ const SideBar = ({ userRole }) => {
           <span style={{ fontWeight: 700, fontSize: 22, letterSpacing: 1 }}>GUC</span>
         )}
       </div>
+
+      {/* Pro Student Label - will now show on all pages for students with isProStudent=true */}
+      {isProStudent && (
+        <div
+          style={{
+            background: '#10b981', // Green background
+            color: 'white',
+            borderRadius: '4px',
+            padding: collapsed ? '4px' : '4px 10px',
+            fontSize: collapsed ? '10px' : '12px',
+            fontWeight: 'bold',
+            margin: collapsed ? '0 auto 16px auto' : '0 auto 16px 1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: collapsed ? '40px' : 'auto'
+          }}
+        >
+          <Award size={collapsed ? 16 : 14} style={{ marginRight: collapsed ? 0 : 4 }} />
+          {!collapsed && "PRO STUDENT"}
+        </div>
+      )}
+
       {/* Navigation */}
       <nav style={{ flex: 1, width: '100%' }}>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -144,6 +172,7 @@ const SideBar = ({ userRole }) => {
 
 SideBar.propTypes = {
   userRole: PropTypes.oneOf(['student', 'faculty', 'company', 'scad']).isRequired,
+  currentUser: PropTypes.object,
 };
 
 const SideBarLink = ({ icon, label, path, isActive, collapsed, onClick }) => (

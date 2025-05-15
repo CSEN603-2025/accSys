@@ -284,15 +284,15 @@ const ApplicationsPage = ({ currentUser }) => {
           ))}
         </div>
         <div style={{ position: 'relative', width: window.innerWidth < 768 ? '100%' : '260px' }}>
-          <Search 
-            size={18} 
+          <Search
+            size={18}
             style={{
               position: 'absolute',
               left: '12px',
               top: '50%',
               transform: 'translateY(-50%)',
               color: '#64748b'
-            }} 
+            }}
           />
           <input
             type="text"
@@ -379,7 +379,7 @@ const ApplicationsPage = ({ currentUser }) => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} />
+      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} currentUser={currentUser} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ flex: 1, padding: window.innerWidth < 768 ? '1.5rem 0 0 0' : '2.5rem 0 0 0', background: '#f8fafc' }}>{mainContent}</div>
