@@ -65,7 +65,7 @@ const StudentReports = ({ currentUser }) => {
     if (!isFaculty && !isSCAD) return [];
     return mockUsers
       .filter(user => user.role === 'student')
-      .flatMap(student => 
+      .flatMap(student =>
         (student.reports || []).map(report => ({
           ...report,
           student: {
@@ -84,7 +84,7 @@ const StudentReports = ({ currentUser }) => {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(report => 
+      filtered = filtered.filter(report =>
         report.title.toLowerCase().includes(query) ||
         report.content.toLowerCase().includes(query) ||
         report.student?.username.toLowerCase().includes(query) ||
@@ -151,11 +151,11 @@ const StudentReports = ({ currentUser }) => {
         setReports((prev) => prev.map((r) =>
           r.id === editingReportId
             ? {
-                ...r,
-                title: form.title,
-                content: form.content,
-                courses: form.courses || [],
-              }
+              ...r,
+              title: form.title,
+              content: form.content,
+              courses: form.courses || [],
+            }
             : r
         ));
       } else {
@@ -667,7 +667,7 @@ const StudentReports = ({ currentUser }) => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} />
+      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} currentUser={currentUser} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ flex: 1, padding: '2rem 0' }}>
