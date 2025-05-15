@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Route, Link } from "react-router-dom";
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
-import { Users, FileText, Star, Plus, X } from 'lucide-react';
+import { Users, FileText, Star, Plus, X, ArrowRight } from 'lucide-react';
 import { mockUsers } from '../../DummyData/mockUsers';
 import { mockInternships } from '../../DummyData/mockUsers';
 import { Internship } from '../../models/models';
@@ -86,6 +86,30 @@ const CompanyHome = ({ currentUser }) => {
 
   // Sort applications by date
   applications = applications.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const getStatusStyles = (status) => {
+    const styles = {
+      pending: { bg: '#fef3c7', color: '#b45309' },
+      accepted: { bg: '#e0e7ff', color: '#1746a2' },
+      rejected: { bg: '#fee2e2', color: '#b91c1c' },
+      finalized: { bg: '#dcfce7', color: '#166534' }
+    };
+    return styles[status] || styles.pending;
+  };
+
+  const handleDownloadCV = (student) => {
+    // Simulating CV download - in real app, this would fetch and download actual file
+    const dummyCV = new Blob([`Dummy CV for ${student}\nMajor: ${student.major}\nGPA: ${student.gpa}`], 
+      { type: 'text/plain' });
+    const url = window.URL.createObjectURL(dummyCV);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${student}_CV.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
 
   // Handle new post submission
   const handleSubmitPost = (e) => {
@@ -393,7 +417,24 @@ const CompanyHome = ({ currentUser }) => {
 
           {/* Recent Applications Table */}
           <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', marginBottom: 32 }}>
-            <div style={{ fontWeight: 600, fontSize: 22, marginBottom: 8 }}>Recent Applications</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={{ fontWeight: 600, fontSize: 22 }}>Recent Applications</div>
+              <Link 
+                to="/applicants"
+                style={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: '#1746a2',
+                  textDecoration: 'none',
+                  fontSize: 16,
+                  fontWeight: 500
+                }}
+              >
+                View All
+                <ArrowRight size={20} />
+              </Link>
+            </div>
             <div style={{ color: '#64748b', fontSize: 14, marginBottom: 16 }}>Latest internship applications for your company</div>
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 8 }}>
               <thead>
@@ -413,14 +454,8 @@ const CompanyHome = ({ currentUser }) => {
                     <td style={{ padding: '8px 12px' }}>{app.date}</td>
                     <td style={{ padding: '8px 12px' }}>
                       <span style={{
-                        background: app.status === 'completed' ? '#e0e7ff' 
-                                  : app.status === 'accepted' ? '#dcfce7' 
-                                  : app.status === 'rejected' ? '#fee2e2'
-                                  : '#fef3c7',
-                        color: app.status === 'completed' ? '#1746a2' 
-                                : app.status === 'accepted' ? '#166534' 
-                                : app.status === 'rejected' ? '#b91c1c'
-                                : '#b45309',
+                        background: getStatusStyles(app.status).bg,
+                        color: getStatusStyles(app.status).color,
                         borderRadius: 8, 
                         padding: '2px 12px', 
                         fontWeight: 600, 
@@ -430,16 +465,43 @@ const CompanyHome = ({ currentUser }) => {
                       </span>
                     </td>
                     <td style={{ padding: '8px 12px' }}>
-                      <button style={{ 
-                        background: '#f1f5f9', 
-                        border: 'none', 
-                        borderRadius: 6, 
-                        padding: '6px 16px', 
-                        fontWeight: 500, 
-                        cursor: 'pointer' 
-                      }}>
-                        View
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                          onClick={() => handleDownloadCV(app.student)}
+                          style={{ 
+                            background: '#f1f5f9', 
+                            border: 'none', 
+                            borderRadius: 6, 
+                            padding: '6px 12px', 
+                            fontWeight: 500, 
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            color: '#1746a2'
+                          }}
+                        >
+                          <FileText size={16} />
+                          CV
+                        </button>
+                        <Link
+                          to="/applicants"
+                          style={{ 
+                            background: '#f1f5f9', 
+                            border: 'none', 
+                            borderRadius: 6, 
+                            padding: '6px 12px', 
+                            fontWeight: 500, 
+                            cursor: 'pointer',
+                            textDecoration: 'none',
+                            color: '#1746a2',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          View
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -453,7 +515,25 @@ const CompanyHome = ({ currentUser }) => {
             <div style={{ flex: 1, background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem' }}>
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Manage Interns</div>
               <div style={{ color: '#64748b', fontSize: 15, marginBottom: 18 }}>View and manage your current interns</div>
-              <button style={{ width: '100%', background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '12px 0', fontWeight: 500, fontSize: 16, color: '#1746a2', cursor: 'pointer' }}>View Interns</button>
+              <Link 
+                to="/company/interns"
+                style={{ 
+                  display: 'block',
+                  width: '100%', 
+                  background: '#f1f5f9', 
+                  border: 'none', 
+                  borderRadius: 8, 
+                  padding: '12px 0', 
+                  fontWeight: 500, 
+                  fontSize: 16, 
+                  color: '#1746a2', 
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  textAlign: 'center'
+                }}
+              >
+                View Interns
+              </Link>
             </div>
             <div style={{ flex: 1, background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem' }}>
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Intern Evaluations</div>

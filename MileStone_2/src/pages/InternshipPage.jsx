@@ -3,7 +3,7 @@ import SideBar from '../Components/SideBar';
 import NavBar from '../Components/NavBar';
 import { mockUsers, mockInternships } from '../DummyData/mockUsers';
 
-import { Eye, Edit2, Trash2, Upload, Search, Building2 } from 'lucide-react';
+import { Eye, Edit2, Trash2, Upload, Search, Building2, Play } from 'lucide-react';
 import { Application, InternshipPost } from '../models/models';
 
 // Check this code in InternshipPage.jsx
@@ -60,6 +60,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
   const [selected, setSelected] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const [search, setSearch] = useState("");
   const isStudent = currentUser?.role === 'student';
   const isCompany = currentUser?.role === 'company';
@@ -278,7 +279,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
             borderRadius: 16,
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
             padding: '1.5rem',
-            marginTop: 12, /* Reduced from 18 to 12 */
+            marginTop: 12,
             maxWidth: 1800,
             marginLeft: 'auto',
             marginRight: 'auto',
@@ -290,56 +291,22 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
               flexWrap: 'wrap',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 8, /* Reduced from 18 to 8 */
+              marginBottom: 8,
               gap: 12,
-              padding: '0.25rem' /* Reduced from 0.5rem to 0.25rem */
+              padding: '0.25rem'
             }}>
               <div></div> {/* Empty div to maintain flex layout */}
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {/* Move search bar to filter controls section */}
-                {isCompany && (
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8,
-                    padding: '8px 16px',
-                    fontSize: 15,
-                    cursor: 'pointer'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={myInternshipsOnly}
-                      onChange={e => setMyInternshipsOnly(e.target.checked)}
-                    />
-                    My Internships Only
-                  </label>
-                )}
-              </div>
             </div>
 
             {/* Filter controls with search bar */}
             <div style={{
               display: 'flex',
               gap: 16,
-              marginBottom: 16, /* You can adjust this value if needed */
-              marginTop: 0, /* Ensures no extra space at the top */
+              marginBottom: 16,
+              marginTop: 0,
               alignItems: 'center',
               flexWrap: 'wrap'
             }}>
-              {/* Remove the "Internships" label */}
-              {/* <h3 style={{
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#334155',
-                margin: 0,
-                paddingRight: 16
-              }}>
-                Internships
-              </h3> */}
-
               {/* Add search bar here */}
               <div style={{ position: 'relative', minWidth: '200px' }}>
                 <Search size={18} style={{
@@ -381,6 +348,49 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 <option value='paid'>Paid</option>
                 <option value='unpaid'>Unpaid</option>
               </select>
+              {isCompany && (
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  fontSize: 15,
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={myInternshipsOnly}
+                    onChange={e => setMyInternshipsOnly(e.target.checked)}
+                  />
+                  My Internships Only
+                </label>
+              )}
+              {isStudent && (
+                <button
+                  onClick={() => setShowVideoModal(true)}
+                  style={{
+                    background: '#1746a2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '8px 14px',
+                    fontWeight: 500,
+                    fontSize: 15,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    height: '36px'
+                  }}
+                >
+                  <Play size={16} />
+                  Watch Tutorial
+                </button>
+              )}
+              
             </div>
             {/* Table */}
             <div style={{ overflowX: 'auto', width: '100%' }}>
@@ -1076,6 +1086,71 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                   Application submitted successfully!
                 </div>
               )}
+            </div>
+          </div>
+        )}
+        {/* Video Modal */}
+        {showVideoModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.18)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem'
+          }}>
+            <div style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: '1.5rem',
+              width: '100%',
+              maxWidth: 800,
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+              position: 'relative'
+            }}>
+              <button
+                onClick={() => setShowVideoModal(false)}
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 22,
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >×</button>
+              
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 5 }}>Internship Tutorial</h3>
+              <h5 style={{ fontSize: '0.90rem', fontWeight: 200, marginBottom: 20, color: '#64748b' }}>This is a short video of what kinds of internships count towards the students' internship requirement based on their major</h5>
+              <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%', background: '#000', borderRadius: 8 }}>
+                <iframe
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    border: 0
+                  }}
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  title="Internship Tutorial"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
             </div>
           </div>
         )}

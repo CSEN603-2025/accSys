@@ -25,6 +25,7 @@ const faculty3 = new Faculty(4, "profAli", "ali@univ.edu", "123", "AI & Robotics
 const student1 = new Student(5, "Ziad", "ziad@student.edu", "123", "CS", 3.7, 5);
 const student2 = new Student(6, "Karim", "karim@student.edu", "123", "IS", 3.5, 4);
 const student3 = new Student(7, "Khairy", "layla@student.edu", "123", "Robotics", 3.9, 6);
+student1.isProStudent = true
 
 // ===== Companies and Internships =====
 const companies = [];
@@ -95,6 +96,7 @@ student1.applyToInternship(application1);
 student2.applyToInternship(application2);
 student3.applyToInternship(application3);
 
+
 // Hire and assign internships (simulate acceptance)
 companies[0].hireIntern(internships[0], student1);
 student1.currentInternship = new StudentInternship(300, companies[0], internships[0].title, internships[0].description, internships[0].location, internships[0].startDate, internships[0].endDate);
@@ -132,7 +134,34 @@ const report1 = new Report(400, student1, student1.currentInternship, "Worked on
 const report2 = new Report(401, student2, student2.currentInternship, "Built analytics dashboards in Tableau.");
 const report3 = new Report(402, student3, student3.currentInternship, "Researched GPT model fine-tuning methods.");
 
+// Add rejected and flagged reports for Ziad's completed internships
+const rejectedReport = new Report(403, student1, completedInternship1, "Implemented machine learning models for data analysis.");
+rejectedReport.status = "rejected";
+rejectedReport.rejectionReason = "Insufficient technical details and lack of proper documentation.";
+rejectedReport.courses = ["Machine Learning", "Data Structures", "Algorithms"];
+
+const flaggedReport = new Report(404, student1, completedInternship2, "Developed financial trading algorithms.");
+flaggedReport.status = "flagged";
+flaggedReport.flagReason = "Content appears to be copied from another source. Please provide original work.";
+flaggedReport.courses = ["Data Structures", "Algorithms", "Database Systems"];
+
+// Add new flagged report for BioSync internship
+const flaggedReportBioSync = new Report(405, student1, completedInternship1, "Developed bioinformatics pipeline for DNA sequence analysis.");
+flaggedReportBioSync.status = "flagged";
+flaggedReportBioSync.flagReason = "Report contains technical inaccuracies and incomplete methodology description.";
+flaggedReportBioSync.courses = ["Machine Learning", "Database Systems", "Algorithms"];
+
+// Add new rejected report for Finverse internship
+const rejectedReportFinverse = new Report(406, student1, completedInternship2, "Implemented automated trading strategies using Python.");
+rejectedReportFinverse.status = "rejected";
+rejectedReportFinverse.rejectionReason = "Report lacks quantitative analysis and risk assessment of trading strategies.";
+rejectedReportFinverse.courses = ["Data Structures", "Algorithms", "Database Systems"];
+
 student1.submitReport(report1);
+student1.submitReport(rejectedReport);
+student1.submitReport(flaggedReport);
+student1.submitReport(flaggedReportBioSync);
+student1.submitReport(rejectedReportFinverse);
 student2.submitReport(report2);
 student3.submitReport(report3);
 
@@ -148,6 +177,6 @@ export const mockUsers = [
   ...companies
 ];
 
-export const mockReports = [report1, report2, report3];
+export const mockReports = [report1, report2, report3, rejectedReport, flaggedReport, flaggedReportBioSync, rejectedReportFinverse];
 export const mockInternships = internships;
 export const mockApplications = [application1, application2, application3];

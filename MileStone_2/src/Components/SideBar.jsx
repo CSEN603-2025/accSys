@@ -19,25 +19,24 @@ const roleLinks = {
     { icon: <Users />, label: 'Students', path: '/faculty/students' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    { icon: <Edit />, label: 'Reports', path: '/faculty/reports' },
-    { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
+    { icon: <Edit />, label: 'Reports', path: '/student/reports' },
+    { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
   ],
   company: [
     { icon: <House />, label: 'Dashboard', path: '/company' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    //{ icon: <FileText />, label: 'Postings', path: '/company/postings' },
     { icon: <FileUser />, label: 'Applicants', path: '/applicants' },
-    { icon: <Users />, label: 'Interns', path: '/intern-page' },
+    { icon: <Users />, label: 'Interns', path: '/company/interns' },
     { icon: <Star />, label: 'Evaluations', path: '/intern-evaluations' },
-
   ],
   scad: [
     { icon: <House />, label: 'Dashboard', path: '/scad' },
     { icon: <Users />, label: 'Students', path: '/scad/students' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
-    { icon: <Award />, label: 'Evaluations', path: '/scad/evaluations' },
-    { icon: <Settings />, label: 'Settings', path: '/scad/settings' },
+    { icon: <Edit />, label: 'Reports', path: '/student/reports' },
+
+    { icon: <Star />, label: 'Evaluations', path: '/scad/evaluations' },
   ],
 };
 
