@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/GucLogo.png'; // Adjust the path to your logo image
-import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award, FileUser } from 'lucide-react';
+import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award, FileUser, Lightbulb } from 'lucide-react';
 
 // Role-specific navigation links with their corresponding paths
 const roleLinks = {
@@ -44,10 +44,19 @@ const SideBar = ({ userRole, currentUser }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const links = roleLinks[userRole] || roleLinks.student;
+  let links = roleLinks[userRole] || roleLinks.student;
 
   // Check if the user is a pro student - simplified condition to ensure it works on all pages
   const isProStudent = currentUser?.role === 'student' && currentUser?.isProStudent === true;
+
+  // Add Guidance link for Pro Students as the last item
+  if (isProStudent && userRole === 'student') {
+    // Add Guidance link to the end of the links array
+    links = [
+      ...links, // All existing links, including Dashboard, Companies, etc.
+      { icon: <Lightbulb />, label: 'Guidance', path: '/student/guidance' }
+    ];
+  }
 
   const handleNavigation = (path) => {
     // If we're already on the dashboard path, don't navigate

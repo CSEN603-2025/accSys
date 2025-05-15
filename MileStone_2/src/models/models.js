@@ -26,7 +26,7 @@ export class User {
 
 // ===== Student Class =====
 export class Student extends User {
-    constructor(id, username, email, password, major, gpa, semesterNumber = 1, isProStudent) {
+    constructor(id, username, email, password, major, gpa, semesterNumber = 1, isProStudent = false) {
         super(id, username, email, "student", password);
         this.major = major;
         this.gpa = gpa;
@@ -74,6 +74,41 @@ export class Student extends User {
     submitReport(report) {
         this.reports.push(report);
         this.addNotification(`Submitted report for: ${report.internship.title}`);
+    }
+
+    updateProStatus() {
+        // Calculate total internship duration in months
+        let totalMonths = 0;
+
+        // Add completed past internships
+        if (this.pastInternships && this.pastInternships.length > 0) {
+            this.pastInternships.forEach(internship => {
+                if (internship.status === 'completed') {
+                    const start = new Date(internship.startDate);
+                    const end = new Date(internship.endDate);
+                    const durationMonths = (end - start) / (1000 * 60 * 60 * 24 * 30); // Approximate months
+                    totalMonths += durationMonths;
+                }
+            });
+        }
+
+        // If current internship is completed, add its duration too
+        if (this.currentInternship && this.currentInternship.status === 'completed') {
+            const start = new Date(this.currentInternship.startDate);
+            const end = new Date(this.currentInternship.endDate);
+            const durationMonths = (end - start) / (1000 * 60 * 60 * 24 * 30); // Approximate months
+            totalMonths += durationMonths;
+        }
+
+        // Set Pro Student status if total months is at least 3
+        this.isProStudent = totalMonths >= 3;
+
+        // Add notification if status changed to Pro
+        if (this.isProStudent) {
+            this.addNotification("Congratulations! You are now a Pro Student for completing at least 3 months of internships!");
+        }
+
+        return this.isProStudent;
     }
 }
 

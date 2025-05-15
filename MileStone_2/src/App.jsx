@@ -22,11 +22,12 @@ import StudentReports from './pages/Student/StudentReports';
 import StudentInternships from './pages/Student/StudentInternships';
 import ApplicationsPage from './pages/ApplicationsPage';
 import StudentEvaluations from './pages/Student/StudentEvaluations';
+import GuidancePage from './pages/GuidancePage';
 
 // Placeholder components for other roles
-const FacultyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
-const CompanyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Company Profile Page</h2><p>Welcome, {currentUser?.companyName || currentUser?.username}</p></div>;
-const ScadProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>SCAD Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
+const FacultyProfilePage = ({ currentUser }) => <div style={{ padding: 40 }}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
+const CompanyProfilePage = ({ currentUser }) => <div style={{ padding: 40 }}><h2>Company Profile Page</h2><p>Welcome, {currentUser?.companyName || currentUser?.username}</p></div>;
+const ScadProfilePage = ({ currentUser }) => <div style={{ padding: 40 }}><h2>SCAD Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
 
 export default function App() {
   const [user, setUser] = useState(null); // Simulates a logged-in user
@@ -84,7 +85,8 @@ export default function App() {
       <Route path="/applicants" element={<Applicants currentUser={user} />} />
       <Route path="/company/interns" element={<CompanyInterns currentUser={user} />} />
       <Route path="/student/evaluation" element={<StudentEvaluations currentUser={user} />} />
-
+      {/* Add the new guidance page route */}
+      <Route path="/student/guidance" element={<GuidancePage currentUser={user} />} />
 
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />

@@ -107,18 +107,18 @@ const StudentInternships = ({ currentUser }) => {
     setShowEvaluationForm(true);
     setShowReportForm(false);
     if (selected) {
-    const existingEvaluation = evaluations.find(e => e.internship?.id === selected.id);
-    if (existingEvaluation) {
-      setEvaluationForm({
-        feedback: existingEvaluation.feedback,
-        recommend: existingEvaluation.recommend
-      });
-      setEditingEvaluationId(existingEvaluation.id);
-      setEvaluationError('');
-    } else {
-      setEvaluationForm({ feedback: '', recommend: false });
-      setEditingEvaluationId(null);
-      setEvaluationError('');
+      const existingEvaluation = evaluations.find(e => e.internship?.id === selected.id);
+      if (existingEvaluation) {
+        setEvaluationForm({
+          feedback: existingEvaluation.feedback,
+          recommend: existingEvaluation.recommend
+        });
+        setEditingEvaluationId(existingEvaluation.id);
+        setEvaluationError('');
+      } else {
+        setEvaluationForm({ feedback: '', recommend: false });
+        setEditingEvaluationId(null);
+        setEvaluationError('');
       }
     }
   };
@@ -250,12 +250,12 @@ const StudentInternships = ({ currentUser }) => {
   const handleDeleteEvaluation = (evaluationId) => {
     // Remove from state
     setEvaluations(prev => prev.filter(evaluation => evaluation.id !== evaluationId));
-    
+
     // Remove from user's evaluations
     if (currentUser?.evaluations) {
       currentUser.evaluations = currentUser.evaluations.filter(e => e.id !== evaluationId);
     }
-    
+
     // If this was the evaluation being edited, reset the form
     if (editingEvaluationId === evaluationId) {
       setEditingEvaluationId(null);
@@ -274,42 +274,42 @@ const StudentInternships = ({ currentUser }) => {
       let yOffset = 20; // Starting y position
       const margin = 10; // Left margin
       const maxWidth = 190; // Maximum width for text
-      
+
       // Add title
       doc.setFontSize(16);
       const title = report.title || 'Untitled Report';
       doc.text(title, margin, yOffset);
       yOffset += 10;
-      
+
       // Add submission date
       doc.setFontSize(12);
       const submissionDate = `Submitted on: ${formatDate(report.submissionDate)}`;
       doc.text(submissionDate, margin, yOffset);
       yOffset += 15;
-      
+
       // Add content
       doc.setFontSize(12);
       doc.text('Content:', margin, yOffset);
       yOffset += 7;
-      
+
       // Add content text with proper wrapping
       doc.setFontSize(11);
       const content = report.content || 'No content provided';
       const splitContent = doc.splitTextToSize(content, maxWidth);
       doc.text(splitContent, margin, yOffset);
       yOffset += (splitContent.length * 7) + 10; // Add space after content
-      
+
       // Add courses
       doc.setFontSize(12);
       doc.text('Courses Used:', margin, yOffset);
       yOffset += 7;
-      
+
       // Add courses text with proper wrapping
       doc.setFontSize(11);
       const courses = (report.courses || []).join(', ') || 'No courses specified';
       const splitCourses = doc.splitTextToSize(courses, maxWidth);
       doc.text(splitCourses, margin, yOffset);
-      
+
       // Save the PDF
       const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
       doc.save(`${safeTitle}_report.pdf`);
@@ -332,9 +332,9 @@ const StudentInternships = ({ currentUser }) => {
     const isAccepted = internship.status === 'accepted';
     const isPast = endDate < now && !isAccepted;
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = searchQuery === '' || 
-      (internship.title?.toLowerCase().includes(searchLower) || 
-       internship.company?.companyName?.toLowerCase().includes(searchLower));
+    const matchesSearch = searchQuery === '' ||
+      (internship.title?.toLowerCase().includes(searchLower) ||
+        internship.company?.companyName?.toLowerCase().includes(searchLower));
 
     // Status filter
     if (statusFilter !== 'all') {
@@ -347,16 +347,16 @@ const StudentInternships = ({ currentUser }) => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      <SideBar userRole="student" />
+      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} currentUser={currentUser} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ maxWidth: 1100, margin: '2rem auto', padding: 0 }}>
           <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>My Internships</h2>
 
           {/* Search and Filter Bar */}
-          <div style={{ 
-            display: 'flex', 
-            gap: 16, 
+          <div style={{
+            display: 'flex',
+            gap: 16,
             marginBottom: 24,
             position: 'sticky',
             top: 0,
@@ -366,15 +366,15 @@ const StudentInternships = ({ currentUser }) => {
             width: '100%',
             maxWidth: 1100
           }}>
-            <div style={{ 
-              position: 'relative', 
+            <div style={{
+              position: 'relative',
               width: 300,
               display: 'flex',
               alignItems: 'center'
             }}>
-              <Search size={18} style={{ 
-                position: 'absolute', 
-                left: 12, 
+              <Search size={18} style={{
+                position: 'absolute',
+                left: 12,
                 color: '#64748b',
                 pointerEvents: 'none'
               }} />
@@ -397,8 +397,8 @@ const StudentInternships = ({ currentUser }) => {
               />
             </div>
 
-            <select 
-              value={statusFilter} 
+            <select
+              value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               style={{
                 padding: '8px 14px',
@@ -588,14 +588,14 @@ const StudentInternships = ({ currentUser }) => {
                                 </div>
                               )}
                               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                                <button 
-                                  onClick={() => handleEditEvaluation(evaluation)} 
+                                <button
+                                  onClick={() => handleEditEvaluation(evaluation)}
                                   style={{ background: '#e0f2fe', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}
                                 >
                                   Edit
                                 </button>
-                                <button 
-                                  onClick={() => handleDeleteEvaluation(evaluation.id)} 
+                                <button
+                                  onClick={() => handleDeleteEvaluation(evaluation.id)}
                                   style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}
                                 >
                                   Delete
@@ -690,20 +690,20 @@ const StudentInternships = ({ currentUser }) => {
                               <div style={{ fontSize: 15, marginTop: 8 }}><b>Body:</b> {report.body}</div>
                               <div style={{ color: '#1746a2', fontSize: 15, marginTop: 8 }}>Courses: {(report.courses || []).join(', ')}</div>
                               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                                <button 
-                                  onClick={() => handleDownloadReport(report)} 
+                                <button
+                                  onClick={() => handleDownloadReport(report)}
                                   style={{ background: '#e0e7ef', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                                 >
                                   <Download size={16} /> Download
                                 </button>
-                                <button 
-                                  onClick={() => handleEditReport(report)} 
+                                <button
+                                  onClick={() => handleEditReport(report)}
                                   style={{ background: '#e0f2fe', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}
                                 >
                                   Edit
                                 </button>
-                                <button 
-                                  onClick={() => handleDeleteReport(report.id)} 
+                                <button
+                                  onClick={() => handleDeleteReport(report.id)}
                                   style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}
                                 >
                                   Delete
@@ -718,13 +718,13 @@ const StudentInternships = ({ currentUser }) => {
                 ) : (
                   <>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20 }}>{selected.title}</h3>
-                    
+
                     {/* Company Profile Section */}
-                    <div style={{ 
-                      background: '#f8fafc', 
-                      borderRadius: 8, 
-                      padding: '1.5rem', 
-                      marginBottom: '1.5rem' 
+                    <div style={{
+                      background: '#f8fafc',
+                      borderRadius: 8,
+                      padding: '1.5rem',
+                      marginBottom: '1.5rem'
                     }}>
                       <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', marginBottom: '1rem' }}>
                         {/* Company Logo */}
