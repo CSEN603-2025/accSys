@@ -156,7 +156,7 @@ export default function CompaniesPage({ currentUser }) {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      <SideBar userRole={userRole || "student"} />
+      <SideBar userRole={userRole || "student"} currentUser={currentUser} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ padding: '2rem', flex: 1 }}>
@@ -495,11 +495,11 @@ export default function CompaniesPage({ currentUser }) {
 
                 {/* Company Description */}
                 {selectedCompany.description && (
-                  <div style={{ 
-                    marginTop: 24, 
-                    padding: '1.5rem', 
-                    background: '#f8fafc', 
-                    borderRadius: 8 
+                  <div style={{
+                    marginTop: 24,
+                    padding: '1.5rem',
+                    background: '#f8fafc',
+                    borderRadius: 8
                   }}>
                     <h3 style={{ fontWeight: 600, marginBottom: '0.75rem' }}>About {selectedCompany.companyName}</h3>
                     <p style={{ color: '#334155', lineHeight: 1.6 }}>{selectedCompany.description}</p>
