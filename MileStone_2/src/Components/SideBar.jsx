@@ -14,7 +14,7 @@ const roleLinks = {
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
     { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
     { icon: <Video />, label: 'Video Calls', path: '/student/video' },
-
+    { icon: <Award />, label: 'Workshops', path: '/workshops' },
   ],
   faculty: [
     { icon: <House />, label: 'Dashboard', path: '/faculty' },
@@ -37,8 +37,7 @@ const roleLinks = {
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
-
-    { icon: <Star />, label: 'Evaluations', path: '/scad/evaluations' },
+    { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
   ],
 };
 
@@ -72,7 +71,8 @@ const SideBar = ({ userRole, currentUser }) => {
     if (path === `/${userRole}`) {
       return location.pathname === path || location.pathname === '/';
     }
-    return location.pathname === path;
+    // For nested routes, check if the current path starts with the link path
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -136,7 +136,10 @@ const SideBar = ({ userRole, currentUser }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: collapsed ? '40px' : 'auto'
+            width: collapsed ? '40px' : 'auto',
+            position: 'sticky',
+            top: 0,
+            zIndex: 10
           }}
         >
           <Award size={collapsed ? 16 : 14} style={{ marginRight: collapsed ? 0 : 4 }} />

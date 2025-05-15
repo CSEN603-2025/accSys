@@ -296,7 +296,7 @@ const FacultyEvaluations = ({ currentUser }) => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      <SideBar userRole={currentUser?.role?.toLowerCase() || 'faculty'} />
+      <SideBar userRole={currentUser?.role?.toLowerCase() || 'faculty'} currentUser={currentUser} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ flex: 1, padding: '2rem 0' }}>

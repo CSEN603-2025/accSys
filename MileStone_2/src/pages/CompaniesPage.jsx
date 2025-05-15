@@ -156,7 +156,7 @@ export default function CompaniesPage({ currentUser }) {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      <SideBar userRole={userRole || "student"} currentUser={currentUser} />
+      <SideBar userRole={userRole} currentUser={currentUser} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ padding: '2rem', flex: 1 }}>
