@@ -39,7 +39,8 @@ const StudentReports = ({ currentUser }) => {
   const [selectedInternship, setSelectedInternship] = useState(null);
   const [form, setForm] = useState({
     title: '',
-    content: '',
+    introduction: '',
+    body: '',
     courses: [],
   });
   const [reports, setReports] = useState(currentUser?.reports?.map(report => ({
@@ -64,7 +65,7 @@ const StudentReports = ({ currentUser }) => {
 
   const handleSelectInternship = (internship) => {
     setSelectedInternship(internship);
-    setForm({ title: '', content: '', courses: [] });
+    setForm({ title: '', introduction: '', body: '', courses: [] });
     setEditingReportId(null);
     // Notify if flagged or rejected
     const status = getStatus(internship);
@@ -103,7 +104,8 @@ const StudentReports = ({ currentUser }) => {
             ? {
                 ...r,
                 title: form.title,
-                content: form.content,
+                introduction: form.introduction,
+                body: form.body,
                 courses: form.courses || [],
               }
             : r
@@ -114,7 +116,8 @@ const StudentReports = ({ currentUser }) => {
           id: Date.now(),
           internship: selectedInternship,
           title: form.title,
-          content: form.content,
+          introduction: form.introduction,
+          body: form.body,
           courses: form.courses || [],
           submissionDate: new Date(),
           status: 'Submitted',
@@ -122,7 +125,7 @@ const StudentReports = ({ currentUser }) => {
         setReports((prev) => [...prev, newReport]);
         currentUser?.submitReport(newReport);
       }
-      setForm({ title: '', content: '', courses: [] });
+      setForm({ title: '', introduction: '', body: '', courses: [] });
       setUploading(false);
       setEditingReportId(null);
       setSelectedInternship(null);
@@ -133,7 +136,7 @@ const StudentReports = ({ currentUser }) => {
     setReports((prev) => prev.filter((r) => r.id !== reportId));
     if (editingReportId === reportId) {
       setEditingReportId(null);
-      setForm({ title: '', content: '', courses: [] });
+      setForm({ title: '', introduction: '', body: '', courses: [] });
     }
   };
 
@@ -144,7 +147,7 @@ const StudentReports = ({ currentUser }) => {
     doc.text(report.title, 10, 20);
     doc.setFontSize(12);
     doc.text('Content:', 10, 35);
-    doc.text(report.content, 10, 45, { maxWidth: 180 });
+    doc.text(report.body, 10, 45, { maxWidth: 180 });
     doc.text('Courses Used: ' + report.courses.join(', '), 10, 85);
     doc.save(`${report.title.replace(/\s+/g, '_')}_report.pdf`);
   };
@@ -153,7 +156,8 @@ const StudentReports = ({ currentUser }) => {
     setSelectedInternship(report.internship);
     setForm({
       title: report.title,
-      content: report.content,
+      introduction: report.introduction,
+      body: report.body,
       courses: report.courses,
     });
     setEditingReportId(report.id);
@@ -220,37 +224,10 @@ const StudentReports = ({ currentUser }) => {
         <div style={{ maxWidth: 1100, margin: '2rem auto', padding: 0 }}>
           <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>Internship Reports</h2>
           <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '2rem', marginBottom: 32 }}>
-            <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16 }}>{editingReportId ? 'Edit Report' : 'Submit/Update a Report'}</h3>
             <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              {/* Appeal section for flagged/rejected internships */}
-              {selectedInternship && ['flagged', 'rejected'].includes(getStatus(selectedInternship)) && (
-                <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem 1.2rem', marginBottom: 18, width: '100%' }}>
-                  <div style={{ fontWeight: 600, color: '#b91c1c', marginBottom: 6 }}>
-                    This internship is {getStatus(selectedInternship)}.
-                  </div>
-                  <div style={{ color: '#b91c1c', fontSize: 15, marginBottom: 8 }}>
-                    If you believe this is a mistake, you can appeal by submitting a comment below:
-                  </div>
-                  <form onSubmit={handleAppealSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <textarea
-                      value={appealState[selectedInternship.id]?.comment || ''}
-                      onChange={e => handleAppealChange(selectedInternship.id, e.target.value)}
-                      placeholder="Enter your appeal comment..."
-                      rows={3}
-                      style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
-                      required
-                    />
-                    <button
-                      type="submit"
-                      style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', alignSelf: 'flex-start' }}
-                    >
-                      Submit Appeal
-                    </button>
-                    {appealState[selectedInternship.id]?.submitted && <div style={{ color: '#16a34a', fontWeight: 500 }}>Appeal submitted!</div>}
-                  </form>
-                </div>
-              )}
+              {/* LEFT: Form */}
               <div style={{ minWidth: 260, flex: 1 }}>
+                <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16 }}>{editingReportId ? 'Edit Report' : 'Submit Report'}</h3>
                 <label style={{ fontWeight: 500 }}>Select Internship</label>
                 <select
                   value={selectedInternship?.id || ''}
@@ -279,10 +256,19 @@ const StudentReports = ({ currentUser }) => {
                       required
                     />
                     <textarea
-                      name="content"
-                      value={form.content}
+                      name="introduction"
+                      value={form.introduction || ''}
                       onChange={handleFormChange}
-                      placeholder="Content"
+                      placeholder="Introduction"
+                      rows={3}
+                      style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                      required
+                    />
+                    <textarea
+                      name="body"
+                      value={form.body || ''}
+                      onChange={handleFormChange}
+                      placeholder="Body"
                       rows={5}
                       style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
                       required
@@ -309,7 +295,7 @@ const StudentReports = ({ currentUser }) => {
                     {editingReportId && (
                       <button
                         type="button"
-                        onClick={() => { setEditingReportId(null); setForm({ title: '', content: '', courses: [] }); setSelectedInternship(null); }}
+                        onClick={() => { setEditingReportId(null); setForm({ title: '', introduction: '', body: '', courses: [] }); setSelectedInternship(null); }}
                         style={{ background: '#e2e8f0', color: '#1746a2', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
                       >
                         Cancel Edit
@@ -318,18 +304,22 @@ const StudentReports = ({ currentUser }) => {
                   </form>
                 )}
               </div>
-              {/* Reports for selected internship */}
+              {/* RIGHT: Reports */}
               {selectedInternship && (
                 <div style={{ flex: 1, minWidth: 320 }}>
+                  {/* Submitted Reports Section */}
                   <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Submitted Reports</h4>
                   {getReportsForInternship(selectedInternship.id).length === 0 ? (
-                    <div style={{ color: '#64748b' }}>No reports submitted yet.</div>
+                    <div style={{ color: '#64748b', fontStyle: 'italic', marginBottom: 12 }}>
+                      No reports submitted yet.
+                    </div>
                   ) : (
                     getReportsForInternship(selectedInternship.id).map((report) => (
                       <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <div style={{ fontWeight: 600 }}>{report.title}</div>
+                        <div style={{ fontWeight: 600, fontSize: 16 }}>{report.title}</div>
                         <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                        <div style={{ fontSize: 15, marginTop: 8 }}><b>Introduction:</b> {report.introduction}</div>
+                        <div style={{ fontSize: 15, marginTop: 8 }}><b>Body:</b> {report.body}</div>
                         <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                         <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
                           <button onClick={() => handleDownload(report)} style={{ background: '#e0e7ef', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Download</button>
@@ -348,7 +338,7 @@ const StudentReports = ({ currentUser }) => {
                       <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fff7ed', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                         <div style={{ fontWeight: 600 }}>{report.title}</div>
                         <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
                         <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                         {/* Appeal form for flagged */}
                         {!appealState[report.id]?.submitted ? (
@@ -383,7 +373,7 @@ const StudentReports = ({ currentUser }) => {
                       <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                         <div style={{ fontWeight: 600 }}>{report.title}</div>
                         <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
                         <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                         {/* Appeal form for rejected */}
                         {!appealState[report.id]?.submitted ? (

@@ -3,6 +3,7 @@ import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
 import { mockInternships, mockReports } from '../../DummyData/mockUsers';
 import { Eye, Edit2, Trash2, Upload, Calendar, Search, Building2 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 const STATUS_COLORS = {
   pending: { bg: '#fef3c7', color: '#b45309' },
@@ -55,7 +56,7 @@ const StudentInternships = ({ currentUser }) => {
   const [selected, setSelected] = useState(null);
   const [showReportForm, setShowReportForm] = useState(false);
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
-  const [reportForm, setReportForm] = useState({ title: '', content: '', courses: [] });
+  const [reportForm, setReportForm] = useState({ title: '', introduction: '', body: '', courses: [] });
   const [evaluationForm, setEvaluationForm] = useState({ feedback: '', recommend: false });
   const [reports, setReports] = useState(currentUser?.reports || []);
   const [editingReportId, setEditingReportId] = useState(null);
@@ -64,6 +65,7 @@ const StudentInternships = ({ currentUser }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [evaluations, setEvaluations] = useState(currentUser?.evaluations || []);
   const [editingEvaluationId, setEditingEvaluationId] = useState(null);
+  const [evaluationError, setEvaluationError] = useState('');
 
   // Format date helper function
   const formatDate = (date) => {
@@ -97,7 +99,7 @@ const StudentInternships = ({ currentUser }) => {
   const handleOpenReportForm = () => {
     setShowReportForm(true);
     setShowEvaluationForm(false);
-    setReportForm({ title: '', content: '', courses: [] });
+    setReportForm({ title: '', introduction: '', body: '', courses: [] });
     setEditingReportId(null);
   };
 
@@ -111,9 +113,11 @@ const StudentInternships = ({ currentUser }) => {
         recommend: existingEvaluation.recommend
       });
       setEditingEvaluationId(existingEvaluation.id);
+      setEvaluationError('');
     } else {
       setEvaluationForm({ feedback: '', recommend: false });
       setEditingEvaluationId(null);
+      setEvaluationError('');
     }
   };
 
@@ -141,7 +145,8 @@ const StudentInternships = ({ currentUser }) => {
           ? {
             ...r,
             title: reportForm.title,
-            content: reportForm.content,
+            introduction: reportForm.introduction,
+            body: reportForm.body,
             courses: reportForm.courses || [],
           }
           : r
@@ -152,7 +157,8 @@ const StudentInternships = ({ currentUser }) => {
         id: Date.now(),
         internship: selected,
         title: reportForm.title,
-        content: reportForm.content,
+        introduction: reportForm.introduction,
+        body: reportForm.body,
         courses: reportForm.courses || [],
         submissionDate: new Date(),
         status: 'Submitted',
@@ -160,15 +166,30 @@ const StudentInternships = ({ currentUser }) => {
       setReports((prev) => [...prev, newReport]);
       currentUser?.submitReport(newReport);
     }
-    setReportForm({ title: '', content: '', courses: [] });
+    setReportForm({ title: '', introduction: '', body: '', courses: [] });
     setEditingReportId(null);
     setShowReportForm(false);
     setShowModal(false);
     setSelected(null);
   };
 
+  const handleDownload = (report) => {
+    // Generate PDF using jsPDF
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(report.title, 10, 20);
+    doc.setFontSize(12);
+    doc.text('Introduction:', 10, 35);
+    doc.text(report.introduction, 10, 45, { maxWidth: 180 });
+    doc.text('Body:', 10, 85);
+    doc.text(report.body, 10, 95, { maxWidth: 180 });
+    doc.text('Courses Used: ' + report.courses.join(', '), 10, 135);
+    doc.save(`${report.title.replace(/\s+/g, '_')}_report.pdf`);
+  };
+
   const handleEvaluationSubmit = (e) => {
     e.preventDefault();
+    setEvaluationError('');
     if (editingEvaluationId) {
       // Update existing evaluation
       const updatedEvaluation = {
@@ -179,13 +200,7 @@ const StudentInternships = ({ currentUser }) => {
         createdAt: evaluations.find(e => e.id === editingEvaluationId)?.createdAt || new Date(),
         updatedAt: new Date()
       };
-      
-      // Update in state
-      setEvaluations(prev => prev.map(evaluation => 
-        evaluation.id === editingEvaluationId ? updatedEvaluation : evaluation
-      ));
-      
-      // Update in user's evaluations
+      setEvaluations(prev => prev.map(evaluation => evaluation.id === editingEvaluationId ? updatedEvaluation : evaluation));
       const userEvaluationIndex = currentUser.evaluations.findIndex(e => e.id === editingEvaluationId);
       if (userEvaluationIndex !== -1) {
         currentUser.evaluations[userEvaluationIndex] = updatedEvaluation;
@@ -200,24 +215,22 @@ const StudentInternships = ({ currentUser }) => {
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      
-      // Add to state
       setEvaluations(prev => [...prev, newEvaluation]);
-      
-      // Add to user's evaluations
       currentUser.submitEvaluation(newEvaluation);
     }
-    
     setEvaluationForm({ feedback: '', recommend: false });
     setEditingEvaluationId(null);
     setShowEvaluationForm(false);
+    setShowModal(false);
+    setSelected(null);
   };
 
   const handleEditReport = (report) => {
     setSelected(report.internship);
     setReportForm({
       title: report.title,
-      content: report.content,
+      introduction: report.introduction,
+      body: report.body,
       courses: report.courses || [],
     });
     setEditingReportId(report.id);
@@ -229,7 +242,7 @@ const StudentInternships = ({ currentUser }) => {
     setReports((prev) => prev.filter((r) => r.id !== reportId));
     if (editingReportId === reportId) {
       setEditingReportId(null);
-      setReportForm({ title: '', content: '', courses: [] });
+      setReportForm({ title: '', introduction: '', body: '', courses: [] });
     }
   };
 
@@ -435,7 +448,7 @@ const StudentInternships = ({ currentUser }) => {
                 borderRadius: 12,
                 padding: '1.5rem',
                 width: '100%',
-                maxWidth: 540,
+                maxWidth: 800,
                 maxHeight: '90vh',
                 overflowY: 'auto',
                 boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
@@ -463,7 +476,10 @@ const StudentInternships = ({ currentUser }) => {
                   <>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20 }}>Evaluate Internship</h3>
                     <div style={{ display: 'flex', gap: 24 }}>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 320 }}>
+                        {evaluationError && (
+                          <div style={{ color: '#b91c1c', fontWeight: 600, marginBottom: 10 }}>{evaluationError}</div>
+                        )}
                         <form onSubmit={handleEvaluationSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                           <label style={{ fontWeight: 500 }}>Feedback</label>
                           <textarea
@@ -495,7 +511,7 @@ const StudentInternships = ({ currentUser }) => {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => { setEditingEvaluationId(null); setEvaluationForm({ feedback: '', recommend: false }); }}
+                                onClick={() => { setEditingEvaluationId(null); setEvaluationForm({ feedback: '', recommend: false }); setEvaluationError(''); }}
                                 style={{ background: '#e2e8f0', color: '#16a34a', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
                               >
                                 Cancel Edit
@@ -511,12 +527,12 @@ const StudentInternships = ({ currentUser }) => {
                           )}
                         </form>
                       </div>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 320 }}>
                         <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Previous Evaluations</h4>
                         {getEvaluationsForInternship(selected.id).length === 0 ? (
                           <div style={{ color: '#64748b' }}>No evaluations submitted yet.</div>
                         ) : (
-                          getEvaluationsForInternship(selected.id).map((evaluation) => (
+                          getEvaluationsForInternship(selected.id).slice(0, 1).map((evaluation) => (
                             <div key={evaluation.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(evaluation.createdAt)}</div>
@@ -548,97 +564,135 @@ const StudentInternships = ({ currentUser }) => {
                     </div>
                   </>
                 ) : showReportForm ? (
-                  <>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20 }}>Submit Report</h3>
-                    <div style={{ display: 'flex', gap: 24 }}>
-                      <div style={{ flex: 1 }}>
-                        <form onSubmit={handleReportSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                          <input
-                            name="title"
-                            value={reportForm.title}
-                            onChange={handleReportFormChange}
-                            placeholder="Report Title"
-                            style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
-                            required
-                          />
-                          <textarea
-                            name="content"
-                            value={reportForm.content}
-                            onChange={handleReportFormChange}
-                            placeholder="Content"
-                            rows={5}
-                            style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
-                            required
-                          />
-                          <label style={{ fontWeight: 500 }}>Courses Used</label>
-                          <select
-                            name="courses"
-                            multiple
-                            value={reportForm.courses}
-                            onChange={handleReportFormChange}
-                            style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0', minHeight: 80 }}
-                          >
-                            {availableCourses.map((course) => (
-                              <option key={course} value={course}>{course}</option>
-                            ))}
-                          </select>
-                          {editingReportId ? (
-                            <>
-                              <button
-                                type="submit"
-                                style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 16, border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', marginTop: 8 }}
-                              >
-                                Save Changes
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => { setEditingReportId(null); setReportForm({ title: '', content: '', courses: [] }); }}
-                                style={{ background: '#e2e8f0', color: '#1746a2', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
-                              >
-                                Cancel Edit
-                              </button>
-                            </>
-                          ) : (
+                  <div style={{ display: 'flex', gap: 24 }}>
+                    {/* LEFT: Form */}
+                    <div style={{ flex: 1, minWidth: 320 }}>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20 }}>
+                        {editingReportId ? 'Edit Report' : 'Submit Report'}
+                      </h3>
+                      <form onSubmit={handleReportSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <input
+                          name="title"
+                          value={reportForm.title}
+                          onChange={handleReportFormChange}
+                          placeholder="Report Title"
+                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                          required
+                        />
+                        <textarea
+                          name="introduction"
+                          value={reportForm.introduction}
+                          onChange={handleReportFormChange}
+                          placeholder="Introduction"
+                          rows={3}
+                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                          required
+                        />
+                        <textarea
+                          name="body"
+                          value={reportForm.body}
+                          onChange={handleReportFormChange}
+                          placeholder="Body"
+                          rows={5}
+                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                          required
+                        />
+                        <label style={{ fontWeight: 500 }}>Courses Used</label>
+                        <select
+                          name="courses"
+                          multiple
+                          value={reportForm.courses}
+                          onChange={handleReportFormChange}
+                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0', minHeight: 80 }}
+                        >
+                          {availableCourses.map((course) => (
+                            <option key={course} value={course}>{course}</option>
+                          ))}
+                        </select>
+                        {editingReportId ? (
+                          <>
                             <button
                               type="submit"
                               style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 16, border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', marginTop: 8 }}
                             >
-                              Submit Report
+                              Save Changes
                             </button>
-                          )}
-                        </form>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Previous Reports</h4>
-                        {getReportsForInternship(selected.id).length === 0 ? (
-                          <div style={{ color: '#64748b' }}>No reports submitted yet.</div>
+                            <button
+                              type="button"
+                              onClick={() => { setEditingReportId(null); setReportForm({ title: '', introduction: '', body: '', courses: [] }); }}
+                              style={{ background: '#e2e8f0', color: '#1746a2', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
+                            >
+                              Cancel Edit
+                            </button>
+                          </>
                         ) : (
-                          getReportsForInternship(selected.id).map((report) => (
-                            <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
-                              <div style={{ fontWeight: 600 }}>{report.title}</div>
-                              <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                              <div style={{ fontSize: 15, marginTop: 8 }}>{report.content}</div>
-                              <div style={{ color: '#1746a2', fontSize: 15, marginTop: 8 }}>Courses: {(report.courses || []).join(', ')}</div>
-                              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                                <button 
-                                  onClick={() => handleEditReport(report)} 
-                                  style={{ background: '#e0f2fe', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}
-                                >
-                                  Edit
-                                </button>
-                                <button 
-                                  onClick={() => handleDeleteReport(report.id)} 
-                                  style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
-                          ))
+                          <button
+                            type="submit"
+                            style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 16, border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', marginTop: 8 }}
+                          >
+                            Submit Report
+                          </button>
                         )}
-                      </div>
+                      </form>
                     </div>
-                  </>
+                    {/* RIGHT: Reports */}
+                    <div style={{ flex: 1, minWidth: 320 }}>
+                      {/* Submitted Reports Section */}
+                      <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Submitted Reports</h4>
+                      {getReportsForInternship(selected.id).length === 0 ? (
+                        <div style={{ color: '#64748b', fontStyle: 'italic', marginBottom: 12 }}>
+                          No reports submitted yet.
+                        </div>
+                      ) : (
+                        getReportsForInternship(selected.id).map((report) => (
+                          <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div style={{ fontWeight: 600, fontSize: 16 }}>{report.title}</div>
+                            <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                            <div style={{ fontSize: 15, marginTop: 8 }}><b>Introduction:</b> {report.introduction}</div>
+                            <div style={{ fontSize: 15, marginTop: 8 }}><b>Body:</b> {report.body}</div>
+                            <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
+                            <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                              <button onClick={() => handleDownload(report)} style={{ background: '#e0e7ef', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Download</button>
+                              <button onClick={() => handleEditReport(report)} style={{ background: '#e0f2fe', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Edit</button>
+                              <button onClick={() => handleDeleteReport(report.id)} style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Delete</button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      {/* Flagged Reports Section */}
+                      <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#b91c1c' }}>Flagged Reports</h4>
+                      {getReportsByStatus('flagged').length === 0 ? (
+                        <div style={{ color: '#64748b' }}>No flagged reports.</div>
+                      ) : (
+                        getReportsByStatus('flagged').map((report) => (
+                          <div key={report.id} style={{ background: '#fff7ed', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div style={{ fontWeight: 600 }}>{report.title}</div>
+                            <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                            <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
+                            <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
+                            {/* Appeal form for flagged */}
+                            {/* You may want to add appeal form logic here if needed */}
+                          </div>
+                        ))
+                      )}
+                      {/* Rejected Reports Section */}
+                      <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#991b1b' }}>Rejected Reports</h4>
+                      {getReportsByStatus('rejected').length === 0 ? (
+                        <div style={{ color: '#64748b' }}>No rejected reports.</div>
+                      ) : (
+                        getReportsByStatus('rejected').map((report) => (
+                          <div key={report.id} style={{ background: '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div style={{ fontWeight: 600 }}>{report.title}</div>
+                            <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                            <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
+                            <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
+                            {/* Appeal form for rejected */}
+                            {/* You may want to add appeal form logic here if needed */}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20 }}>{selected.title}</h3>
