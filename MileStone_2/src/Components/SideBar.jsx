@@ -114,7 +114,7 @@ const SideBar = ({ userRole, currentUser }) => {
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'flex-start',
           width: '100%',
-          padding: collapsed ? '0 0 1.5rem 0' : '0 1.5rem 1.5rem 1.5rem',
+          padding: collapsed ? '0 0 1rem 0' : '0 1.5rem 1rem 1.5rem',
           minHeight: 40,
         }}
       >
@@ -139,8 +139,6 @@ const SideBar = ({ userRole, currentUser }) => {
             alignItems: 'center',
             justifyContent: 'center',
             width: collapsed ? '40px' : 'auto',
-            position: 'sticky',
-            top: 0,
             zIndex: 10
           }}
         >

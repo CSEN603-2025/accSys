@@ -229,6 +229,134 @@ const StudentDashboard = ({ currentUser }) => {
               onClick={() => handleQuickAccess('/student/evaluation')}
             />
           </div>
+
+          {/* Pro Student Features */}
+          {currentUser?.isProStudent && (
+            <>
+              <div style={{ fontWeight: 600, fontSize: 22, marginTop: '2rem', marginBottom: '1rem' }}>Pro Features</div>
+              
+              {/* Profile Views Section */}
+              <div style={{ marginBottom: '2rem' }}>
+                <div style={{ fontWeight: 600, fontSize: 18, marginBottom: '0.5rem' }}>Companies That Viewed Your Profile</div>
+                <div style={{ color: '#64748b', fontSize: 14, marginBottom: '1rem' }}>Companies that have shown interest in your profile</div>
+                <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem' }}>
+                  {currentUser?.profileViews?.length > 0 ? (
+                    <div style={{ display: 'grid', gap: '1rem' }}>
+                      {currentUser.profileViews.map((view, index) => (
+                        <div key={index} style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '1rem',
+                          padding: '1rem',
+                          background: '#f8fafc',
+                          borderRadius: 8
+                        }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            minWidth: '40px',
+                            background: '#f1f5f9',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            overflow: 'hidden',
+                            padding: '4px'
+                          }}>
+                            {view.company.logoUrl ? (
+                              <img
+                                src={view.company.logoUrl}
+                                alt={`${view.company.companyName} logo`}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'contain'
+                                }}
+                              />
+                            ) : (
+                              <Building2 size={20} color="#94a3b8" />
+                            )}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 500 }}>{view.company.companyName}</div>
+                            <div style={{ color: '#64748b', fontSize: 13 }}>
+                              Viewed on {new Date(view.viewedAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ color: '#64748b', fontSize: 15, textAlign: 'center', padding: '2rem' }}>
+                      No companies have viewed your profile yet
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Workshop Certificates Section */}
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 18, marginBottom: '0.5rem' }}>Workshop Certificates</div>
+                <div style={{ color: '#64748b', fontSize: 14, marginBottom: '1rem' }}>Your completed workshop certificates</div>
+                <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem' }}>
+                  {currentUser?.workshopCertificates?.length > 0 ? (
+                    <div style={{ display: 'grid', gap: '1rem' }}>
+                      {currentUser.workshopCertificates.map((certificate, index) => (
+                        <div key={index} style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '1rem',
+                          padding: '1rem',
+                          background: '#f8fafc',
+                          borderRadius: 8
+                        }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            minWidth: '40px',
+                            background: '#f1f5f9',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <FileCheck size={20} color="#1746a2" />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 500 }}>{certificate.workshopName}</div>
+                            <div style={{ color: '#64748b', fontSize: 13 }}>
+                              Completed on {new Date(certificate.completedAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => window.open(certificate.certificateUrl, '_blank')}
+                            style={{
+                              padding: '6px 18px',
+                              borderRadius: 8,
+                              background: '#f1f5f9',
+                              border: 'none',
+                              fontWeight: 500,
+                              cursor: 'pointer',
+                              transition: 'background-color 0.2s',
+                              '&:hover': {
+                                background: '#e2e8f0'
+                              }
+                            }}
+                          >
+                            View Certificate
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ color: '#64748b', fontSize: 15, textAlign: 'center', padding: '2rem' }}>
+                      No workshop certificates yet
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
         {/* New Application Button */}
         <button

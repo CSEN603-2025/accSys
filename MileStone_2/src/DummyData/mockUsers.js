@@ -171,26 +171,49 @@ student2.setProStudent();
 student3.setProStudent();
 
 // Add a certificate for Ziad
-const workshopCertificate = {
-  id: Date.now(),
-  student: student1,
-  workshop: {
+const workshopCertificates = [
+  {
     id: 1,
-    title: "Advanced Web Development",
-    speaker: {
-      name: "Dr. Sarah Johnson",
-      title: "Senior Software Engineer",
-      bio: "10+ years of experience in web development"
-    },
-    startDate: "2024-03-01",
-    endDate: "2024-03-01",
-    startTime: "10:00 AM",
-    duration: "2 hours"
+    workshopName: "Advanced Web Development",
+    completedAt: "2024-03-01",
+    certificateUrl: "https://example.com/certificates/web-dev.pdf",
+    description: "Mastered modern web development techniques including React, TypeScript, and advanced CSS"
   },
-  issueDate: new Date("2024-03-01")
-};
+  {
+    id: 2,
+    workshopName: "Machine Learning Fundamentals",
+    completedAt: "2024-02-15",
+    certificateUrl: "https://example.com/certificates/ml-fundamentals.pdf",
+    description: "Learned core ML concepts, algorithms, and practical implementation using Python"
+  },
+  {
+    id: 3,
+    workshopName: "Cloud Architecture",
+    completedAt: "2024-01-20",
+    certificateUrl: "https://example.com/certificates/cloud-arch.pdf",
+    description: "Explored cloud services, microservices architecture, and deployment strategies"
+  }
+];
 
-student1.workshopCertificates = [workshopCertificate];
+student1.workshopCertificates = workshopCertificates;
+
+// Add mock profile views
+const profileViews = [
+  {
+    company: companies[0], // TechNova
+    viewedAt: "2024-03-15"
+  },
+  {
+    company: companies[2], // Finverse
+    viewedAt: "2024-03-10"
+  },
+  {
+    company: companies[4], // CyberLink
+    viewedAt: "2024-03-05"
+  }
+];
+
+student1.profileViews = profileViews;
 
 // Export all mock data
 export const mockUsers = [
