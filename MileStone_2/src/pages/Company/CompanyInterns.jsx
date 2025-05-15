@@ -22,17 +22,17 @@ const CompanyInterns = ({ currentUser }) => {
 
   const getCompletedInterns = () => {
     return mockUsers
-      .filter(user => 
-        user.role === 'student' && 
-        user.pastInternships?.some(internship => 
-          internship.company.id === currentUser.id && 
+      .filter(user =>
+        user.role === 'student' &&
+        user.pastInternships?.some(internship =>
+          internship.company.id === currentUser.id &&
           internship.status === 'completed'
         )
       )
       .map(student => ({
         ...student,
-        internshipDetails: student.pastInternships.find(i => 
-          i.company.id === currentUser.id && 
+        internshipDetails: student.pastInternships.find(i =>
+          i.company.id === currentUser.id &&
           i.status === 'completed'
         )
       }));
@@ -59,16 +59,48 @@ const CompanyInterns = ({ currentUser }) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const now = new Date();
-    
-    if (now > end) return 'Completed';
-    
+
+    if (now > end) {
+      // When an internship is completed, update the student's pro status
+      return 'Completed';
+    }
+
     const remainingDays = Math.ceil((end - Math.max(start, now)) / (1000 * 60 * 60 * 24));
     return `${remainingDays} days remaining`;
+  };
+
+  // Add a function to mark an internship as completed
+  const markInternshipAsCompleted = (intern) => {
+    // Update the internship status to completed
+    if (intern.internshipDetails) {
+      intern.internshipDetails.status = 'completed';
+
+      // Move from current internship to past internships if it's a current internship
+      if (intern.currentInternship && intern.currentInternship.id === intern.internshipDetails.id) {
+        intern.pastInternships = intern.pastInternships || [];
+        intern.pastInternships.push(intern.currentInternship);
+        intern.currentInternship = null;
+      }
+
+      // Update the pro student status
+      if (intern.updateProStatus) {
+        intern.updateProStatus();
+      }
+
+      // Update UI to reflect changes
+      setShowDetailsModal(false);
+      setSelectedIntern(null);
+
+      // Show notification
+      alert(`${intern.username}'s internship has been marked as completed. Their Pro Student status has been updated.`);
+    }
   };
 
   // Intern Details Modal
   const InternDetailsModal = ({ intern, onClose }) => {
     if (!intern) return null;
+
+    const isInternshipCompleted = intern.internshipDetails.status === 'completed';
 
     return (
       <div style={{
@@ -93,7 +125,7 @@ const CompanyInterns = ({ currentUser }) => {
           padding: '2rem',
           position: 'relative'
         }}>
-          <button 
+          <button
             onClick={onClose}
             style={{
               position: 'absolute',
@@ -169,7 +201,7 @@ const CompanyInterns = ({ currentUser }) => {
             <button
               onClick={() => {
                 // Implement CV download logic
-                const dummyCV = new Blob([`Dummy CV for ${intern.username}\nMajor: ${intern.major}\nGPA: ${intern.gpa}`], 
+                const dummyCV = new Blob([`Dummy CV for ${intern.username}\nMajor: ${intern.major}\nGPA: ${intern.gpa}`],
                   { type: 'text/plain' });
                 const url = window.URL.createObjectURL(dummyCV);
                 const a = document.createElement('a');
@@ -198,6 +230,29 @@ const CompanyInterns = ({ currentUser }) => {
               <FileText size={20} />
               Download CV
             </button>
+
+            {/* Action Buttons */}
+            {!isInternshipCompleted && intern.currentInternship && (
+              <button
+                onClick={() => markInternshipAsCompleted(intern)}
+                style={{
+                  background: '#dcfce7',
+                  color: '#166534',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  marginTop: '1rem'
+                }}
+              >
+                Mark Internship as Completed
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -281,19 +336,19 @@ const CompanyInterns = ({ currentUser }) => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
       <SideBar userRole={currentUser?.role?.toLowerCase() || 'company'} />
-      
+
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <NavBar currentUser={currentUser} />
-        
+
         <div style={{ padding: '2rem' }}>
           {/* Page Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Link 
-                to="/company" 
-                style={{ 
-                  marginRight: '1rem', 
-                  display: 'flex', 
+              <Link
+                to="/company"
+                style={{
+                  marginRight: '1rem',
+                  display: 'flex',
                   alignItems: 'center',
                   textDecoration: 'none',
                   color: '#1746a2'
@@ -324,14 +379,14 @@ const CompanyInterns = ({ currentUser }) => {
           </div>
 
           {/* Current Interns Section */}
-          <InternsList 
-            interns={filteredCurrentInterns} 
-            title="Current Interns" 
+          <InternsList
+            interns={filteredCurrentInterns}
+            title="Current Interns"
           />
 
           {/* Completed Internships Section */}
-          <InternsList 
-            interns={filteredCompletedInterns} 
+          <InternsList
+            interns={filteredCompletedInterns}
             title="Completed Internships"
             isPast={true}
           />
@@ -352,4 +407,4 @@ const CompanyInterns = ({ currentUser }) => {
   );
 };
 
-export default CompanyInterns; 
+export default CompanyInterns;
