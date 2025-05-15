@@ -769,6 +769,71 @@ const StudentProfilePage = ({ currentUser }) => {
               disabled={!newActivity.name || !newActivity.role}
             >Add</button>
           </div>
+          {currentUser?.isProStudent && (
+            <div style={{ marginTop: 32, padding: 24, border: '1px solid #e2e8f0', borderRadius: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
+                <h3 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>Technical Assessments</h3>
+                <div style={{
+                  background: '#10b981',
+                  color: 'white',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}>
+                  <Award size={12} />
+                  PRO
+                </div>
+              </div>
+              
+              {currentUser?.assessmentScores?.length > 0 ? (
+                <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}>
+                  {currentUser.assessmentScores.map((assessment, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        background: '#f8fafc',
+                        borderRadius: 8,
+                        padding: '1rem',
+                        border: '1px solid #e2e8f0'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <div style={{ fontWeight: 600 }}>{assessment.title}</div>
+                        <span style={{
+                          background: assessment.score >= 70 ? '#dcfce7' : '#fee2e2',
+                          color: assessment.score >= 70 ? '#166534' : '#991b1b',
+                          padding: '2px 8px',
+                          borderRadius: 12,
+                          fontSize: 14,
+                          fontWeight: 500
+                        }}>
+                          {assessment.score}%
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b', fontSize: 14 }}>
+                        <span>{assessment.difficulty}</span>
+                        <span>{new Date(assessment.completedAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ 
+                  color: '#64748b',
+                  background: '#f1f5f9',
+                  padding: '1rem',
+                  borderRadius: 8,
+                  textAlign: 'center'
+                }}>
+                  No assessments completed yet. Complete technical assessments to showcase your skills!
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
