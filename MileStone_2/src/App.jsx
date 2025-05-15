@@ -9,7 +9,6 @@ import CompanyHome from './pages/Company/CompanyHome';
 import InternEvaluations from './pages/Company/InternEvaluations';
 import Applicants from './pages/Company/Applicants';
 import CompanyInterns from './pages/Company/CompanyInterns';
-
 import ScadHome from './pages/ScadHome';
 import ScadStudentList from './pages/ScadStudentList';
 import RegisterCompany from './pages/LoginPage/RegisterCompany';
@@ -23,6 +22,10 @@ import StudentInternships from './pages/Student/StudentInternships';
 import ApplicationsPage from './pages/ApplicationsPage';
 import StudentEvaluations from './pages/Student/StudentEvaluations';
 import GuidancePage from './pages/GuidancePage';
+import StudentVideoCalls from './pages/Student/StudentVideoCalls';
+import Workshops from './pages/Student/Workshops';
+import WorkshopView from './pages/Student/WorkshopView';
+import FacultyEvaluations from './pages/SCAD/FacultyEvaluations';
 
 // Placeholder components for other roles
 const FacultyProfilePage = ({ currentUser }) => <div style={{ padding: 40 }}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
@@ -86,7 +89,10 @@ export default function App() {
       <Route path="/company/interns" element={<CompanyInterns currentUser={user} />} />
       <Route path="/student/evaluation" element={<StudentEvaluations currentUser={user} />} />
       {/* Add the new guidance page route */}
-      <Route path="/student/guidance" element={<GuidancePage currentUser={user} />} />
+      <Route path="/student/guidance" element={<GuidancePage currentUser={user} />} />      <Route path="/student/video" element={<StudentVideoCalls currentUser={user} />} />
+      <Route path="workshops" element={<Workshops currentUser={user} />} />
+      <Route path="workshop/:id" element={<WorkshopView currentUser={user} />} />
+      <Route path="/faculty/evaluations" element={<FacultyEvaluations currentUser={user} />} />
 
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />

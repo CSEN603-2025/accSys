@@ -22,10 +22,11 @@ const faculty2 = new Faculty(3, "profSara", "sara@univ.edu", "123", "Information
 const faculty3 = new Faculty(4, "profAli", "ali@univ.edu", "123", "AI & Robotics");
 
 // ===== Students =====
-const student1 = new Student(5, "Ziad", "ziad@student.edu", "123", "CS", 3.7, 5, true);
-const student2 = new Student(6, "Karim", "karim@student.edu", "123", "IS", 3.5, 4, false);
-const student3 = new Student(7, "Khairy", "layla@student.edu", "123", "Robotics", 3.9, 6, false);
-
+const student1 = new Student(5, "Ziad", "ziad@student.edu", "123", "CS", 3.7, 5);
+const student2 = new Student(6, "Karim", "karim@student.edu", "123", "IS", 3.5, 4);
+const student3 = new Student(7, "Khairy", "layla@student.edu", "123", "Robotics", 3.9, 6);
+student1.isProStudent = true;
+student3.isProStudent = true;
 
 // ===== Companies and Internships =====
 const companies = [];
@@ -164,6 +165,32 @@ student1.submitReport(flaggedReportBioSync);
 student1.submitReport(rejectedReportFinverse);
 student2.submitReport(report2);
 student3.submitReport(report3);
+
+student1.setProStudent();
+student2.setProStudent();
+student3.setProStudent();
+
+// Add a certificate for Ziad
+const workshopCertificate = {
+  id: Date.now(),
+  student: student1,
+  workshop: {
+    id: 1,
+    title: "Advanced Web Development",
+    speaker: {
+      name: "Dr. Sarah Johnson",
+      title: "Senior Software Engineer",
+      bio: "10+ years of experience in web development"
+    },
+    startDate: "2024-03-01",
+    endDate: "2024-03-01",
+    startTime: "10:00 AM",
+    duration: "2 hours"
+  },
+  issueDate: new Date("2024-03-01")
+};
+
+student1.workshopCertificates = [workshopCertificate];
 
 // Export all mock data
 export const mockUsers = [

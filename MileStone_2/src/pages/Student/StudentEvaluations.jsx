@@ -114,7 +114,7 @@ const StudentEvaluations = ({ currentUser }) => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      <SideBar userRole="student" />
+      <SideBar userRole="student" currentUser={currentUser} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ maxWidth: 1100, margin: '2rem auto', padding: 0 }}>
