@@ -25,6 +25,7 @@ const faculty3 = new Faculty(4, "profAli", "ali@univ.edu", "123", "AI & Robotics
 const student1 = new Student(5, "Ziad", "ziad@student.edu", "123", "CS", 3.7, 5);
 const student2 = new Student(6, "Karim", "karim@student.edu", "123", "IS", 3.5, 4);
 const student3 = new Student(7, "Khairy", "layla@student.edu", "123", "Robotics", 3.9, 6);
+student1.isProStudent = true
 
 // ===== Companies and Internships =====
 const companies = [];
@@ -83,6 +84,7 @@ const application3 = new Application(202, student3, internships[7]);
 student1.applyToInternship(application1);
 student2.applyToInternship(application2);
 student3.applyToInternship(application3);
+
 
 // Hire and assign internships (simulate acceptance)
 companies[0].hireIntern(internships[0], student1);
