@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
-import { mockInternships, mockReports } from '../../DummyData/mockUsers';
+import { mockUsers, mockInternships, mockReports } from '../../DummyData/mockUsers';
 import jsPDF from 'jspdf';
+import { Search, Filter, ChevronDown } from 'lucide-react';
 
 // Example: courses per major (expand as needed)
 const COURSES_BY_MAJOR = {
@@ -49,6 +50,53 @@ const StudentReports = ({ currentUser }) => {
   const [uploading, setUploading] = useState(false);
   const [editingReportId, setEditingReportId] = useState(null);
   const [notifiedInternships, setNotifiedInternships] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const isStudent = currentUser?.role === 'student';
+  const isFaculty = currentUser?.role === 'faculty';
+  const isSCAD = currentUser?.role === 'scad';
+
+  // Get all reports for faculty/SCAD
+  const getAllReports = () => {
+    if (!isFaculty && !isSCAD) return [];
+    return mockUsers
+      .filter(user => user.role === 'student')
+      .flatMap(student => 
+        (student.reports || []).map(report => ({
+          ...report,
+          student: {
+            id: student.id,
+            username: student.username,
+            email: student.email,
+            major: student.major
+          }
+        }))
+      );
+  };
+
+  // Filter reports based on search and status
+  const getFilteredReports = () => {
+    let filtered = isStudent ? reports : getAllReports();
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(report => 
+        report.title.toLowerCase().includes(query) ||
+        report.content.toLowerCase().includes(query) ||
+        report.student?.username.toLowerCase().includes(query) ||
+        report.student?.email.toLowerCase().includes(query) ||
+        report.student?.major?.toLowerCase().includes(query)
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(report => report.status.toLowerCase() === statusFilter.toLowerCase());
+    }
+
+    return filtered.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+  };
 
   // Use mockInternships if user has no internships
   const internships = [
@@ -207,212 +255,437 @@ const StudentReports = ({ currentUser }) => {
     return reports.filter(report => report.status === status);
   };
 
+  // Report Card Component
+  const ReportCard = ({ report }) => {
+    const statusColors = {
+      submitted: { bg: '#e0e7ff', text: '#2563eb' },
+      flagged: { bg: '#fff7ed', text: '#b45309' },
+      rejected: { bg: '#fee2e2', text: '#b91c1c' },
+      approved: { bg: '#dcfce7', text: '#16a34a' }
+    };
+
+    // Add default status and null check
+    const status = (report?.status || 'submitted').toLowerCase();
+    const statusStyle = statusColors[status] || { bg: '#f1f5f9', text: '#64748b' };
+
+    return (
+      <div style={{
+        background: '#fff',
+        borderRadius: 12,
+        padding: '24px',
+        marginBottom: '20px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>{report?.title || 'Untitled Report'}</h3>
+            <div style={{ color: '#64748b', fontSize: '14px' }}>
+              Submitted by: <span style={{ fontWeight: '500', color: '#334155' }}>{report?.student?.username || 'Unknown Student'}</span>
+            </div>
+            <div style={{ color: '#64748b', fontSize: '14px' }}>
+              {report?.student?.major && `Major: ${report.student.major}`}
+            </div>
+          </div>
+          <div style={{
+            padding: '6px 12px',
+            borderRadius: '20px',
+            fontSize: '14px',
+            fontWeight: '500',
+            background: statusStyle.bg,
+            color: statusStyle.text
+          }}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Content:</div>
+          <div style={{ color: '#334155', fontSize: '15px' }}>{report?.content || 'No content provided'}</div>
+        </div>
+
+        {report?.courses?.length > 0 && (
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Courses Used:</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {report.courses.map((course, idx) => (
+                <span key={idx} style={{
+                  background: '#f1f5f9',
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  fontSize: '14px',
+                  color: '#64748b'
+                }}>
+                  {course}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ color: '#64748b', fontSize: '14px' }}>
+            Submitted: {formatDate(report?.submissionDate)}
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => handleDownload(report)}
+              style={{
+                background: '#e0e7ff',
+                color: '#2563eb',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+            >
+              Download
+            </button>
+            {(isFaculty || isSCAD) && (
+              <button
+                onClick={() => handleStatusChange(report, 'approved')}
+                style={{
+                  background: '#dcfce7',
+                  color: '#16a34a',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Approve
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Faculty/SCAD View
+  const FacultyView = () => (
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+      <div style={{ marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>Student Reports</h2>
+        <p style={{ color: '#64748b', fontSize: '16px' }}>View and manage all submitted internship reports</p>
+      </div>
+
+      {/* Search and Filter Bar */}
+      <div style={{
+        display: 'flex',
+        gap: '16px',
+        marginBottom: '24px',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
+          <Search style={{
+            position: 'absolute',
+            left: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#64748b'
+          }} />
+          <input
+            type="text"
+            placeholder="Search reports by title, content, or student..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 16px 12px 40px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              fontSize: '15px'
+            }}
+          />
+        </div>
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 20px',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            background: 'white',
+            cursor: 'pointer'
+          }}
+        >
+          <Filter size={16} />
+          Filters
+          <ChevronDown size={16} />
+        </button>
+      </div>
+
+      {/* Filter Options */}
+      {showFilters && (
+        <div style={{
+          background: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          marginBottom: '24px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}
+            >
+              <option value="all">All Reports</option>
+              <option value="submitted">Submitted</option>
+              <option value="flagged">Flagged</option>
+              <option value="rejected">Rejected</option>
+              <option value="approved">Approved</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Reports List */}
+      <div>
+        {getFilteredReports().length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '48px',
+            background: 'white',
+            borderRadius: '12px',
+            color: '#64748b'
+          }}>
+            No reports found matching your criteria.
+          </div>
+        ) : (
+          getFilteredReports().map((report) => (
+            <ReportCard key={report.id} report={report} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+
   // Only show content if user is logged in
   if (!currentUser) {
-    return <div style={{ padding: 40, textAlign: 'center', color: '#b91c1c', fontWeight: 600 }}>Please log in to view your reports and internships.</div>;
+    return <div style={{ padding: 40, textAlign: 'center', color: '#b91c1c', fontWeight: 600 }}>Please log in to view reports.</div>;
   }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      <SideBar userRole="student" />
+      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
-        <div style={{ maxWidth: 1100, margin: '2rem auto', padding: 0 }}>
-          <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>Internship Reports</h2>
-          <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '2rem', marginBottom: 32 }}>
-            <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16 }}>{editingReportId ? 'Edit Report' : 'Submit/Update a Report'}</h3>
-            <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              {/* Appeal section for flagged/rejected internships */}
-              {selectedInternship && ['flagged', 'rejected'].includes(getStatus(selectedInternship)) && (
-                <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem 1.2rem', marginBottom: 18, width: '100%' }}>
-                  <div style={{ fontWeight: 600, color: '#b91c1c', marginBottom: 6 }}>
-                    This internship is {getStatus(selectedInternship)}.
-                  </div>
-                  <div style={{ color: '#b91c1c', fontSize: 15, marginBottom: 8 }}>
-                    If you believe this is a mistake, you can appeal by submitting a comment below:
-                  </div>
-                  <form onSubmit={handleAppealSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <textarea
-                      value={appealState[selectedInternship.id]?.comment || ''}
-                      onChange={e => handleAppealChange(selectedInternship.id, e.target.value)}
-                      placeholder="Enter your appeal comment..."
-                      rows={3}
-                      style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
-                      required
-                    />
-                    <button
-                      type="submit"
-                      style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', alignSelf: 'flex-start' }}
-                    >
-                      Submit Appeal
-                    </button>
-                    {appealState[selectedInternship.id]?.submitted && <div style={{ color: '#16a34a', fontWeight: 500 }}>Appeal submitted!</div>}
-                  </form>
-                </div>
-              )}
-              <div style={{ minWidth: 260, flex: 1 }}>
-                <label style={{ fontWeight: 500 }}>Select Internship</label>
-                <select
-                  value={selectedInternship?.id || ''}
-                  onChange={(e) => {
-                    const internship = internships.find((i) => i.id === Number(e.target.value));
-                    handleSelectInternship(internship);
-                  }}
-                  style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 16 }}
-                  disabled={!!editingReportId}
-                >
-                  <option value="">Choose internship...</option>
-                  {internships.map((i) => (
-                    <option key={i.id} value={i.id}>
-                      {i.title} @ {i.company?.companyName || i.company?.username || 'Company'}
-                    </option>
-                  ))}
-                </select>
-                {selectedInternship && (
-                  <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    <input
-                      name="title"
-                      value={form.title}
-                      onChange={handleFormChange}
-                      placeholder="Report Title"
-                      style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
-                      required
-                    />
-                    <textarea
-                      name="content"
-                      value={form.content}
-                      onChange={handleFormChange}
-                      placeholder="Content"
-                      rows={5}
-                      style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
-                      required
-                    />
-                    <label style={{ fontWeight: 500 }}>Courses Used</label>
+        <div style={{ flex: 1, padding: '2rem 0' }}>
+          {(isFaculty || isSCAD) ? (
+            <FacultyView />
+          ) : (
+            // Original student view content
+            <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px' }}>
+              <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>Internship Reports</h2>
+              <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '2rem', marginBottom: 32 }}>
+                <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16 }}>{editingReportId ? 'Edit Report' : 'Submit/Update a Report'}</h3>
+                <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  {/* Appeal section for flagged/rejected internships */}
+                  {selectedInternship && ['flagged', 'rejected'].includes(getStatus(selectedInternship)) && (
+                    <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem 1.2rem', marginBottom: 18, width: '100%' }}>
+                      <div style={{ fontWeight: 600, color: '#b91c1c', marginBottom: 6 }}>
+                        This internship is {getStatus(selectedInternship)}.
+                      </div>
+                      <div style={{ color: '#b91c1c', fontSize: 15, marginBottom: 8 }}>
+                        If you believe this is a mistake, you can appeal by submitting a comment below:
+                      </div>
+                      <form onSubmit={handleAppealSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <textarea
+                          value={appealState[selectedInternship.id]?.comment || ''}
+                          onChange={e => handleAppealChange(selectedInternship.id, e.target.value)}
+                          placeholder="Enter your appeal comment..."
+                          rows={3}
+                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                          required
+                        />
+                        <button
+                          type="submit"
+                          style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', alignSelf: 'flex-start' }}
+                        >
+                          Submit Appeal
+                        </button>
+                        {appealState[selectedInternship.id]?.submitted && <div style={{ color: '#16a34a', fontWeight: 500 }}>Appeal submitted!</div>}
+                      </form>
+                    </div>
+                  )}
+                  <div style={{ minWidth: 260, flex: 1 }}>
+                    <label style={{ fontWeight: 500 }}>Select Internship</label>
                     <select
-                      name="courses"
-                      multiple
-                      value={form.courses}
-                      onChange={handleFormChange}
-                      style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0', minHeight: 80 }}
+                      value={selectedInternship?.id || ''}
+                      onChange={(e) => {
+                        const internship = internships.find((i) => i.id === Number(e.target.value));
+                        handleSelectInternship(internship);
+                      }}
+                      style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 16 }}
+                      disabled={!!editingReportId}
                     >
-                      {availableCourses.map((course) => (
-                        <option key={course} value={course}>{course}</option>
+                      <option value="">Choose internship...</option>
+                      {internships.map((i) => (
+                        <option key={i.id} value={i.id}>
+                          {i.title} @ {i.company?.companyName || i.company?.username || 'Company'}
+                        </option>
                       ))}
                     </select>
-                    <button
-                      type="submit"
-                      disabled={uploading}
-                      style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 16, border: 'none', borderRadius: 8, padding: '10px 24px', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 8 }}
-                    >
-                      {uploading ? (editingReportId ? 'Saving...' : 'Uploading...') : (editingReportId ? 'Save Changes' : 'Submit Report')}
-                    </button>
-                    {editingReportId && (
-                      <button
-                        type="button"
-                        onClick={() => { setEditingReportId(null); setForm({ title: '', content: '', courses: [] }); setSelectedInternship(null); }}
-                        style={{ background: '#e2e8f0', color: '#1746a2', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
-                      >
-                        Cancel Edit
-                      </button>
+                    {selectedInternship && (
+                      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <input
+                          name="title"
+                          value={form.title}
+                          onChange={handleFormChange}
+                          placeholder="Report Title"
+                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                          required
+                        />
+                        <textarea
+                          name="content"
+                          value={form.content}
+                          onChange={handleFormChange}
+                          placeholder="Content"
+                          rows={5}
+                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                          required
+                        />
+                        <label style={{ fontWeight: 500 }}>Courses Used</label>
+                        <select
+                          name="courses"
+                          multiple
+                          value={form.courses}
+                          onChange={handleFormChange}
+                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0', minHeight: 80 }}
+                        >
+                          {availableCourses.map((course) => (
+                            <option key={course} value={course}>{course}</option>
+                          ))}
+                        </select>
+                        <button
+                          type="submit"
+                          disabled={uploading}
+                          style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 16, border: 'none', borderRadius: 8, padding: '10px 24px', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 8 }}
+                        >
+                          {uploading ? (editingReportId ? 'Saving...' : 'Uploading...') : (editingReportId ? 'Save Changes' : 'Submit Report')}
+                        </button>
+                        {editingReportId && (
+                          <button
+                            type="button"
+                            onClick={() => { setEditingReportId(null); setForm({ title: '', content: '', courses: [] }); setSelectedInternship(null); }}
+                            style={{ background: '#e2e8f0', color: '#1746a2', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
+                          >
+                            Cancel Edit
+                          </button>
+                        )}
+                      </form>
                     )}
-                  </form>
-                )}
-              </div>
-              {/* Reports for selected internship */}
-              {selectedInternship && (
-                <div style={{ flex: 1, minWidth: 320 }}>
-                  <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Submitted Reports</h4>
-                  {getReportsForInternship(selectedInternship.id).length === 0 ? (
-                    <div style={{ color: '#64748b' }}>No reports submitted yet.</div>
-                  ) : (
-                    getReportsForInternship(selectedInternship.id).map((report) => (
-                      <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <div style={{ fontWeight: 600 }}>{report.title}</div>
-                        <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
-                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
-                        <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-                          <button onClick={() => handleDownload(report)} style={{ background: '#e0e7ef', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Download</button>
-                          <button onClick={() => handleEdit(report)} style={{ background: '#e0f2fe', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Edit</button>
-                          <button onClick={() => handleDelete(report.id)} style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Delete</button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                  {/* Flagged Reports Section */}
-                  <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#b91c1c' }}>Flagged Reports</h4>
-                  {getReportsByStatus('flagged').length === 0 ? (
-                    <div style={{ color: '#64748b' }}>No flagged reports.</div>
-                  ) : (
-                    getReportsByStatus('flagged').map((report) => (
-                      <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fff7ed', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <div style={{ fontWeight: 600 }}>{report.title}</div>
-                        <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
-                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
-                        {/* Appeal form for flagged */}
-                        {!appealState[report.id]?.submitted ? (
-                          <form onSubmit={e => handleAppealSubmit(e, report.id)} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                            <textarea
-                              value={appealState[report.id]?.comment || ''}
-                              onChange={e => handleAppealChange(report.id, e.target.value)}
-                              placeholder="Enter your appeal comment..."
-                              rows={2}
-                              style={{ padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }}
-                              required
-                            />
-                            <button
-                              type="submit"
-                              style={{ background: '#b91c1c', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '6px 16px', cursor: 'pointer', alignSelf: 'flex-start' }}
-                            >
-                              Appeal
-                            </button>
-                          </form>
-                        ) : (
-                          <div style={{ color: '#16a34a', fontWeight: 600, background: '#e0fce7', borderRadius: 6, padding: '8px 12px', marginTop: 8 }}>Appeal submitted!</div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                  {/* Rejected Reports Section */}
-                  <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#991b1b' }}>Rejected Reports</h4>
-                  {getReportsByStatus('rejected').length === 0 ? (
-                    <div style={{ color: '#64748b' }}>No rejected reports.</div>
-                  ) : (
-                    getReportsByStatus('rejected').map((report) => (
-                      <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <div style={{ fontWeight: 600 }}>{report.title}</div>
-                        <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                        <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
-                        <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
-                        {/* Appeal form for rejected */}
-                        {!appealState[report.id]?.submitted ? (
-                          <form onSubmit={e => handleAppealSubmit(e, report.id)} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                            <textarea
-                              value={appealState[report.id]?.comment || ''}
-                              onChange={e => handleAppealChange(report.id, e.target.value)}
-                              placeholder="Enter your appeal comment..."
-                              rows={2}
-                              style={{ padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }}
-                              required
-                            />
-                            <button
-                              type="submit"
-                              style={{ background: '#991b1b', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '6px 16px', cursor: 'pointer', alignSelf: 'flex-start' }}
-                            >
-                              Appeal
-                            </button>
-                          </form>
-                        ) : (
-                          <div style={{ color: '#16a34a', fontWeight: 600, background: '#e0fce7', borderRadius: 6, padding: '8px 12px', marginTop: 8 }}>Appeal submitted!</div>
-                        )}
-                      </div>
-                    ))
+                  </div>
+                  {/* Reports for selected internship */}
+                  {selectedInternship && (
+                    <div style={{ flex: 1, minWidth: 320 }}>
+                      <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Submitted Reports</h4>
+                      {getReportsForInternship(selectedInternship.id).length === 0 ? (
+                        <div style={{ color: '#64748b' }}>No reports submitted yet.</div>
+                      ) : (
+                        getReportsForInternship(selectedInternship.id).map((report) => (
+                          <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div style={{ fontWeight: 600 }}>{report.title}</div>
+                            <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                            <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                            <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
+                            <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                              <button onClick={() => handleDownload(report)} style={{ background: '#e0e7ef', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Download</button>
+                              <button onClick={() => handleEdit(report)} style={{ background: '#e0f2fe', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Edit</button>
+                              <button onClick={() => handleDelete(report.id)} style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer' }}>Delete</button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      {/* Flagged Reports Section */}
+                      <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#b91c1c' }}>Flagged Reports</h4>
+                      {getReportsByStatus('flagged').length === 0 ? (
+                        <div style={{ color: '#64748b' }}>No flagged reports.</div>
+                      ) : (
+                        getReportsByStatus('flagged').map((report) => (
+                          <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fff7ed', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div style={{ fontWeight: 600 }}>{report.title}</div>
+                            <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                            <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                            <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
+                            {/* Appeal form for flagged */}
+                            {!appealState[report.id]?.submitted ? (
+                              <form onSubmit={e => handleAppealSubmit(e, report.id)} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                                <textarea
+                                  value={appealState[report.id]?.comment || ''}
+                                  onChange={e => handleAppealChange(report.id, e.target.value)}
+                                  placeholder="Enter your appeal comment..."
+                                  rows={2}
+                                  style={{ padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }}
+                                  required
+                                />
+                                <button
+                                  type="submit"
+                                  style={{ background: '#b91c1c', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '6px 16px', cursor: 'pointer', alignSelf: 'flex-start' }}
+                                >
+                                  Appeal
+                                </button>
+                              </form>
+                            ) : (
+                              <div style={{ color: '#16a34a', fontWeight: 600, background: '#e0fce7', borderRadius: 6, padding: '8px 12px', marginTop: 8 }}>Appeal submitted!</div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                      {/* Rejected Reports Section */}
+                      <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#991b1b' }}>Rejected Reports</h4>
+                      {getReportsByStatus('rejected').length === 0 ? (
+                        <div style={{ color: '#64748b' }}>No rejected reports.</div>
+                      ) : (
+                        getReportsByStatus('rejected').map((report) => (
+                          <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div style={{ fontWeight: 600 }}>{report.title}</div>
+                            <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
+                            <div style={{ fontSize: 15 }}><b>Content:</b> {report.content}</div>
+                            <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
+                            {/* Appeal form for rejected */}
+                            {!appealState[report.id]?.submitted ? (
+                              <form onSubmit={e => handleAppealSubmit(e, report.id)} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                                <textarea
+                                  value={appealState[report.id]?.comment || ''}
+                                  onChange={e => handleAppealChange(report.id, e.target.value)}
+                                  placeholder="Enter your appeal comment..."
+                                  rows={2}
+                                  style={{ padding: 8, borderRadius: 6, border: '1px solid #e2e8f0' }}
+                                  required
+                                />
+                                <button
+                                  type="submit"
+                                  style={{ background: '#991b1b', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '6px 16px', cursor: 'pointer', alignSelf: 'flex-start' }}
+                                >
+                                  Appeal
+                                </button>
+                              </form>
+                            ) : (
+                              <div style={{ color: '#16a34a', fontWeight: 600, background: '#e0fce7', borderRadius: 6, padding: '8px 12px', marginTop: 8 }}>Appeal submitted!</div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
