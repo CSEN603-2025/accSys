@@ -56,7 +56,7 @@ const StudentInternships = ({ currentUser }) => {
   const [selected, setSelected] = useState(null);
   const [showReportForm, setShowReportForm] = useState(false);
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
-  const [reportForm, setReportForm] = useState({ title: '', content: '', courses: [] });
+  const [reportForm, setReportForm] = useState({ title: '', introduction: '', body: '', courses: [] });
   const [evaluationForm, setEvaluationForm] = useState({ feedback: '', recommend: false });
   const [reports, setReports] = useState(currentUser?.reports || []);
   const [editingReportId, setEditingReportId] = useState(null);
@@ -65,6 +65,7 @@ const StudentInternships = ({ currentUser }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [evaluations, setEvaluations] = useState(currentUser?.evaluations || []);
   const [editingEvaluationId, setEditingEvaluationId] = useState(null);
+  const [evaluationError, setEvaluationError] = useState('');
 
   // Format date helper function
   const formatDate = (date) => {
@@ -98,7 +99,7 @@ const StudentInternships = ({ currentUser }) => {
   const handleOpenReportForm = () => {
     setShowReportForm(true);
     setShowEvaluationForm(false);
-    setReportForm({ title: '', content: '', courses: [] });
+    setReportForm({ title: '', introduction: '', body: '', courses: [] });
     setEditingReportId(null);
   };
 
@@ -106,16 +107,18 @@ const StudentInternships = ({ currentUser }) => {
     setShowEvaluationForm(true);
     setShowReportForm(false);
     if (selected) {
-      const existingEvaluation = evaluations.find(e => e.internship?.id === selected.id);
-      if (existingEvaluation) {
-        setEvaluationForm({
-          feedback: existingEvaluation.feedback,
-          recommend: existingEvaluation.recommend
-        });
-        setEditingEvaluationId(existingEvaluation.id);
-      } else {
-        setEvaluationForm({ feedback: '', recommend: false });
-        setEditingEvaluationId(null);
+    const existingEvaluation = evaluations.find(e => e.internship?.id === selected.id);
+    if (existingEvaluation) {
+      setEvaluationForm({
+        feedback: existingEvaluation.feedback,
+        recommend: existingEvaluation.recommend
+      });
+      setEditingEvaluationId(existingEvaluation.id);
+      setEvaluationError('');
+    } else {
+      setEvaluationForm({ feedback: '', recommend: false });
+      setEditingEvaluationId(null);
+      setEvaluationError('');
       }
     }
   };
@@ -144,7 +147,8 @@ const StudentInternships = ({ currentUser }) => {
           ? {
             ...r,
             title: reportForm.title,
-            content: reportForm.content,
+            introduction: reportForm.introduction,
+            body: reportForm.body,
             courses: reportForm.courses || [],
           }
           : r
@@ -155,15 +159,16 @@ const StudentInternships = ({ currentUser }) => {
         id: Date.now(),
         internship: selected,
         title: reportForm.title,
-        content: reportForm.content,
+        introduction: reportForm.introduction,
+        body: reportForm.body,
         courses: reportForm.courses || [],
         submissionDate: new Date(),
         status: 'Submitted',
       };
       setReports((prev) => [...prev, newReport]);
-      currentUser?.submitReport(newReport);
+      currentUser?.submitReport?.(newReport);
     }
-    setReportForm({ title: '', content: '', courses: [] });
+    setReportForm({ title: '', introduction: '', body: '', courses: [] });
     setEditingReportId(null);
     setShowReportForm(false);
     setShowModal(false);
@@ -172,6 +177,7 @@ const StudentInternships = ({ currentUser }) => {
 
   const handleEvaluationSubmit = (e) => {
     e.preventDefault();
+    setEvaluationError('');
     if (editingEvaluationId) {
       // Update existing evaluation
       const updatedEvaluation = {
@@ -182,16 +188,12 @@ const StudentInternships = ({ currentUser }) => {
         createdAt: evaluations.find(e => e.id === editingEvaluationId)?.createdAt || new Date(),
         updatedAt: new Date()
       };
-      
-      // Update in state
-      setEvaluations(prev => prev.map(evaluation => 
-        evaluation.id === editingEvaluationId ? updatedEvaluation : evaluation
-      ));
-      
-      // Update in user's evaluations
-      const userEvaluationIndex = currentUser.evaluations.findIndex(e => e.id === editingEvaluationId);
-      if (userEvaluationIndex !== -1) {
-        currentUser.evaluations[userEvaluationIndex] = updatedEvaluation;
+      setEvaluations(prev => prev.map(evaluation => evaluation.id === editingEvaluationId ? updatedEvaluation : evaluation));
+      if (currentUser?.evaluations) {
+        const userEvaluationIndex = currentUser.evaluations.findIndex(e => e.id === editingEvaluationId);
+        if (userEvaluationIndex !== -1) {
+          currentUser.evaluations[userEvaluationIndex] = updatedEvaluation;
+        }
       }
     } else {
       // Add new evaluation
@@ -203,24 +205,22 @@ const StudentInternships = ({ currentUser }) => {
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      
-      // Add to state
       setEvaluations(prev => [...prev, newEvaluation]);
-      
-      // Add to user's evaluations
-      currentUser.submitEvaluation(newEvaluation);
+      currentUser?.submitEvaluation?.(newEvaluation);
     }
-    
     setEvaluationForm({ feedback: '', recommend: false });
     setEditingEvaluationId(null);
     setShowEvaluationForm(false);
+    setShowModal(false);
+    setSelected(null);
   };
 
   const handleEditReport = (report) => {
     setSelected(report.internship);
     setReportForm({
       title: report.title,
-      content: report.content,
+      introduction: report.introduction,
+      body: report.body,
       courses: report.courses || [],
     });
     setEditingReportId(report.id);
@@ -232,7 +232,7 @@ const StudentInternships = ({ currentUser }) => {
     setReports((prev) => prev.filter((r) => r.id !== reportId));
     if (editingReportId === reportId) {
       setEditingReportId(null);
-      setReportForm({ title: '', content: '', courses: [] });
+      setReportForm({ title: '', introduction: '', body: '', courses: [] });
     }
   };
 
@@ -252,7 +252,9 @@ const StudentInternships = ({ currentUser }) => {
     setEvaluations(prev => prev.filter(evaluation => evaluation.id !== evaluationId));
     
     // Remove from user's evaluations
-    currentUser.evaluations = currentUser.evaluations.filter(e => e.id !== evaluationId);
+    if (currentUser?.evaluations) {
+      currentUser.evaluations = currentUser.evaluations.filter(e => e.id !== evaluationId);
+    }
     
     // If this was the evaluation being edited, reset the form
     if (editingEvaluationId === evaluationId) {
@@ -490,7 +492,7 @@ const StudentInternships = ({ currentUser }) => {
                 borderRadius: 12,
                 padding: '1.5rem',
                 width: '100%',
-                maxWidth: 540,
+                maxWidth: 800,
                 maxHeight: '90vh',
                 overflowY: 'auto',
                 boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
@@ -518,7 +520,10 @@ const StudentInternships = ({ currentUser }) => {
                   <>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20 }}>Evaluate Internship</h3>
                     <div style={{ display: 'flex', gap: 24 }}>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 320 }}>
+                        {evaluationError && (
+                          <div style={{ color: '#b91c1c', fontWeight: 600, marginBottom: 10 }}>{evaluationError}</div>
+                        )}
                         <form onSubmit={handleEvaluationSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                           <label style={{ fontWeight: 500 }}>Feedback</label>
                           <textarea
@@ -550,7 +555,7 @@ const StudentInternships = ({ currentUser }) => {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => { setEditingEvaluationId(null); setEvaluationForm({ feedback: '', recommend: false }); }}
+                                onClick={() => { setEditingEvaluationId(null); setEvaluationForm({ feedback: '', recommend: false }); setEvaluationError(''); }}
                                 style={{ background: '#e2e8f0', color: '#16a34a', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
                               >
                                 Cancel Edit
@@ -566,13 +571,13 @@ const StudentInternships = ({ currentUser }) => {
                           )}
                         </form>
                       </div>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 320 }}>
                         <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Previous Evaluations</h4>
                         {getEvaluationsForInternship(selected.id).length === 0 ? (
                           <div style={{ color: '#64748b' }}>No evaluations submitted yet.</div>
                         ) : (
-                          getEvaluationsForInternship(selected.id).map((evaluation) => (
-                            <div key={`evaluation-${evaluation.id}`} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
+                          getEvaluationsForInternship(selected.id).slice(0, 1).map((evaluation) => (
+                            <div key={evaluation.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(evaluation.createdAt)}</div>
                               </div>
@@ -617,10 +622,19 @@ const StudentInternships = ({ currentUser }) => {
                             required
                           />
                           <textarea
-                            name="content"
-                            value={reportForm.content}
+                            name="introduction"
+                            value={reportForm.introduction}
                             onChange={handleReportFormChange}
-                            placeholder="Content"
+                            placeholder="Introduction"
+                            rows={3}
+                            style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                            required
+                          />
+                          <textarea
+                            name="body"
+                            value={reportForm.body}
+                            onChange={handleReportFormChange}
+                            placeholder="Body"
                             rows={5}
                             style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
                             required
@@ -647,7 +661,7 @@ const StudentInternships = ({ currentUser }) => {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => { setEditingReportId(null); setReportForm({ title: '', content: '', courses: [] }); }}
+                                onClick={() => { setEditingReportId(null); setReportForm({ title: '', introduction: '', body: '', courses: [] }); }}
                                 style={{ background: '#e2e8f0', color: '#1746a2', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', marginTop: 4, cursor: 'pointer' }}
                               >
                                 Cancel Edit
@@ -672,7 +686,8 @@ const StudentInternships = ({ currentUser }) => {
                             <div key={`report-${report.id}`} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
                               <div style={{ fontWeight: 600 }}>{report.title}</div>
                               <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                              <div style={{ fontSize: 15, marginTop: 8 }}>{report.content}</div>
+                              <div style={{ fontSize: 15, marginTop: 8 }}><b>Introduction:</b> {report.introduction}</div>
+                              <div style={{ fontSize: 15, marginTop: 8 }}><b>Body:</b> {report.body}</div>
                               <div style={{ color: '#1746a2', fontSize: 15, marginTop: 8 }}>Courses: {(report.courses || []).join(', ')}</div>
                               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                                 <button 

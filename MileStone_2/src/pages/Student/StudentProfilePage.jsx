@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
-import { User, Upload, X, Edit2, AlertCircle } from 'lucide-react'; // Added AlertCircle icon
+import { User, Upload, X, Edit2, AlertCircle, Award } from 'lucide-react'; // Added AlertCircle and Award icons
 
 // Define major options
 const MAJOR_OPTIONS = [
@@ -224,7 +224,7 @@ const StudentProfilePage = ({ currentUser }) => {
 
             {editMode ? (
               <div className="edit-profile-mode">
-                <div style={{ marginBottom: 30, display: 'flex', justifyContent: 'center', position: 'relative' }}>
+                <div style={{ marginBottom: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
                   <div style={{ position: 'relative' }}>
                     <div style={{
                       width: 120,
@@ -279,6 +279,25 @@ const StudentProfilePage = ({ currentUser }) => {
                       <Edit2 size={16} />
                     </div>
                   </div>
+
+                  {/* Add Pro Student badge in edit mode */}
+                  {currentUser?.isProStudent && (
+                    <div style={{
+                      background: '#10b981',
+                      color: 'white',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      marginTop: '10px'
+                    }}>
+                      <Award size={12} />
+                      PRO STUDENT
+                    </div>
+                  )}
 
                   <input
                     ref={fileInputRef}
@@ -590,9 +609,30 @@ const StudentProfilePage = ({ currentUser }) => {
                       <div style={{
                         fontWeight: 700,
                         fontSize: 18,
-                        marginBottom: 4
+                        marginBottom: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
                       }}>
                         {profile.name}
+                        {/* Add Pro Student badge in profile page */}
+                        {currentUser?.isProStudent && (
+                          <div style={{
+                            background: '#10b981',
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}>
+                            <Award size={10} />
+                            PRO
+                          </div>
+                        )}
                       </div>
                       <div style={{
                         color: '#64748b',
@@ -647,7 +687,7 @@ const StudentProfilePage = ({ currentUser }) => {
               ))}
             </div>
             <input value={newInterest} onChange={e => setNewInterest(e.target.value)} placeholder="Add new interest..." style={{ padding: 8, marginRight: 8, border: '1px solid #d1d5db', borderRadius: '0.375rem', marginBottom: '10px' }} />
-            <br/>
+            <br />
             <button
               onClick={handleAddInterest}
               disabled={!newInterest.trim() || interests.includes(newInterest.trim())}

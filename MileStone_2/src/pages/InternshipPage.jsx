@@ -262,8 +262,8 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} />
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} currentUser={currentUser} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <NavBar currentUser={currentUser} />
         <div style={{ maxWidth: 1800, margin: '2rem auto', padding: '0 1rem' }}>
@@ -368,26 +368,29 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                   My Internships Only
                 </label>
               )}
-              <button
-                onClick={() => setShowVideoModal(true)}
-                style={{
-                  background: '#1746a2',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '8px 14px',
-                  fontWeight: 500,
-                  fontSize: 15,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  height: '36px'
-                }}
-              >
-                <Play size={16} />
-                Watch Tutorial
-              </button>
+              {isStudent && (
+                <button
+                  onClick={() => setShowVideoModal(true)}
+                  style={{
+                    background: '#1746a2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '8px 14px',
+                    fontWeight: 500,
+                    fontSize: 15,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    height: '36px'
+                  }}
+                >
+                  <Play size={16} />
+                  Watch Tutorial
+                </button>
+              )}
+
             </div>
             {/* Table */}
             <div style={{ overflowX: 'auto', width: '100%' }}>
@@ -615,13 +618,13 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 }}
               >×</button>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 10, paddingRight: '2rem' }}>{selected.title}</h3>
-              
+
               {/* Company Profile Section */}
-              <div style={{ 
-                background: '#f8fafc', 
-                borderRadius: 8, 
-                padding: '1.5rem', 
-                marginBottom: '1.5rem' 
+              <div style={{
+                background: '#f8fafc',
+                borderRadius: 8,
+                padding: '1.5rem',
+                marginBottom: '1.5rem'
               }}>
                 <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', marginBottom: '1rem' }}>
                   {/* Company Logo */}
@@ -669,7 +672,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                   `${Math.round((new Date(selected.endDate) - new Date(selected.startDate)) / (1000 * 60 * 60 * 24 * 30))} months` :
                   '-'}</div>
                 <div style={{ color: '#64748b', marginBottom: 8 }}><b>Compensation:</b> {
-                  selected.compensation > 0 
+                  selected.compensation > 0
                     ? `${selected.compensation.toLocaleString()} EGP`
                     : 'Unpaid'
                 }</div>
@@ -1129,7 +1132,7 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                   justifyContent: 'center'
                 }}
               >×</button>
-              
+
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 5 }}>Internship Tutorial</h3>
               <h5 style={{ fontSize: '0.90rem', fontWeight: 200, marginBottom: 20, color: '#64748b' }}>This is a short video of what kinds of internships count towards the students' internship requirement based on their major</h5>
               <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%', background: '#000', borderRadius: 8 }}>
