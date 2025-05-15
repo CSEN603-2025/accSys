@@ -371,26 +371,29 @@ const InternshipPage = ({ currentUser, setCurrentUser }) => {
                 <option value='paid'>Paid</option>
                 <option value='unpaid'>Unpaid</option>
               </select>
-              <button
-                onClick={() => setShowVideoModal(true)}
-                style={{
-                  background: '#1746a2',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '8px 14px',
-                  fontWeight: 500,
-                  fontSize: 15,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  height: '36px'
-                }}
-              >
-                <Play size={16} />
-                Watch Tutorial
-              </button>
+              {isStudent && (
+                <button
+                  onClick={() => setShowVideoModal(true)}
+                  style={{
+                    background: '#1746a2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '8px 14px',
+                    fontWeight: 500,
+                    fontSize: 15,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    height: '36px'
+                  }}
+                >
+                  <Play size={16} />
+                  Watch Tutorial
+                </button>
+              )}
+              
             </div>
             {/* Table */}
             <div style={{ overflowX: 'auto', width: '100%' }}>
