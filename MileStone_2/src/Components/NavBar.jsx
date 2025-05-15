@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, User, Settings, LogOut, BriefcaseBusiness } from 'lucide-react';
+import { Bell, User, Settings, LogOut, BriefcaseBusiness, Award } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageTitle } from '../pages/PageTitle';
 
@@ -16,6 +16,9 @@ const NavBar = ({ currentUser, onLogout }) => {
   const pageTitle = getPageTitle(location.pathname, userRole);
 
   const unreadCount = currentUser?.notifications?.filter(n => !n.read).length || 0;
+
+  // Check if the user is a Pro Student
+  const isProStudent = currentUser?.role === 'student' && currentUser?.isProStudent === true;
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -243,7 +246,7 @@ const NavBar = ({ currentUser, onLogout }) => {
           )}
         </div>
         {/* User Avatar with Dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
           <div
             ref={avatarRef}
             onClick={() => setDropdownOpen((open) => !open)}
@@ -278,12 +281,34 @@ const NavBar = ({ currentUser, onLogout }) => {
               getUserInitials()
             )}
           </div>
+
+          {/* Pro Student Badge moved under avatar */}
+          {isProStudent && (
+            <div style={{
+              background: '#10b981',
+              color: 'white',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontSize: '10px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '3px',
+              position: 'absolute',
+              top: '38px',
+              width: 'auto'
+            }}>
+              <Award size={10} />
+              PRO
+            </div>
+          )}
+
           {dropdownOpen && (
             <div
               ref={dropdownRef}
               style={{
                 position: 'absolute',
-                top: 48,
+                top: isProStudent ? '58px' : '48px', // Adjust position based on badge presence
                 right: 0,
                 minWidth: 220,
                 background: '#fff',
@@ -297,7 +322,25 @@ const NavBar = ({ currentUser, onLogout }) => {
               }}
             >
               <div style={{ padding: '0 1.2rem 0.7rem 1.2rem', borderBottom: '1px solid #e2e8f0', marginBottom: 8 }}>
-                <div style={{ fontWeight: 600, fontSize: 16 }}>{getDisplayName()}</div>
+                <div style={{ fontWeight: 600, fontSize: 16, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {getDisplayName()}
+                  {isProStudent && (
+                    <div style={{
+                      background: '#10b981',
+                      color: 'white',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '3px'
+                    }}>
+                      <Award size={10} />
+                      PRO
+                    </div>
+                  )}
+                </div>
                 <div style={{ color: '#64748b', fontSize: 14 }}>{getRoleDisplay()}</div>
               </div>
               {/* My Internships for Students */}

@@ -48,7 +48,7 @@ const StudentDashboard = ({ currentUser }) => {
   const submittedReports = currentUser?.reports?.length || 0;
 
   // Get most recent application
-  const recentApplication = currentUser?.applications?.sort((a, b) => 
+  const recentApplication = currentUser?.applications?.sort((a, b) =>
     new Date(b.submissionDate) - new Date(a.submissionDate)
   )[0];
 
@@ -85,7 +85,7 @@ const StudentDashboard = ({ currentUser }) => {
   return (
     <div className="dashboard-root" style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
       {/* Sidebar */}
-      <SideBar userRole="student" />
+      <SideBar userRole="student" currentUser={currentUser} />
       {/* Main Content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {/* Navbar */}
@@ -98,19 +98,19 @@ const StudentDashboard = ({ currentUser }) => {
               <h2 style={{ fontWeight: 700 }}>Welcome back, {currentUser?.username}!</h2>
               <p style={{ color: '#64748b' }}>Here's an overview of your internship activities.</p>
             </div>
-            <button 
+            <button
               onClick={handleCreateReport}
-              style={{ 
+              style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#1746a2', 
-                color: '#fff', 
-                border: 'none', 
-                borderRadius: 8, 
-                padding: '10px 24px', 
-                fontWeight: 600, 
-                fontSize: 16, 
+                background: '#1746a2',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                padding: '10px 24px',
+                fontWeight: 600,
+                fontSize: 16,
                 cursor: 'pointer',
                 transition: 'background-color 0.2s',
                 '&:hover': {
@@ -131,14 +131,14 @@ const StudentDashboard = ({ currentUser }) => {
             <SummaryCard title="Reports" value={submittedReports} desc="Submitted reports" icon={<FileCheck size={24} color="#1746a2" />} />
           </div>
 
-          <div  style={{ fontWeight: 600, fontSize: 22 }}>Recent Application</div>
+          <div style={{ fontWeight: 600, fontSize: 22 }}>Recent Application</div>
           <div className="mb-4" style={{ color: '#64748b', fontSize: 14, marginBottom: 12 }}>Your most recent internship application</div>
           {/* Recent Application Section */}
           <div className='' style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '1.5rem', marginBottom: '2rem' }}>
             {recentApplication ? (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1.5rem' }}>
-                  <div style={{ 
+                  <div style={{
                     width: '60px',
                     height: '60px',
                     minWidth: '60px',
@@ -151,12 +151,12 @@ const StudentDashboard = ({ currentUser }) => {
                     padding: '8px'
                   }}>
                     {recentApplication.internship.company.logoUrl ? (
-                      <img 
-                        src={recentApplication.internship.company.logoUrl} 
+                      <img
+                        src={recentApplication.internship.company.logoUrl}
                         alt={`${recentApplication.internship.company.companyName} logo`}
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
+                        style={{
+                          width: '100%',
+                          height: '100%',
                           objectFit: 'contain'
                         }}
                       />
@@ -173,24 +173,24 @@ const StudentDashboard = ({ currentUser }) => {
                       </span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12}}>
-                    <span style={{ 
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
+                    <span style={{
                       background: getStatusColor(recentApplication.status).bg,
                       color: getStatusColor(recentApplication.status).text,
-                      borderRadius: 8, 
-                      padding: '2px 10px', 
-                      fontSize: 13 
+                      borderRadius: 8,
+                      padding: '2px 10px',
+                      fontSize: 13
                     }}>
                       {recentApplication.status.charAt(0).toUpperCase() + recentApplication.status.slice(1)}
                     </span>
-                    <button 
+                    <button
                       onClick={handleViewDetails}
-                      style={{ 
-                        padding: '6px 18px', 
-                        borderRadius: 8, 
-                        background: '#f1f5f9', 
-                        border: 'none', 
-                        fontWeight: 500, 
+                      style={{
+                        padding: '6px 18px',
+                        borderRadius: 8,
+                        background: '#f1f5f9',
+                        border: 'none',
+                        fontWeight: 500,
                         cursor: 'pointer',
                         transition: 'background-color 0.2s',
                         '&:hover': {
@@ -210,21 +210,21 @@ const StudentDashboard = ({ currentUser }) => {
 
           {/* Quick Access Cards */}
           <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <QuickCard 
-              title="Applications" 
-              desc="View and manage your internship applications" 
+            <QuickCard
+              title="Applications"
+              desc="View and manage your internship applications"
               btn="View Applications"
               onClick={() => handleQuickAccess('/applications')}
             />
-            <QuickCard 
-              title="Reports" 
-              desc="Submit and view your internship reports" 
+            <QuickCard
+              title="Reports"
+              desc="Submit and view your internship reports"
               btn="Manage Reports"
               onClick={() => handleQuickAccess('/student/reports')}
             />
-            <QuickCard 
-              title="Evaluation" 
-              desc="View your performance evaluations" 
+            <QuickCard
+              title="Evaluation"
+              desc="View your performance evaluations"
               btn="View Evaluations"
               onClick={() => handleQuickAccess('/student/evaluation')}
             />
@@ -303,19 +303,19 @@ const StudentDashboard = ({ currentUser }) => {
           )}
         </div>
         {/* New Application Button */}
-        <button 
+        <button
           onClick={handleNewApplication}
-          style={{ 
-            position: 'absolute', 
-            top: 32, 
-            right: 48, 
-            background: '#1746a2', 
-            color: '#fff', 
-            border: 'none', 
-            borderRadius: 8, 
-            padding: '10px 24px', 
-            fontWeight: 600, 
-            fontSize: 16, 
+          style={{
+            position: 'absolute',
+            top: 32,
+            right: 48,
+            background: '#1746a2',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '10px 24px',
+            fontWeight: 600,
+            fontSize: 16,
             cursor: 'pointer',
             transition: 'background-color 0.2s',
             '&:hover': {
@@ -345,7 +345,7 @@ const QuickCard = ({ title, desc, btn, onClick }) => (
   <div style={quickCardStyle}>
     <div style={{ fontWeight: 600 }}>{title}</div>
     <div style={{ color: '#64748b', fontSize: 14, marginBottom: 12 }}>{desc}</div>
-    <button 
+    <button
       onClick={onClick}
       style={{
         ...quickButtonStyle,

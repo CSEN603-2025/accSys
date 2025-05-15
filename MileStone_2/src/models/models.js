@@ -26,7 +26,7 @@ export class User {
 
 // ===== Student Class =====
 export class Student extends User {
-    constructor(id, username, email, password, major, gpa, semesterNumber = 1) {
+    constructor(id, username, email, password, major, gpa, semesterNumber = 1, isProStudent) {
         super(id, username, email, "student", password);
         this.major = major;
         this.gpa = gpa;
