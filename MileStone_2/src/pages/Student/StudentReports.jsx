@@ -90,17 +90,17 @@ const StudentReports = ({ currentUser }) => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(report =>
-        report.title.toLowerCase().includes(query) ||
-        report.introduction.toLowerCase().includes(query) ||
-        report.body.toLowerCase().includes(query) ||
-        report.student?.username.toLowerCase().includes(query) ||
-        report.student?.email.toLowerCase().includes(query) ||
-        report.student?.major?.toLowerCase().includes(query)
+        (report.title?.toLowerCase() || '').includes(query) ||
+        (report.introduction?.toLowerCase() || '').includes(query) ||
+        (report.body?.toLowerCase() || '').includes(query) ||
+        (report.student?.username?.toLowerCase() || '').includes(query) ||
+        (report.student?.email?.toLowerCase() || '').includes(query) ||
+        (report.student?.major?.toLowerCase() || '').includes(query)
       );
     }
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(report => report.status.toLowerCase() === statusFilter.toLowerCase());
+      filtered = filtered.filter(report => (report.status?.toLowerCase() || '') === statusFilter.toLowerCase());
     }
 
     return filtered.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
