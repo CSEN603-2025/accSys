@@ -39,7 +39,10 @@ export class Student extends User {
         this.currentInternship = null;
         this.activities = [];
         this.recommendedCompanies = [];
-        this.isProStudent = isProStudent;
+        this.isProStudent = false;
+        this.registeredWorkshops = [];
+        this.workshopNotes = [];
+        this.workshopCertificates = [];
     }
 
     addInterest(interest) {
@@ -75,6 +78,69 @@ export class Student extends User {
         this.reports.push(report);
         this.addNotification(`Submitted report for: ${report.internship.title}`);
     }
+    setProStudent() {
+        let total = 0;
+        if(!this.isProStudent) {
+            for (let i = 0; i<this.pastInternships.length; i++) {
+                if (this.pastInternships[i].status === "completed") {
+                    let start = new Date(this.pastInternships[i].startDate);
+                    let end = new Date(this.pastInternships[i].endDate);
+                    let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+                    total += months;
+                }
+            }
+            if (total >= 3) {
+                this.isProStudent = true;
+                this.addNotification("Congratulations! You are now a Pro Student.");
+            }
+        }
+    }
+    registerForWorkshop(workshop) {
+        if (this.isProStudent) {
+            workshop.registerStudent(this);
+            this.registeredWorkshops.push(workshop);
+        } else {
+            throw new Error("Only Pro Students can register for workshops");
+        }
+    }
+
+    unregisterFromWorkshop(workshop) {
+        workshop.unregisterStudent(this);
+        this.registeredWorkshops = this.registeredWorkshops.filter(w => w.id !== workshop.id);
+    }
+
+    addWorkshopNote(workshop, content) {
+        if (this.isProStudent) {
+            workshop.addNote(this, content);
+            this.workshopNotes.push({
+                workshop,
+                content,
+                timestamp: new Date()
+            });
+        }
+    }
+    rateWorkshop(workshop, rating, feedback) {
+        if (this.isProStudent) {
+            workshop.addRating(this, rating, feedback);
+        }
+    }
+
+    sendWorkshopChatMessage(workshop, message) {
+        if (this.isProStudent) {
+            workshop.addChatMessage(this, message);
+        }
+    }
+
+    getWorkshopCertificate(workshop) {
+        if (this.isProStudent) {
+            const certificate = workshop.generateCertificate(this);
+            if (certificate) {
+                this.workshopCertificates.push(certificate);
+            }
+            return certificate;
+        }
+        return null;
+    }
 }
 
 // ===== Faculty Class =====
@@ -92,6 +158,7 @@ export class SCAD extends User {
         this.reviewedApplications = [];
         this.approvedCompanies = [];
         this.approvedInternships = [];
+        this.workshops = [];
     }
 
     approveCompany(company) {
@@ -109,6 +176,27 @@ export class SCAD extends User {
         this.approvedInternships.push(internship);
         internship.company.addNotification(`Your internship "${internship.title}" has been approved.`);
         this.addNotification(`Approved internship: ${internship.title}`);
+    }
+    createWorkshop(workshop) {
+        this.workshops.push(workshop);
+        this.addNotification(`Created new workshop: ${workshop.title}`);
+    }
+
+    updateWorkshop(workshopId, updates) {
+        const workshop = this.workshops.find(w => w.id === workshopId);
+        if (workshop) {
+            Object.assign(workshop, updates);
+            this.addNotification(`Updated workshop: ${workshop.title}`);
+        }
+    }
+
+    deleteWorkshop(workshopId) {
+        const index = this.workshops.findIndex(w => w.id === workshopId);
+        if (index !== -1) {
+            const workshop = this.workshops[index];
+            this.workshops.splice(index, 1);
+            this.addNotification(`Deleted workshop: ${workshop.title}`);
+        }
     }
 }
 
@@ -206,5 +294,94 @@ export class Report {
         this.internship = internship;
         this.content = content;
         this.submissionDate = submissionDate;
+    }
+}
+
+export class Workshop{
+    constructor(id, title, description, speaker, startDate, endDate, startTime, Duration, SpeakerBio, agenda, isLive=true){
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.speaker = speaker;
+        this.startDate = new Date(startDate);
+        this.endDate = new Date(endDate);
+        this.startTime = startTime;
+        this.duration = Duration;
+        this.speakerBio = SpeakerBio;
+        this.agenda = agenda;
+        this.isLive = isLive;
+        this.studentsRegistered = [];
+        this.feedback = [];
+        this.chatMessages = [];
+        this.certificates = [];
+    }
+    registerStudent(student) {
+        if (!this.registrations.some(reg => reg.student.id === student.id)) {
+            this.registrations.push({
+                student,
+                registrationDate: new Date(),
+                attended: false,
+                certificate: null
+            });
+            student.addNotification(`You have registered for workshop: ${this.title}`);
+        }
+    }
+
+    unregisterStudent(student) {
+        this.registrations = this.registrations.filter(reg => reg.student.id !== student.id);
+        student.addNotification(`You have unregistered from workshop: ${this.title}`);
+    }
+
+    addNote(student, content) {
+        this.notes.push({
+            student,
+            content,
+            timestamp: new Date()
+        });
+    }
+
+    addRating(student, feedback) {
+        this.ratings.push({
+            student,
+            feedback,
+            timestamp: new Date()
+        });
+    }
+
+    addChatMessage(student, message) {
+        this.chatMessages.push({
+            student,
+            message,
+            timestamp: new Date()
+        });
+        // Notify other attendees
+        this.registrations.forEach(reg => {
+            if (reg.student.id !== student.id) {
+                reg.student.addNotification(`New message in ${this.title} workshop chat`);
+            }
+        });
+    }
+
+    generateCertificate(student) {
+        const registration = this.registrations.find(reg => reg.student.id === student.id);
+        if (registration && registration.attended) {
+            const certificate = {
+                id: Date.now(),
+                student,
+                workshop: this,
+                issueDate: new Date()
+            };
+            this.certificates.push(certificate);
+            student.addNotification(`Certificate generated for workshop: ${this.title}`);
+            return certificate;
+        }
+        return null;
+    }
+
+    markAttendance(student) {
+        const registration = this.registrations.find(reg => reg.student.id === student.id);
+        if (registration) {
+            registration.attended = true;
+        }
     }
 }
