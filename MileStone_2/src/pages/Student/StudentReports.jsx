@@ -56,6 +56,10 @@ const StudentReports = ({ currentUser }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showClarificationModal, setShowClarificationModal] = useState(false);
+  const [selectedAction, setSelectedAction] = useState(null); // 'flag' or 'reject'
+  const [clarificationText, setClarificationText] = useState('');
+  const [selectedReportForAction, setSelectedReportForAction] = useState(null);
 
   const isStudent = currentUser?.role === 'student';
   const isFaculty = currentUser?.role === 'faculty';
@@ -262,6 +266,45 @@ const StudentReports = ({ currentUser }) => {
     return reports.filter(report => report.status === status);
   };
 
+  // Add this new function to handle status changes with clarification
+  const handleStatusChangeWithClarification = (report, newStatus) => {
+    setSelectedReportForAction(report);
+    setSelectedAction(newStatus);
+    setClarificationText('');
+    setShowClarificationModal(true);
+  };
+
+  const handleSubmitClarification = () => {
+    if (!selectedReportForAction || !selectedAction || !clarificationText.trim()) return;
+
+    // Update the report status
+    const updatedReport = {
+      ...selectedReportForAction,
+      status: selectedAction,
+      clarification: clarificationText,
+      clarificationDate: new Date(),
+      clarifiedBy: currentUser.username
+    };
+
+    // Update reports state
+    setReports(prev => prev.map(r => 
+      r.id === selectedReportForAction.id ? updatedReport : r
+    ));
+
+    // Notify the student
+    if (selectedReportForAction.student) {
+      selectedReportForAction.student.addNotification(
+        `Your report "${selectedReportForAction.title}" has been ${selectedAction}. Reason: ${clarificationText}`
+      );
+    }
+
+    // Close the modal and reset state
+    setShowClarificationModal(false);
+    setSelectedAction(null);
+    setClarificationText('');
+    setSelectedReportForAction(null);
+  };
+
   // Report Modal Component
   const ReportModal = ({ report, onClose }) => {
     if (!report) return null;
@@ -277,16 +320,35 @@ const StudentReports = ({ currentUser }) => {
     const statusStyle = statusColors[status] || { bg: '#f1f5f9', text: '#64748b' };
 
     const handleStatusChange = (newStatus) => {
-      // Update the report status
-      report.status = newStatus;
-      // Notify the student
-      if (report.student) {
-        report.student.addNotification(
-          `Your report "${report.title}" has been ${newStatus}`
-        );
+      if (newStatus === 'approved') {
+        // Direct approval without clarification
+        const updatedReport = {
+          ...report,
+          status: 'approved',
+          clarification: null,
+          clarificationDate: new Date(),
+          clarifiedBy: currentUser.username
+        };
+
+        // Update reports state
+        setReports(prev => prev.map(r => 
+          r.id === report.id ? updatedReport : r
+        ));
+
+        // Notify the student
+        if (report.student) {
+          report.student.addNotification(
+            `Your report "${report.title}" has been approved.`
+          );
+        }
+        onClose();
+      } else {
+        // For flag and reject, show clarification modal
+        setSelectedReportForAction(report);
+        setSelectedAction(newStatus);
+        setClarificationText('');
+        setShowClarificationModal(true);
       }
-      // Close the modal
-      onClose();
     };
 
     return (
@@ -382,23 +444,25 @@ const StudentReports = ({ currentUser }) => {
             </div>
           </div>
 
-          {/* Courses Section */}
-          {report?.courses?.length > 0 && (
+          {/* Clarification Section (if report is flagged or rejected) */}
+          {(report?.status === 'flagged' || report?.status === 'rejected') && report?.clarification && (
             <div style={{ marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: '#334155' }}>Courses Used</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {report.courses.map((course, idx) => (
-                  <span key={idx} style={{
-                    background: '#e0e7ff',
-                    color: '#2563eb',
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    fontSize: '14px',
-                    fontWeight: '500'
-                  }}>
-                    {course}
-                  </span>
-                ))}
+              <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: '#334155' }}>
+                {report.status === 'flagged' ? 'Flag Reason' : 'Rejection Reason'}
+              </h3>
+              <div style={{
+                background: report.status === 'flagged' ? '#fff7ed' : '#fee2e2',
+                padding: '20px',
+                borderRadius: '8px',
+                fontSize: '15px',
+                lineHeight: '1.6',
+                color: '#334155',
+                whiteSpace: 'pre-wrap'
+              }}>
+                {report.clarification}
+              </div>
+              <div style={{ color: '#64748b', fontSize: '14px', marginTop: '8px' }}>
+                Clarified by: {report.clarifiedBy} on {formatDate(report.clarificationDate)}
               </div>
             </div>
           )}
@@ -439,9 +503,9 @@ const StudentReports = ({ currentUser }) => {
                   }}
                 >
                   <option value="submitted">Set as Submitted</option>
-                  <option value="flagged">Set as Flagged</option>
-                  <option value="rejected">Set as Rejected</option>
-                  <option value="approved">Set as Approved</option>
+                  <option value="flagged">Flag Report</option>
+                  <option value="rejected">Reject Report</option>
+                  <option value="approved">Approve Report</option>
                 </select>
                 <div style={{
                   position: 'absolute',
@@ -454,6 +518,121 @@ const StudentReports = ({ currentUser }) => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Add the Clarification Modal component
+  const ClarificationModal = () => {
+    if (!showClarificationModal || !selectedAction || !selectedReportForAction) return null;
+    if (selectedAction === 'approved') return null; // Don't show for approval
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1100
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '32px',
+          width: '90%',
+          maxWidth: '600px',
+          position: 'relative'
+        }}>
+          <button
+            onClick={() => {
+              setShowClarificationModal(false);
+              setSelectedAction(null);
+              setClarificationText('');
+              setSelectedReportForAction(null);
+            }}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '8px'
+            }}
+          >
+            <X size={24} color="#64748b" />
+          </button>
+
+          <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
+            {selectedAction === 'flagged' ? 'Flag Report' : 'Reject Report'}
+          </h3>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Please provide a reason for {selectedAction === 'flagged' ? 'flagging' : 'rejecting'} this report:
+            </label>
+            <textarea
+              value={clarificationText}
+              onChange={(e) => setClarificationText(e.target.value)}
+              placeholder={`Enter reason for ${selectedAction === 'flagged' ? 'flagging' : 'rejecting'} the report...`}
+              rows={4}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                fontSize: '15px',
+                resize: 'vertical'
+              }}
+              required
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <button
+              onClick={() => {
+                setShowClarificationModal(false);
+                setSelectedAction(null);
+                setClarificationText('');
+                setSelectedReportForAction(null);
+              }}
+              style={{
+                background: '#e2e8f0',
+                color: '#64748b',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmitClarification}
+              disabled={!clarificationText.trim()}
+              style={{
+                background: selectedAction === 'flagged' ? '#fff7ed' : '#fee2e2',
+                color: selectedAction === 'flagged' ? '#b45309' : '#b91c1c',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                opacity: !clarificationText.trim() ? 0.5 : 1
+              }}
+            >
+              {selectedAction === 'flagged' ? 'Flag Report' : 'Reject Report'}
+            </button>
           </div>
         </div>
       </div>
@@ -695,37 +874,10 @@ const StudentReports = ({ currentUser }) => {
             <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px' }}>
               <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24 }}>Internship Reports</h2>
               <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px #e2e8f0', padding: '2rem', marginBottom: 32 }}>
-                <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16 }}>{editingReportId ? 'Edit Report' : 'Submit/Update a Report'}</h3>
                 <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  {/* Appeal section for flagged/rejected internships */}
-                  {selectedInternship && ['flagged', 'rejected'].includes(getStatus(selectedInternship)) && (
-                    <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem 1.2rem', marginBottom: 18, width: '100%' }}>
-                      <div style={{ fontWeight: 600, color: '#b91c1c', marginBottom: 6 }}>
-                        This internship is {getStatus(selectedInternship)}.
-                      </div>
-                      <div style={{ color: '#b91c1c', fontSize: 15, marginBottom: 8 }}>
-                        If you believe this is a mistake, you can appeal by submitting a comment below:
-                      </div>
-                      <form onSubmit={handleAppealSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <textarea
-                          value={appealState[selectedInternship.id]?.comment || ''}
-                          onChange={e => handleAppealChange(selectedInternship.id, e.target.value)}
-                          placeholder="Enter your appeal comment..."
-                          rows={3}
-                          style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
-                          required
-                        />
-                        <button
-                          type="submit"
-                          style={{ background: '#1746a2', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', alignSelf: 'flex-start' }}
-                        >
-                          Submit Appeal
-                        </button>
-                        {appealState[selectedInternship.id]?.submitted && <div style={{ color: '#16a34a', fontWeight: 500 }}>Appeal submitted!</div>}
-                      </form>
-                    </div>
-                  )}
+                  {/* LEFT: Form */}
                   <div style={{ minWidth: 260, flex: 1 }}>
+                    <h3 style={{ fontWeight: 600, fontSize: 20, marginBottom: 16 }}>{editingReportId ? 'Edit Report' : 'Submit Report'}</h3>
                     <label style={{ fontWeight: 500 }}>Select Internship</label>
                     <select
                       value={selectedInternship?.id || ''}
@@ -755,16 +907,16 @@ const StudentReports = ({ currentUser }) => {
                         />
                         <textarea
                           name="introduction"
-                          value={form.introduction}
+                          value={form.introduction || ''}
                           onChange={handleFormChange}
                           placeholder="Introduction"
-                          rows={5}
+                          rows={3}
                           style={{ padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}
                           required
                         />
                         <textarea
                           name="body"
-                          value={form.body}
+                          value={form.body || ''}
                           onChange={handleFormChange}
                           placeholder="Body"
                           rows={5}
@@ -802,16 +954,19 @@ const StudentReports = ({ currentUser }) => {
                       </form>
                     )}
                   </div>
-                  {/* Reports for selected internship */}
+                  {/* RIGHT: Reports */}
                   {selectedInternship && (
                     <div style={{ flex: 1, minWidth: 320 }}>
+                      {/* Submitted Reports Section */}
                       <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Submitted Reports</h4>
                       {getReportsForInternship(selectedInternship.id).length === 0 ? (
-                        <div style={{ color: '#64748b' }}>No reports submitted yet.</div>
+                        <div style={{ color: '#64748b', fontStyle: 'italic', marginBottom: 12 }}>
+                          No reports submitted yet.
+                        </div>
                       ) : (
                         getReportsForInternship(selectedInternship.id).map((report) => (
                           <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            <div style={{ fontWeight: 600 }}>{report.title}</div>
+                            <div style={{ fontWeight: 600, fontSize: 16 }}>{report.title}</div>
                             <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
                             <div style={{ fontSize: 15, marginTop: 8 }}><b>Introduction:</b> {report.introduction}</div>
                             <div style={{ fontSize: 15, marginTop: 8 }}><b>Body:</b> {report.body}</div>
@@ -833,8 +988,7 @@ const StudentReports = ({ currentUser }) => {
                           <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fff7ed', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                             <div style={{ fontWeight: 600 }}>{report.title}</div>
                             <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                            <div style={{ fontSize: 15, marginTop: 8 }}><b>Introduction:</b> {report.introduction}</div>
-                            <div style={{ fontSize: 15, marginTop: 8 }}><b>Body:</b> {report.body}</div>
+                            <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
                             <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                             {/* Appeal form for flagged */}
                             {!appealState[report.id]?.submitted ? (
@@ -869,8 +1023,7 @@ const StudentReports = ({ currentUser }) => {
                           <div key={report.id} ref={el => appealRefs.current[report.id] = el} style={{ background: appealState[report.id]?.submitted ? '#e0fce7' : '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                             <div style={{ fontWeight: 600 }}>{report.title}</div>
                             <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                            <div style={{ fontSize: 15, marginTop: 8 }}><b>Introduction:</b> {report.introduction}</div>
-                            <div style={{ fontSize: 15, marginTop: 8 }}><b>Body:</b> {report.body}</div>
+                            <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
                             <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                             {/* Appeal form for rejected */}
                             {!appealState[report.id]?.submitted ? (
@@ -904,6 +1057,7 @@ const StudentReports = ({ currentUser }) => {
           )}
         </div>
       </div>
+
       {/* Report Modal */}
       {showReportModal && (
         <ReportModal
@@ -914,6 +1068,9 @@ const StudentReports = ({ currentUser }) => {
           }}
         />
       )}
+
+      {/* Clarification Modal */}
+      <ClarificationModal />
     </div>
   );
 };
