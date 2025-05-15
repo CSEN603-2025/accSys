@@ -22,6 +22,7 @@ import StudentReports from './pages/Student/StudentReports';
 import StudentInternships from './pages/Student/StudentInternships';
 import ApplicationsPage from './pages/ApplicationsPage';
 import StudentEvaluations from './pages/Student/StudentEvaluations';
+import StudentVideoCalls from './pages/Student/StudentVideoCalls';
 
 // Placeholder components for other roles
 const FacultyProfilePage = ({ currentUser }) => <div style={{padding: 40}}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
@@ -84,6 +85,8 @@ export default function App() {
       <Route path="/applicants" element={<Applicants currentUser={user} />} />
       <Route path="/company/interns" element={<CompanyInterns currentUser={user} />} />
       <Route path="/student/evaluation" element={<StudentEvaluations currentUser={user} />} />
+      <Route path="/student/video" element={<StudentVideoCalls currentUser={user} />} />
+
 
 
       {/* Dynamic profile route for all user types */}
