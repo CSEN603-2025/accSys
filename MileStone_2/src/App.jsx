@@ -89,8 +89,9 @@ export default function App() {
       <Route path="/company/interns" element={<CompanyInterns currentUser={user} />} />
       <Route path="/student/evaluation" element={<StudentEvaluations currentUser={user} />} />
       {/* Add the new guidance page route */}
-      <Route path="/student/guidance" element={<GuidancePage currentUser={user} />} />      <Route path="/student/video" element={<StudentVideoCalls currentUser={user} />} />
-      <Route path="workshops" element={<Workshops currentUser={user} />} />
+      <Route path="/student/guidance" element={<GuidancePage currentUser={user} />} />
+      <Route path="/student/video" element={<StudentVideoCalls currentUser={user} />} />
+      <Route path="/workshops" element={<Workshops currentUser={user} />} />
       <Route path="workshop/:id" element={<WorkshopView currentUser={user} />} />
       <Route path="/faculty/evaluations" element={<FacultyEvaluations currentUser={user} />} />
 

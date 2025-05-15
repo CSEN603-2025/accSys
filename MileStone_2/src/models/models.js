@@ -1,5 +1,3 @@
-// models.js
-
 /// ===== Base User Class =====
 export class User {
     constructor(id, username, email, role, password) {
@@ -79,6 +77,7 @@ export class Student extends User {
         this.addNotification(`Submitted report for: ${report.internship.title}`);
     }
 
+    // Fixed method - combined both methods into one
     updateProStatus() {
         // Calculate total internship duration in months
         let totalMonths = 0;
@@ -104,78 +103,81 @@ export class Student extends User {
         }
 
         // Set Pro Student status if total months is at least 3
-        this.isProStudent = totalMonths >= 3;
-
-        // Add notification if status changed to Pro
-        if (this.isProStudent) {
+        if (totalMonths >= 3 && !this.isProStudent) {
+            this.isProStudent = true;
             this.addNotification("Congratulations! You are now a Pro Student for completing at least 3 months of internships!");
         }
 
         return this.isProStudent;
-        setProStudent() {
-            let total = 0;
-            if (!this.isProStudent) {
-                for (let i = 0; i < this.pastInternships.length; i++) {
-                    if (this.pastInternships[i].status === "completed") {
-                        let start = new Date(this.pastInternships[i].startDate);
-                        let end = new Date(this.pastInternships[i].endDate);
-                        let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-                        total += months;
-                    }
-                }
-                if (total >= 3) {
-                    this.isProStudent = true;
-                    this.addNotification("Congratulations! You are now a Pro Student.");
+    }
+
+    // Simplified version used in other places
+    setProStudent() {
+        let total = 0;
+        if (!this.isProStudent) {
+            for (let i = 0; i < this.pastInternships.length; i++) {
+                if (this.pastInternships[i].status === "completed") {
+                    let start = new Date(this.pastInternships[i].startDate);
+                    let end = new Date(this.pastInternships[i].endDate);
+                    let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+                    total += months;
                 }
             }
-        }
-        registerForWorkshop(workshop) {
-            if (this.isProStudent) {
-                workshop.registerStudent(this);
-                this.registeredWorkshops.push(workshop);
-            } else {
-                throw new Error("Only Pro Students can register for workshops");
+            if (total >= 3) {
+                this.isProStudent = true;
+                this.addNotification("Congratulations! You are now a Pro Student.");
             }
-        }
-
-        unregisterFromWorkshop(workshop) {
-            workshop.unregisterStudent(this);
-            this.registeredWorkshops = this.registeredWorkshops.filter(w => w.id !== workshop.id);
-        }
-
-        addWorkshopNote(workshop, content) {
-            if (this.isProStudent) {
-                workshop.addNote(this, content);
-                this.workshopNotes.push({
-                    workshop,
-                    content,
-                    timestamp: new Date()
-                });
-            }
-        }
-        rateWorkshop(workshop, rating, feedback) {
-            if (this.isProStudent) {
-                workshop.addRating(this, rating, feedback);
-            }
-        }
-
-        sendWorkshopChatMessage(workshop, message) {
-            if (this.isProStudent) {
-                workshop.addChatMessage(this, message);
-            }
-        }
-
-        getWorkshopCertificate(workshop) {
-            if (this.isProStudent) {
-                const certificate = workshop.generateCertificate(this);
-                if (certificate) {
-                    this.workshopCertificates.push(certificate);
-                }
-                return certificate;
-            }
-            return null;
         }
     }
+
+    registerForWorkshop(workshop) {
+        if (this.isProStudent) {
+            workshop.registerStudent(this);
+            this.registeredWorkshops.push(workshop);
+        } else {
+            throw new Error("Only Pro Students can register for workshops");
+        }
+    }
+
+    unregisterFromWorkshop(workshop) {
+        workshop.unregisterStudent(this);
+        this.registeredWorkshops = this.registeredWorkshops.filter(w => w.id !== workshop.id);
+    }
+
+    addWorkshopNote(workshop, content) {
+        if (this.isProStudent) {
+            workshop.addNote(this, content);
+            this.workshopNotes.push({
+                workshop,
+                content,
+                timestamp: new Date()
+            });
+        }
+    }
+
+    rateWorkshop(workshop, rating, feedback) {
+        if (this.isProStudent) {
+            workshop.addRating(this, rating, feedback);
+        }
+    }
+
+    sendWorkshopChatMessage(workshop, message) {
+        if (this.isProStudent) {
+            workshop.addChatMessage(this, message);
+        }
+    }
+
+    getWorkshopCertificate(workshop) {
+        if (this.isProStudent) {
+            const certificate = workshop.generateCertificate(this);
+            if (certificate) {
+                this.workshopCertificates.push(certificate);
+            }
+            return certificate;
+        }
+        return null;
+    }
+}
 
 // ===== Faculty Class =====
 export class Faculty extends User {
@@ -348,7 +350,11 @@ export class Workshop {
         this.feedback = [];
         this.chatMessages = [];
         this.certificates = [];
+        this.registrations = []; // Added missing property
+        this.notes = []; // Added missing property
+        this.ratings = []; // Added missing property
     }
+
     registerStudent(student) {
         if (!this.registrations.some(reg => reg.student.id === student.id)) {
             this.registrations.push({
