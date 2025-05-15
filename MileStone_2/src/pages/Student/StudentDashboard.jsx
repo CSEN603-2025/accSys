@@ -67,7 +67,7 @@ const StudentDashboard = ({ currentUser }) => {
   };
 
   const handleCreateReport = () => {
-    navigate('/student/reports/new');
+    navigate('/student/reports');
   };
 
   const getStatusColor = (status) => {
