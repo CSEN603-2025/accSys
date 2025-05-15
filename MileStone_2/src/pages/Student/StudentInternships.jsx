@@ -107,18 +107,18 @@ const StudentInternships = ({ currentUser }) => {
     setShowEvaluationForm(true);
     setShowReportForm(false);
     if (selected) {
-      const existingEvaluation = evaluations.find(e => e.internship?.id === selected.id);
-      if (existingEvaluation) {
-        setEvaluationForm({
-          feedback: existingEvaluation.feedback,
-          recommend: existingEvaluation.recommend
-        });
-        setEditingEvaluationId(existingEvaluation.id);
-        setEvaluationError('');
-      } else {
-        setEvaluationForm({ feedback: '', recommend: false });
-        setEditingEvaluationId(null);
-        setEvaluationError('');
+    const existingEvaluation = evaluations.find(e => e.internship?.id === selected.id);
+    if (existingEvaluation) {
+      setEvaluationForm({
+        feedback: existingEvaluation.feedback,
+        recommend: existingEvaluation.recommend
+      });
+      setEditingEvaluationId(existingEvaluation.id);
+      setEvaluationError('');
+    } else {
+      setEvaluationForm({ feedback: '', recommend: false });
+      setEditingEvaluationId(null);
+      setEvaluationError('');
       }
     }
   };
@@ -576,8 +576,8 @@ const StudentInternships = ({ currentUser }) => {
                         {getEvaluationsForInternship(selected.id).length === 0 ? (
                           <div style={{ color: '#64748b' }}>No evaluations submitted yet.</div>
                         ) : (
-                          getEvaluationsForInternship(selected.id).map((evaluation) => (
-                            <div key={`evaluation-${evaluation.id}`} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
+                          getEvaluationsForInternship(selected.id).slice(0, 1).map((evaluation) => (
+                            <div key={evaluation.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(evaluation.createdAt)}</div>
                               </div>
@@ -609,12 +609,9 @@ const StudentInternships = ({ currentUser }) => {
                   </>
                 ) : showReportForm ? (
                   <>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20 }}>
-                      {editingReportId ? 'Edit Report' : 'Submit Report'}
-                    </h3>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 20 }}>Submit Report</h3>
                     <div style={{ display: 'flex', gap: 24 }}>
-                      {/* LEFT: Form */}
-                      <div style={{ flex: 1, minWidth: 320 }}>
+                      <div style={{ flex: 1 }}>
                         <form onSubmit={handleReportSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                           <input
                             name="title"
@@ -680,23 +677,19 @@ const StudentInternships = ({ currentUser }) => {
                           )}
                         </form>
                       </div>
-                      {/* RIGHT: Reports */}
-                      <div style={{ flex: 1, minWidth: 320 }}>
-                        {/* Submitted Reports Section */}
-                        <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Submitted Reports</h4>
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ fontWeight: 600, fontSize: 17, marginBottom: 10 }}>Previous Reports</h4>
                         {getReportsForInternship(selected.id).length === 0 ? (
-                          <div style={{ color: '#64748b', fontStyle: 'italic', marginBottom: 12 }}>
-                            No reports submitted yet.
-                          </div>
+                          <div style={{ color: '#64748b' }}>No reports submitted yet.</div>
                         ) : (
                           getReportsForInternship(selected.id).map((report) => (
-                            <div key={report.id} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              <div style={{ fontWeight: 600, fontSize: 16 }}>{report.title}</div>
+                            <div key={`report-${report.id}`} style={{ background: '#f1f5f9', borderRadius: 8, padding: '1rem', marginBottom: 12 }}>
+                              <div style={{ fontWeight: 600 }}>{report.title}</div>
                               <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
                               <div style={{ fontSize: 15, marginTop: 8 }}><b>Introduction:</b> {report.introduction}</div>
                               <div style={{ fontSize: 15, marginTop: 8 }}><b>Body:</b> {report.body}</div>
-                              <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
-                              <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                              <div style={{ color: '#1746a2', fontSize: 15, marginTop: 8 }}>Courses: {(report.courses || []).join(', ')}</div>
+                              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                                 <button 
                                   onClick={() => handleDownloadReport(report)} 
                                   style={{ background: '#e0e7ef', color: '#1746a2', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
@@ -716,34 +709,6 @@ const StudentInternships = ({ currentUser }) => {
                                   Delete
                                 </button>
                               </div>
-                            </div>
-                          ))
-                        )}
-                        {/* Flagged Reports Section */}
-                        <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#b91c1c' }}>Flagged Reports</h4>
-                        {getReportsByStatus('flagged').length === 0 ? (
-                          <div style={{ color: '#64748b' }}>No flagged reports.</div>
-                        ) : (
-                          getReportsByStatus('flagged').map((report) => (
-                            <div key={report.id} style={{ background: '#fff7ed', border: '1px solid #fca5a5', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              <div style={{ fontWeight: 600 }}>{report.title}</div>
-                              <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                              <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
-                              <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
-                            </div>
-                          ))
-                        )}
-                        {/* Rejected Reports Section */}
-                        <h4 style={{ fontWeight: 600, fontSize: 17, margin: '24px 0 10px 0', color: '#991b1b' }}>Rejected Reports</h4>
-                        {getReportsByStatus('rejected').length === 0 ? (
-                          <div style={{ color: '#64748b' }}>No rejected reports.</div>
-                        ) : (
-                          getReportsByStatus('rejected').map((report) => (
-                            <div key={report.id} style={{ background: '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, padding: '1rem', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              <div style={{ fontWeight: 600 }}>{report.title}</div>
-                              <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
-                              <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
-                              <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
                             </div>
                           ))
                         )}
