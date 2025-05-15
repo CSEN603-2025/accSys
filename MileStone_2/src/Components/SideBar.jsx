@@ -20,7 +20,7 @@ const roleLinks = {
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
-    { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
+    { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
   ],
   company: [
     { icon: <House />, label: 'Dashboard', path: '/company' },
