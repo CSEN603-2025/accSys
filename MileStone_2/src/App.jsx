@@ -15,6 +15,7 @@ import RegisterCompany from './pages/LoginPage/RegisterCompany';
 import CompaniesPage from './pages/CompaniesPage';
 import InternshipPage from './pages/InternshipPage';
 import StudentProfilePage from './pages/Student/StudentProfilePage';
+import Assessments from './pages/Student/Assessments';
 import SideBar from './Components/SideBar';
 import NavBar from './Components/NavBar';
 import StudentReports from './pages/Student/StudentReports';
@@ -91,6 +92,7 @@ export default function App() {
       <Route path="workshops" element={<Workshops currentUser={user} />} />
       <Route path="workshop/:id" element={<WorkshopView currentUser={user} />} />
       <Route path="/faculty/evaluations" element={<FacultyEvaluations currentUser={user} />} />
+      <Route path="/assessments" element={<Assessments currentUser={user} />} />
 
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />
