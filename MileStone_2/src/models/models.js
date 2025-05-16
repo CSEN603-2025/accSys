@@ -202,15 +202,33 @@ export class SCAD extends User {
 
 // ===== Company Class =====
 export class Company extends User {
-    constructor(id, username, email, password, companyName = "", industry = "", logoPath = "") {
+    constructor(id, username, email, password, companyName = "", industry = "", logoPath = "", description = "", companySize = "", registrationDocuments = null) {
         super(id, username, email, "company", password);
         this.logoPath = logoPath;
         this.companyName = companyName;
         this.industry = industry;
+        this.description = description;
+        this.companySize = companySize;
+        this.registrationDocuments = registrationDocuments;
         this.postedInternships = [];
         this.isApproved = false;
         this.currentInterns = [];
         this.pastInterns = [];
+        this.approvalStatus = "pending"; // pending, approved, rejected
+        this.rejectionReason = "";
+    }
+
+    approve() {
+        this.isApproved = true;
+        this.approvalStatus = "approved";
+        this.addNotification("Your company has been approved by SCAD office");
+    }
+
+    reject(reason = "") {
+        this.isApproved = false;
+        this.approvalStatus = "rejected";
+        this.rejectionReason = reason;
+        this.addNotification("Your company application has been rejected by SCAD office" + (reason ? `: ${reason}` : ""));
     }
 
     postInternship(internship) {
@@ -247,8 +265,9 @@ export class Internship {
 
 // ===== InternshipPost Class =====
 export class InternshipPost extends Internship {
-    constructor(id, company, title, description, location, startDate, endDate) {
+    constructor(id, company, title, description, location, compensation, startDate, endDate) {
         super(id, company, title, description, location, startDate, endDate);
+        this.compensation = compensation;
         this.applicants = [];
         this.isApproved = false;
     }

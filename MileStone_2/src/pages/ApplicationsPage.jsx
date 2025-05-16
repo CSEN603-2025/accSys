@@ -28,6 +28,13 @@ const ApplicationCard = ({ application, showStudent, onViewDetails }) => {
   const post = mockInternships.find(i => i.id === internship.id);
   const skills = post?.skills || internship.skills || [];
 
+  const getDuration = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
+    return months;
+  };
+
   return (
     <div style={{
       background: '#fff',
@@ -96,7 +103,10 @@ const ApplicationCard = ({ application, showStudent, onViewDetails }) => {
       }}>
         <div style={{ color: '#334155', fontWeight: 600, fontSize: 15, marginBottom: 4 }}>Duration</div>
         <div style={{ color: '#334155', fontSize: 15, marginBottom: 18, textAlign: 'center' }}>
-          {`${internship.startDate instanceof Date ? internship.startDate.toLocaleDateString() : new Date(internship.startDate).toLocaleDateString()} - ${internship.endDate instanceof Date ? internship.endDate.toLocaleDateString() : new Date(internship.endDate).toLocaleDateString()}`}
+          {`${post.startDate instanceof Date ? post.startDate.toLocaleDateString() : new Date(post.startDate).toLocaleDateString()} - ${post.endDate instanceof Date ? post.endDate.toLocaleDateString() : new Date(post.endDate).toLocaleDateString()}`}
+          <div style={{ color: '#64748b', fontSize: 14, marginTop: 4 }}>
+            {getDuration(post.startDate, post.endDate)} months
+          </div>
         </div>
         <button style={{
           background: '#1746a2',

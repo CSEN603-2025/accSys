@@ -42,6 +42,8 @@ export default function CompaniesPage({ currentUser }) {
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   // User info for filtering
   const userInterests = (currentUser?.interests || []).map(i => i.toLowerCase());
@@ -120,15 +122,24 @@ export default function CompaniesPage({ currentUser }) {
   };
 
   const handleApprove = (company) => {
-    company.isApproved = true;
-    company.addNotification('Your company has been approved by SCAD office');
+    company.approve();
     setSelectedCompany(null);
+    setForce(f => f + 1); // force re-render
   };
 
   const handleReject = (company) => {
-    company.isApproved = false;
-    company.addNotification('Your company application has been rejected by SCAD office');
-    setSelectedCompany(null);
+    if (rejectionReason.trim()) {
+      company.reject(rejectionReason);
+      setSelectedCompany(null);
+      setShowRejectionModal(false);
+      setRejectionReason("");
+      setForce(f => f + 1); // force re-render
+    }
+  };
+
+  const handleRejectClick = (company) => {
+    setSelectedCompany(company);
+    setShowRejectionModal(true);
   };
 
   const handleSort = (field) => {
@@ -148,10 +159,8 @@ export default function CompaniesPage({ currentUser }) {
   const getInternshipDuration = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const months =
-      (end.getFullYear() - start.getFullYear()) * 12 +
-      (end.getMonth() - start.getMonth());
-    return months + 1; // +1 to include the starting month
+    const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
+    return months;
   };
 
   return (
@@ -289,7 +298,7 @@ export default function CompaniesPage({ currentUser }) {
                     <th style={{ padding: '1rem', textAlign: 'left', width: '15%' }}>Status</th>
                   )}
                   {/* Consolidate actions and details for SCAD admin into one column */}
-                  <th style={{ padding: '1rem', textAlign: 'left', width: isAdmin ? '30%' : '15%' }}>
+                  <th style={{ padding: '1rem', textAlign: 'left', width: isAdmin ? '20%' : '15%' }}>
                     {isAdmin ? 'Actions' : 'Details'}
                   </th>
                 </tr>
@@ -379,7 +388,7 @@ export default function CompaniesPage({ currentUser }) {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleReject(company);
+                                  handleRejectClick(company);
                                 }}
                                 style={{
                                   padding: '0.5rem 1rem',
@@ -485,7 +494,21 @@ export default function CompaniesPage({ currentUser }) {
                     <div style={{ color: '#64748b', fontSize: 16, marginBottom: 8 }}>{selectedCompany.industry}</div>
                     <p style={{ marginBottom: 4 }}><strong>Email:</strong> {selectedCompany.email}</p>
                     {userRole !== 'student' && (
-                      <p style={{ marginBottom: 4 }}><strong>Status:</strong> {selectedCompany.isApproved ? 'Approved' : 'Pending'}</p>
+                      <>
+                        <p style={{ marginBottom: 4 }}><strong>Status:</strong> {selectedCompany.isApproved ? 'Approved' : 'Pending'}</p>
+                        <p style={{ marginBottom: 4 }}><strong>Company Size:</strong> {selectedCompany.companySize}</p>
+                        <p style={{ marginBottom: 4 }}>
+                          <strong>Registration Documents:</strong>{' '}
+                          <a 
+                            href={`/documents/${selectedCompany.registrationDocuments}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: '#1746a2', textDecoration: 'underline' }}
+                          >
+                            View Documents
+                          </a>
+                        </p>
+                      </>
                     )}
                     {userRole === 'student' && (
                       <p style={{ marginBottom: 4 }}><strong>Recommendations:</strong> {selectedCompany.recommendations || 0}</p>
@@ -605,6 +628,159 @@ export default function CompaniesPage({ currentUser }) {
                     )}
                   </div>
                 )}
+
+                {isAdmin && !selectedCompany.isApproved && (
+                  <div style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    marginTop: '1.5rem',
+                    paddingTop: '1.5rem',
+                    borderTop: '1px solid #e2e8f0'
+                  }}>
+                    <button
+                      onClick={() => handleApprove(selectedCompany)}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '0.375rem',
+                        background: '#16a34a',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        flex: 1
+                      }}
+                    >
+                      <CheckCircle2 size={20} />
+                      Approve Company
+                    </button>
+                    <button
+                      onClick={() => handleRejectClick(selectedCompany)}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '0.375rem',
+                        background: '#dc2626',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        flex: 1
+                      }}
+                    >
+                      <XCircle size={20} />
+                      Reject Company
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Rejection Reason Modal */}
+          {showRejectionModal && selectedCompany && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1100
+            }}>
+              <div style={{
+                background: 'white',
+                borderRadius: '0.5rem',
+                padding: '2rem',
+                width: '100%',
+                maxWidth: '500px',
+                position: 'relative'
+              }}>
+                <button
+                  onClick={() => {
+                    setShowRejectionModal(false);
+                    setRejectionReason("");
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    padding: 0
+                  }}
+                >
+                  ×
+                </button>
+
+                <h3 style={{ fontWeight: 600, marginBottom: '1rem' }}>Reject Company Application</h3>
+                <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+                  Please provide a reason for rejecting {selectedCompany.companyName}'s application.
+                </p>
+
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Enter rejection reason..."
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '0.375rem',
+                    border: '1px solid #e2e8f0',
+                    marginBottom: '1.5rem',
+                    minHeight: '100px',
+                    resize: 'vertical'
+                  }}
+                />
+
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={() => {
+                      setShowRejectionModal(false);
+                      setRejectionReason("");
+                    }}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.375rem',
+                      background: '#e2e8f0',
+                      color: '#475569',
+                      border: 'none',
+                      cursor: 'pointer',
+                      flex: 1
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleReject(selectedCompany)}
+                    disabled={!rejectionReason.trim()}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.375rem',
+                      background: rejectionReason.trim() ? '#dc2626' : '#e2e8f0',
+                      color: 'white',
+                      border: 'none',
+                      cursor: rejectionReason.trim() ? 'pointer' : 'not-allowed',
+                      flex: 1
+                    }}
+                  >
+                    Reject Application
+                  </button>
+                </div>
               </div>
             </div>
           )}

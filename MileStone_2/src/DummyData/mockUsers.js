@@ -32,15 +32,15 @@ student3.isProStudent = true;
 const companies = [];
 
 const companyNames = [
-  ["TechNova", "Software", logo1],
-  ["BioSync", "Biotech", logo2],
-  ["Finverse", "Fintech", logo3],
-  ["EcoDrive", "Sustainability", logo1],
-  ["CyberLink", "Cybersecurity", logo2],
-  ["RoboSphere", "AI & Robotics", logo3]
+  ["TechNova", "Software", logo1, "TechNova is a leading software development company specializing in enterprise solutions and cloud computing. With over a decade of experience, we've helped numerous organizations transform their digital infrastructure and streamline their operations through innovative technology solutions.", "large", "techNova_registration.pdf"],
+  ["BioSync", "Biotech", logo2, "BioSync is at the forefront of biotechnology innovation, focusing on genetic research and medical diagnostics. Our team of expert scientists and researchers work tirelessly to develop cutting-edge solutions that advance healthcare and improve patient outcomes.", "medium", "bioSync_registration.pdf"],
+  ["Finverse", "Fintech", logo3, "Finverse is revolutionizing the financial technology sector with our advanced trading platforms and blockchain solutions. We combine traditional financial expertise with cutting-edge technology to create secure, efficient, and user-friendly financial services.", "corporate", "finverse_registration.pdf"],
+  ["EcoDrive", "Sustainability", logo1, "EcoDrive is dedicated to creating sustainable technology solutions that help businesses reduce their environmental impact. Our innovative products and services focus on renewable energy, waste reduction, and sustainable resource management.", "medium", "ecodrive_registration.pdf"],
+  ["CyberLink", "Cybersecurity", logo2, "CyberLink is a premier cybersecurity firm providing comprehensive protection against digital threats. Our team of security experts develops advanced solutions to safeguard businesses and individuals from evolving cyber risks.", "large", "cyberlink_registration.pdf"],
+  ["RoboSphere", "AI & Robotics", logo3, "RoboSphere is pioneering the future of artificial intelligence and robotics. We develop intelligent systems and robotic solutions that enhance automation, improve efficiency, and drive innovation across various industries.", "medium", "roboSphere_registration.pdf"]
 ];
 
-companyNames.forEach(([name, industry, logo], idx) => {
+companyNames.forEach(([name, industry, logo, description, companySize, registrationDocuments], idx) => {
   const company = new Company(
     10 + idx,
     name.toLowerCase(),
@@ -49,10 +49,13 @@ companyNames.forEach(([name, industry, logo], idx) => {
     name,
     industry,
     logo,
-    `${name} is a leading company in the ${industry} industry. We specialize in innovative solutions and cutting-edge technology. Our team is dedicated to excellence and continuous improvement.`,
+    description,
+    companySize,
+    registrationDocuments
   );
   company.isApproved = true;
   company.logoUrl = logo;
+  company.addNotification("Your company has been approved by SCAD. You can now post internships and hire students.");
   companies.push(company);
 });
 
@@ -65,14 +68,16 @@ const newCompany = new Company(
   "NexTech Solutions",
   "Healthcare Technology",
   logo1,
-  "NexTech Solutions is a pioneering healthcare technology company focused on developing innovative solutions that bridge the gap between healthcare and technology. We are committed to improving patient care through digital transformation."
+  "NexTech Solutions is a pioneering healthcare technology company focused on developing innovative solutions that bridge the gap between healthcare and technology. We are committed to improving patient care through digital transformation and AI-powered medical solutions.",
+  "small",
+  "nextech_registration.pdf"
 );
 newCompany.logoUrl = logo1;  // Assign a default logo even for non-approved companies
 // Keep isApproved as false (default value)
 companies.push(newCompany);
 
 const internships = [
-  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote", 4500, "2025-06-01", "2025-08-30"),
+  new InternshipPost(100, companies[0], "Frontend Dev Intern", "Work with React and Tailwind.", "Remote", 4500, "2025-06-02", "2025-08-30"),
   new InternshipPost(101, companies[0], "Backend Intern", "Node.js and MongoDB projects.", "Remote", 0, "2025-06-01", "2025-08-30"),
   new InternshipPost(102, companies[1], "Bioinformatics Intern", "Analyze medical data.", "Cairo", 5000, "2025-06-01", "2025-09-01"),
   new InternshipPost(103, companies[2], "Quant Intern", "Financial modeling in Python.", "Dubai", 15000, "2025-06-15", "2025-09-15"),
