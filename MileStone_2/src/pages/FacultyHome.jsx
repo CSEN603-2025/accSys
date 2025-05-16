@@ -100,7 +100,7 @@ const FacultyHome = ({ currentUser }) => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
       {/* Sidebar */}
-      <SideBar userRole="scad" />
+      <SideBar userRole="faculty" currentUser={currentUser} />
       {/* Main Content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {/* Navbar */}

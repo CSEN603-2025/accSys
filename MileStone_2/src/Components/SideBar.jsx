@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/GucLogo.png'; // Adjust the path to your logo image
-import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award, FileUser } from 'lucide-react';
+
+import { House, FileText, Edit, Star, Building2, BriefcaseBusiness, Users, Building, ClipboardList, Settings, Award, FileUser, Lightbulb, Video, Calculator } from 'lucide-react';
+
 
 // Role-specific navigation links with their corresponding paths
 const roleLinks = {
@@ -12,7 +14,11 @@ const roleLinks = {
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <FileText />, label: 'Applications', path: '/applications' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
-    { icon: <Star />, label: 'Evaluation', path: '/student/evaluation' },
+    { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
+    { icon: <Video />, label: 'Video Calls', path: '/student/video' },
+    { icon: <Award />, label: 'Workshops', path: '/workshops' },
+    { icon: <Calculator />, label: 'Assessments', path: '/assessments' },
+    
   ],
   faculty: [
     { icon: <House />, label: 'Dashboard', path: '/faculty' },
@@ -35,8 +41,7 @@ const roleLinks = {
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
-
-    { icon: <Star />, label: 'Evaluations', path: '/scad/evaluations' },
+    { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
   ],
 };
 
@@ -44,10 +49,19 @@ const SideBar = ({ userRole, currentUser }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const links = roleLinks[userRole] || roleLinks.student;
+  let links = roleLinks[userRole] || roleLinks.student;
 
   // Check if the user is a pro student - simplified condition to ensure it works on all pages
   const isProStudent = currentUser?.role === 'student' && currentUser?.isProStudent === true;
+
+  // Add Guidance link for Pro Students as the last item
+  if (isProStudent && userRole === 'student') {
+    // Add Guidance link to the end of the links array
+    links = [
+      ...links, // All existing links, including Dashboard, Companies, etc.
+      { icon: <Lightbulb />, label: 'Guidance', path: '/student/guidance' }
+    ];
+  }
 
   const handleNavigation = (path) => {
     // If we're already on the dashboard path, don't navigate
@@ -70,7 +84,8 @@ const SideBar = ({ userRole, currentUser }) => {
     if (path === `/${userRole}`) {
       return location.pathname === path || location.pathname === '/';
     }
-    return location.pathname === path;
+    // For nested routes, check if the current path starts with the link path
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -110,7 +125,7 @@ const SideBar = ({ userRole, currentUser }) => {
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'flex-start',
           width: '100%',
-          padding: collapsed ? '0 0 1.5rem 0' : '0 1.5rem 1.5rem 1.5rem',
+          padding: collapsed ? '0 0 1rem 0' : '0 1.5rem 1rem 1.5rem',
           minHeight: 40,
         }}
       >
@@ -134,7 +149,8 @@ const SideBar = ({ userRole, currentUser }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: collapsed ? '40px' : 'auto'
+            width: collapsed ? '40px' : 'auto',
+            zIndex: 10
           }}
         >
           <Award size={collapsed ? 16 : 14} style={{ marginRight: collapsed ? 0 : 4 }} />
