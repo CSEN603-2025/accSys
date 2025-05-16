@@ -211,7 +211,7 @@ const StudentProfilePage = ({ currentUser }) => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
       {/* Sidebar */}
-      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} />
+      <SideBar userRole={currentUser?.role?.toLowerCase() || 'student'} currentUser={currentUser} />
       {/* Main Content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {/* Navbar */}
@@ -788,7 +788,7 @@ const StudentProfilePage = ({ currentUser }) => {
                   PRO
                 </div>
               </div>
-              
+
               {currentUser?.assessmentScores?.length > 0 ? (
                 <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}>
                   {currentUser.assessmentScores.map((assessment, idx) => (
@@ -822,7 +822,7 @@ const StudentProfilePage = ({ currentUser }) => {
                   ))}
                 </div>
               ) : (
-                <div style={{ 
+                <div style={{
                   color: '#64748b',
                   background: '#f1f5f9',
                   padding: '1rem',

@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import SideBar from '../Components/SideBar';
 import NavBar from '../Components/NavBar';
 import { Lightbulb, BookOpen, GraduationCap, Clock, Calendar, Target, Award, Video, Check, X, AlertCircle, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // Add this import
 
 const GuidancePage = ({ currentUser }) => {
+    const navigate = useNavigate(); // Add this line to use navigation
+
     // Check if the user is a Pro Student, if not redirect or show message
     const isProStudent = currentUser?.role === 'student' && currentUser?.isProStudent === true;
 
@@ -29,7 +32,7 @@ const GuidancePage = ({ currentUser }) => {
         },
         {
             id: 2,
-            date: '2023-12-20',
+            date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
             time: '10:00',
             reason: 'Get clarification on report requirements',
             type: 'report',
@@ -117,12 +120,27 @@ const GuidancePage = ({ currentUser }) => {
         }));
     };
 
-    // Handle appointment status change (for SCAD officers)
+    // Handle appointment status change (for SCAD officers and students accepting/rejecting appointments)
     const handleAppointmentStatusChange = (appointmentId, newStatus, meetingLink = '', rejectionReason = '') => {
-        // Update pending appointments list
-        setPendingAppointments(prev =>
-            prev.filter(appointment => appointment.id !== appointmentId)
-        );
+        // Update pending appointments list if this is a SCAD officer
+        if (currentUser?.role === 'scad') {
+            setPendingAppointments(prev =>
+                prev.filter(appointment => appointment.id !== appointmentId)
+            );
+        } else {
+            // For students accepting/rejecting their own appointments
+            setAppointments(prev =>
+                prev.map(appointment =>
+                    appointment.id === appointmentId
+                        ? {
+                            ...appointment, status: newStatus,
+                            meetingLink: newStatus === 'accepted' ? meetingLink || appointment.meetingLink : null,
+                            rejectionReason: newStatus === 'rejected' ? rejectionReason || 'Appointment cancelled by student' : null
+                        }
+                        : appointment
+                )
+            );
+        }
 
         // Mock notification to student
         const studentToNotify = { addNotification: (msg) => console.log("Student notification:", msg) };
@@ -137,13 +155,22 @@ const GuidancePage = ({ currentUser }) => {
             setTimeout(() => {
                 if (currentUser?.addNotification) {
                     if (newStatus === 'accepted') {
-                        currentUser.addNotification(`Your appointment for ${pendingAppointments.find(a => a.id === appointmentId)?.date} has been accepted`);
+                        currentUser.addNotification(`Your appointment for ${pendingAppointments.find(a => a.id === appointmentId)?.date || 'the requested date'} has been accepted`);
                     } else {
-                        currentUser.addNotification(`Your appointment for ${pendingAppointments.find(a => a.id === appointmentId)?.date} has been rejected`);
+                        currentUser.addNotification(`Your appointment for ${pendingAppointments.find(a => a.id === appointmentId)?.date || 'the requested date'} has been rejected`);
                     }
                 }
             }, 2000); // Simulated delay for demo purposes
         }
+    };
+
+    // Add these navigation handlers
+    const handleNavigateToAssessments = () => {
+        navigate('/assessments');
+    };
+
+    const handleNavigateToWorkshops = () => {
+        navigate('/workshops');
     };
 
     if (!isProStudent) {
@@ -183,43 +210,20 @@ const GuidancePage = ({ currentUser }) => {
                     <h1 style={{ fontWeight: '700', fontSize: '28px', marginBottom: '1.5rem' }}>Pro Student Guidance</h1>
 
                     <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        padding: '1.5rem',
-                        marginBottom: '2rem',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1.5rem'
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',  // Changed to 3 fixed columns instead of responsive
+                        gap: '1rem',  // Reduced gap from 1.5rem to 1rem
+                        marginBottom: '2rem'
                     }}>
-                        <div style={{
-                            padding: '1.25rem',
-                            background: '#e0f2fe',
-                            borderRadius: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <Award size={32} color="#0ea5e9" />
-                        </div>
-                        <div>
-                            <h2 style={{ fontWeight: '600', fontSize: '18px', marginBottom: '0.5rem' }}>Welcome to Pro Student Guidance!</h2>
-                            <p style={{ color: '#64748b', lineHeight: '1.6' }}>
-                                Congratulations on becoming a Pro Student! This exclusive section provides personalized guidance, premium resources
-                                and complete career guidance and reports clarifications.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                         <div
                             style={{
-                                padding: '1.5rem',
+                                padding: '1.25rem', // Reduced padding from 1.5rem
                                 background: '#fff',
                                 borderRadius: '12px',
                                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                                 cursor: 'pointer',
                                 transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                minWidth: 0, // Ensure cards can shrink below minimum content size
                                 '&:hover': {
                                     transform: 'translateY(-5px)',
                                     boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
@@ -228,47 +232,114 @@ const GuidancePage = ({ currentUser }) => {
                             onClick={() => setShowAppointmentModal(true)}
                         >
                             <div style={{
-                                width: '48px',
-                                height: '48px',
+                                width: '40px', // Reduced from 48px
+                                height: '40px', // Reduced from 48px
                                 borderRadius: '8px',
                                 background: '#e0f2fe',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                marginBottom: '1rem'
+                                marginBottom: '0.75rem' // Reduced from 1rem
                             }}>
-                                <Video size={24} color="#0ea5e9" />
+                                <Video size={20} color="#0ea5e9" /> {/* Reduced from size 24 */}
                             </div>
-                            <h3 style={{ fontWeight: '600', fontSize: '18px', marginBottom: '0.5rem' }}>Request Guidance Appointment</h3>
-                            <p style={{ color: '#64748b', lineHeight: '1.5' }}>Schedule a one-on-one video call with an academic advisor for career guidance or report clarifications.</p>
+                            <h3 style={{ fontWeight: '600', fontSize: '16px', marginBottom: '0.5rem' }}>Request Guidance Appointment</h3>
+                            <p style={{ color: '#64748b', lineHeight: '1.4', fontSize: '14px' }}>Schedule a one-on-one video call with an academic advisor for guidance.</p>
                             <button
                                 style={{
                                     background: '#0ea5e9',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '6px',
-                                    padding: '10px 16px',
+                                    padding: '8px 14px', // Reduced padding
                                     marginTop: '1rem',
                                     fontWeight: '600',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    fontSize: '14px' // Added smaller font
                                 }}
                                 onClick={() => setShowAppointmentModal(true)}
                             >
                                 Request Appointment
                             </button>
                         </div>
-                        <GuidanceCard
-                            icon={<Target size={24} color="#eab308" />}
-                            iconBg="#fef9c3"
-                            title="Online Assessments"
-                            description="Take professional skill assessments and track your progress with detailed performance analytics."
-                        />
-                        <GuidanceCard
-                            icon={<GraduationCap size={24} color="#10b981" />}
-                            iconBg="#dcfce7"
-                            title="Career Workshops"
-                            description="Browse and register for exclusive workshops focused on industry-specific skills and career development."
-                        />
+                        <div style={{
+                            padding: '1.25rem',
+                            background: '#fff',
+                            borderRadius: '12px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            minWidth: 0
+                        }}>
+                            <div style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: '8px',
+                                background: '#fef9c3',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: '0.75rem'
+                            }}>
+                                <Target size={20} color="#eab308" />
+                            </div>
+                            <h3 style={{ fontWeight: '600', fontSize: '16px', marginBottom: '0.5rem' }}>Online Assessments</h3>
+                            <p style={{ color: '#64748b', lineHeight: '1.4', fontSize: '14px' }}>Take professional skill assessments and track your progress with detailed analytics.</p>
+                            {/* Add button to navigate to assessments page */}
+                            <button
+                                onClick={handleNavigateToAssessments}
+                                style={{
+                                    background: '#eab308',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    padding: '8px 14px',
+                                    marginTop: '1rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                Take Assessments
+                            </button>
+                        </div>
+                        <div style={{
+                            padding: '1.25rem',
+                            background: '#fff',
+                            borderRadius: '12px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            minWidth: 0
+                        }}>
+                            <div style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: '8px',
+                                background: '#dcfce7',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: '0.75rem'
+                            }}>
+                                <GraduationCap size={20} color="#10b981" />
+                            </div>
+                            <h3 style={{ fontWeight: '600', fontSize: '16px', marginBottom: '0.5rem' }}>Career Workshops</h3>
+                            <p style={{ color: '#64748b', lineHeight: '1.4', fontSize: '14px' }}>Browse and register for exclusive workshops focused on industry-specific skills.</p>
+                            {/* Add button to navigate to workshops page */}
+                            <button
+                                onClick={handleNavigateToWorkshops}
+                                style={{
+                                    background: '#10b981',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    padding: '8px 14px',
+                                    marginTop: '1rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                Browse Workshops
+                            </button>
+                        </div>
                     </div>
 
                     {/* My Appointments Section */}
@@ -536,6 +607,8 @@ const GuidancePage = ({ currentUser }) => {
 
 // Appointment card component for student's appointments
 const AppointmentItem = ({ appointment, isLast }) => {
+    const navigate = useNavigate(); // Add useNavigate hook here
+
     const getStatusInfo = (status) => {
         switch (status) {
             case 'pending':
@@ -571,6 +644,10 @@ const AppointmentItem = ({ appointment, isLast }) => {
 
     const statusInfo = getStatusInfo(appointment.status);
 
+    // Replace showAcceptReject with showRejectModal
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState('');
+
     return (
         <div style={{
             padding: '1.25rem 1.5rem',
@@ -601,23 +678,192 @@ const AppointmentItem = ({ appointment, isLast }) => {
                 <div><strong>Time:</strong> {appointment.time}</div>
             </div>
 
+            {/* Replace the old pending section with direct buttons */}
+            {appointment.status === 'pending' && (
+                <div style={{
+                    marginTop: '1rem',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: '8px'
+                }}>
+                    <button
+                        onClick={() => {
+                            handleAppointmentStatusChange(appointment.id, 'accepted', 'https://meet.google.com/generated-link');
+                        }}
+                        style={{
+                            background: '#15803d', // Darker green color
+                            border: 'none',
+                            borderRadius: '4px',
+                            padding: '6px 12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            color: 'white', // Changed to white for better contrast
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            fontSize: '12px',
+                            maxWidth: '100px'
+                        }}
+                    >
+                        <Check size={12} /> {/* Increased from 14px to 16px */}
+                        Accept
+                    </button>
+                    <button
+                        onClick={() => setShowRejectModal(true)}
+                        style={{
+                            background: '#b91c1c', // Darker red color
+                            border: 'none',
+                            borderRadius: '4px',
+                            padding: '6px 12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            color: 'white', // Changed to white for better contrast
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            fontSize: '12px',
+                            maxWidth: '100px'
+                        }}
+                    >
+                        <X size={12} /> {/* Increased from 14px to 16px */}
+                        Reject
+                    </button>
+                </div>
+            )}
+
+            {/* Add the modal for rejection reason */}
+            {showRejectModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '8px',
+                        padding: '1.5rem',
+                        width: '90%',
+                        maxWidth: '400px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    }}>
+                        <h3 style={{
+                            fontSize: '18px',
+                            fontWeight: 600,
+                            marginBottom: '1rem'
+                        }}>
+                            Rejection Reason
+                        </h3>
+                        <p style={{
+                            fontSize: '14px',
+                            color: '#64748b',
+                            marginBottom: '1rem'
+                        }}>
+                            Please provide a reason for rejecting this appointment:
+                        </p>
+                        <textarea
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Enter reason for rejection..."
+                            style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                borderRadius: '4px',
+                                border: '1px solid #e2e8f0',
+                                marginBottom: '1rem',
+                                minHeight: '100px',
+                                fontSize: '14px'
+                            }}
+                        />
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: '8px'
+                        }}>
+                            <button
+                                onClick={() => {
+                                    setShowRejectModal(false);
+                                    setRejectionReason('');
+                                }}
+                                style={{
+                                    background: '#e2e8f0',
+                                    color: '#1e293b',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    padding: '8px 16px',
+                                    fontWeight: '500',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleAppointmentStatusChange(
+                                        appointment.id,
+                                        'rejected',
+                                        '',
+                                        rejectionReason.trim() || 'Cancelled by student'
+                                    );
+                                    setShowRejectModal(false);
+                                    setRejectionReason('');
+                                }}
+                                style={{
+                                    background: '#b91c1c', // Darker red color to match reject button
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    padding: '8px 16px',
+                                    fontWeight: '500',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {appointment.status === 'accepted' && (
                 <div style={{
                     marginTop: '0.5rem',
                     background: '#f0f9ff',
                     padding: '0.75rem',
                     borderRadius: '8px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
                 }}>
-                    <strong>Meeting Link:</strong>{' '}
-                    <a
-                        href={appointment.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#0369a1', textDecoration: 'underline' }}
+                    <span><strong>Meeting scheduled</strong> for {appointment.date} at {appointment.time}</span>
+                    <button
+                        onClick={() => navigate('/student/video')} // Fixed path to the video calls page
+                        style={{
+                            background: '#1746a2',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '8px 14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontSize: '14px'
+                        }}
                     >
-                        {appointment.meetingLink}
-                    </a>
+                        <Video size={16} />
+                        Join Meeting
+                    </button>
                 </div>
             )}
 
@@ -722,27 +968,28 @@ const PendingAppointmentItem = ({ appointment, isLast, onAccept, onReject }) => 
     );
 };
 
-const GuidanceCard = ({ icon, iconBg, title, description }) => (
+const GuidanceCard = ({ icon, iconBg, title, description, iconSize = 40 }) => (
     <div style={{
-        padding: '1.5rem',
+        padding: '1.25rem', // Reduced padding
         background: '#fff',
         borderRadius: '12px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        minWidth: 0 // Ensure cards can shrink below minimum content size
     }}>
         <div style={{
-            width: '48px',
-            height: '48px',
+            width: iconSize, // Use the prop value instead of hardcoded
+            height: iconSize, // Use the prop value instead of hardcoded
             borderRadius: '8px',
             background: iconBg,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '1rem'
+            marginBottom: '0.75rem' // Reduced from 1rem
         }}>
             {icon}
         </div>
-        <h3 style={{ fontWeight: '600', fontSize: '18px', marginBottom: '0.5rem' }}>{title}</h3>
-        <p style={{ color: '#64748b', lineHeight: '1.5' }}>{description}</p>
+        <h3 style={{ fontWeight: '600', fontSize: '16px', marginBottom: '0.5rem' }}>{title}</h3>
+        <p style={{ color: '#64748b', lineHeight: '1.4', fontSize: '14px' }}>{description}</p>
     </div>
 );
 
