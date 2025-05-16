@@ -15,10 +15,7 @@ const roleLinks = {
     { icon: <FileText />, label: 'Applications', path: '/applications' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
     { icon: <Star />, label: 'Evaluations', path: '/student/evaluation' },
-    { icon: <Video />, label: 'Video Calls', path: '/student/video' },
-    { icon: <Award />, label: 'Workshops', path: '/workshops' },
-    { icon: <Calculator />, label: 'Assessments', path: '/assessments' },
-    
+    // Pro Student-only links moved to dynamic generation
   ],
   faculty: [
     { icon: <House />, label: 'Dashboard', path: '/faculty' },
@@ -42,25 +39,32 @@ const roleLinks = {
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
     { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
+    { icon: <Video />, label: 'Video Calls', path: '/scad/video' },
   ],
 };
+
+// Pro Student specific links
+const proStudentLinks = [
+  { icon: <Video />, label: 'Video Calls', path: '/student/video' },
+  { icon: <Award />, label: 'Workshops', path: '/workshops' },
+  { icon: <Calculator />, label: 'Assessments', path: '/assessments' },
+  { icon: <Lightbulb />, label: 'Guidance', path: '/student/guidance' }
+];
 
 const SideBar = ({ userRole, currentUser }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  let links = roleLinks[userRole] || roleLinks.student;
 
-  // Check if the user is a pro student - simplified condition to ensure it works on all pages
-  const isProStudent = currentUser?.role === 'student' && currentUser?.isProStudent === true;
+  // Check if the user is a pro student
+  const isProStudent = currentUser?.isProStudent === true;
 
-  // Add Guidance link for Pro Students as the last item
+  // Get base links for the user role
+  let links = [...(roleLinks[userRole] || roleLinks.student)];
+
+  // Add Pro Student links if the user is a pro student and role is student
   if (isProStudent && userRole === 'student') {
-    // Add Guidance link to the end of the links array
-    links = [
-      ...links, // All existing links, including Dashboard, Companies, etc.
-      { icon: <Lightbulb />, label: 'Guidance', path: '/student/guidance' }
-    ];
+    links = [...links, ...proStudentLinks];
   }
 
   const handleNavigation = (path) => {
@@ -145,11 +149,12 @@ const SideBar = ({ userRole, currentUser }) => {
             padding: collapsed ? '4px' : '4px 10px',
             fontSize: collapsed ? '10px' : '12px',
             fontWeight: 'bold',
-            margin: collapsed ? '0 auto 16px auto' : '0 auto 16px 1.5rem',
+            margin: collapsed ? '0 auto 16px auto' : '0 0 16px 1.5rem', // Fixed margin
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             width: collapsed ? '40px' : 'auto',
+            maxWidth: collapsed ? '40px' : '90%',
             zIndex: 10
           }}
         >

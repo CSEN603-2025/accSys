@@ -111,6 +111,7 @@ export class Student extends User {
         return this.isProStudent;
     }
 
+
     // Simplified version used in other places
     setProStudent() {
         let total = 0;
@@ -195,6 +196,7 @@ export class SCAD extends User {
         this.approvedCompanies = [];
         this.approvedInternships = [];
         this.workshops = [];
+        this.appointmentRequests = [];
     }
 
     approveCompany(company) {
@@ -232,6 +234,23 @@ export class SCAD extends User {
             const workshop = this.workshops[index];
             this.workshops.splice(index, 1);
             this.addNotification(`Deleted workshop: ${workshop.title}`);
+        }
+    }
+
+    // Add new method for appointment management
+    addAppointmentRequest(appointment) {
+        this.appointmentRequests.push(appointment);
+    }
+    
+    updateAppointmentStatus(appointmentId, status, studentName) {
+        const appointment = this.appointmentRequests.find(a => a.id === appointmentId);
+        if (appointment) {
+            appointment.status = status;
+            if (status === 'accepted') {
+                this.addNotification(`${studentName} has accepted your appointment request for ${appointment.date} at ${appointment.time}.`);
+            } else if (status === 'rejected') {
+                this.addNotification(`${studentName} has rejected your appointment request for ${appointment.date} at ${appointment.time}.`);
+            }
         }
     }
 }

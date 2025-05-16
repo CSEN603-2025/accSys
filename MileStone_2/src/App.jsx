@@ -27,6 +27,7 @@ import StudentVideoCalls from './pages/Student/StudentVideoCalls';
 import Workshops from './pages/Student/Workshops';
 import WorkshopView from './pages/Student/WorkshopView';
 import FacultyEvaluations from './pages/SCAD/FacultyEvaluations';
+import ScadVideo from './pages/SCAD/ScadVideo'; // Import the new component
 
 // Placeholder components for other roles
 const FacultyProfilePage = ({ currentUser }) => <div style={{ padding: 40 }}><h2>Faculty Profile Page</h2><p>Welcome, {currentUser?.username}</p></div>;
@@ -96,6 +97,7 @@ export default function App() {
       <Route path="workshop/:id" element={<WorkshopView currentUser={user} />} />
       <Route path="/faculty/evaluations" element={<FacultyEvaluations currentUser={user} />} />
       <Route path="/assessments" element={<Assessments currentUser={user} />} />
+      <Route path="/scad/video" element={<ScadVideo currentUser={user} />} /> {/* Add new route for SCAD video calls */}
 
       {/* Dynamic profile route for all user types */}
       <Route path="/profile" element={renderProfileByRole()} />

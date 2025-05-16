@@ -16,6 +16,10 @@ import logo3 from '../assets/logo3.svg';
 // ===== SCAD Admin =====
 const scadAdmin = new SCAD(1, "scadAdmin", "admin@scad.edu", "123");
 
+// Add sample notifications to the SCAD admin
+scadAdmin.addNotification("Ziad has accepted your appointment request for 2023-12-10 at 14:30.");
+scadAdmin.addNotification("New Pro Student registration: Karim is now eligible for advanced features.");
+
 // ===== Faculty Members =====
 const faculty1 = new Faculty(2, "profJohn", "john@univ.edu", "123", "Computer Science");
 const faculty2 = new Faculty(3, "profSara", "sara@univ.edu", "123", "Information Systems");
@@ -27,6 +31,11 @@ const student2 = new Student(6, "Karim", "karim@student.edu", "123", "IS", 3.5, 
 const student3 = new Student(7, "Khairy", "layla@student.edu", "123", "Robotics", 3.9, 6);
 student1.isProStudent = true;
 student3.isProStudent = true;
+student1.addNotification("Your appointment for report clarification has been accepted. Join the meeting at the scheduled time.");
+student1.addNotification("Congratulations! You are now a Pro Student for completing at least 3 months of internships!");
+
+
+
 
 // ===== Companies and Internships =====
 const companies = [];
@@ -219,6 +228,7 @@ const profileViews = [
 ];
 
 student1.profileViews = profileViews;
+
 
 // Export all mock data
 export const mockUsers = [

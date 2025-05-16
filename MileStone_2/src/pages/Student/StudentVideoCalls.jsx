@@ -4,9 +4,9 @@ import NavBar from '../../Components/NavBar';
 import { Bell, Phone, X, Video, Mic, Share2, Monitor, MonitorUp } from 'lucide-react';
 
 const mockContacts = [
-  { id: 1, name: 'SCAD Office', type: 'university', role: 'University Staff' },
-  { id: 2, name: 'Career Advisor', type: 'university', role: 'University Staff' },
-  { id: 3, name: 'TechSolutions', type: 'company', role: 'Company Representative' },
+  { id: 1, name: 'SCAD Office', type: 'university', role: 'University Staff', status: 'online' },
+  { id: 2, name: 'Career Advisor', type: 'university', role: 'University Staff', status: 'offline' },
+  { id: 3, name: 'TechSolutions', type: 'company', role: 'Company Representative', status: 'offline' },
 ];
 
 function formatTime(secs) {
@@ -246,11 +246,46 @@ const StudentVideoCalls = ({ currentUser }) => {
                     {filteredContacts.map((contact) => (
                       <div key={contact.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 16 }}>{contact.name}</div>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontWeight: 600,
+                            fontSize: 16
+                          }}>
+                            {contact.name}
+                            <span style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: contact.status === 'online' ? '#16a34a' : '#94a3b8',
+                              display: 'inline-block'
+                            }}></span>
+                            <span style={{
+                              fontSize: '12px',
+                              color: contact.status === 'online' ? '#16a34a' : '#94a3b8',
+                              fontWeight: '500'
+                            }}>
+                              {contact.status}
+                            </span>
+                          </div>
                           <div style={{ color: '#64748b', fontSize: 14 }}>{contact.role}</div>
                         </div>
-                        <button style={{ background: 'none', border: 'none', color: '#1746a2', cursor: 'pointer', padding: 8 }}>
-                          <Phone size={20} />
+                        <button
+                          style={{
+                            background: contact.status === 'online' ? '#1746a2' : '#e2e8f0',
+                            border: 'none',
+                            color: contact.status === 'online' ? 'white' : '#94a3b8',
+                            cursor: contact.status === 'online' ? 'pointer' : 'not-allowed',
+                            padding: '8px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                          disabled={contact.status !== 'online'}
+                        >
+                          <Phone size={18} />
                         </button>
                       </div>
                     ))}
@@ -288,4 +323,4 @@ const StudentVideoCalls = ({ currentUser }) => {
   );
 };
 
-export default StudentVideoCalls; 
+export default StudentVideoCalls;
