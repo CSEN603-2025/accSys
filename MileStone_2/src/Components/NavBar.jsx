@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, User, Settings, LogOut, BriefcaseBusiness, Award } from 'lucide-react';
+import { Bell, User, Settings, LogOut, BriefcaseBusiness, Award, Lightbulb } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageTitle } from '../pages/PageTitle';
 
@@ -127,6 +127,12 @@ const NavBar = ({ currentUser, onLogout }) => {
 
   const handleInternshipsClick = () => {
     navigate('/student/studentinternships');
+    setDropdownOpen(false);
+  };
+
+  // Add a handler for the Guidance page
+  const handleGuidanceClick = () => {
+    navigate('/student/guidance');
     setDropdownOpen(false);
   };
 
@@ -348,7 +354,15 @@ const NavBar = ({ currentUser, onLogout }) => {
               {userRole === 'student' && (
                 <DropdownButton label="My Internships" icon={<BriefcaseBusiness size={18} />} onClick={handleInternshipsClick} />
               )}
-              <DropdownButton onClick={handleLogout} icon={<LogOut size={18} />} label="Log Out" last />
+              {/* Add Pro Student Guidance option */}
+              {isProStudent && (
+                <DropdownButton
+                  label="Pro Student Guidance"
+                  icon={<Lightbulb size={18} />}
+                  onClick={handleGuidanceClick}
+                />
+              )}
+              <DropdownButton onClick={handleLogout} icon={<LogOut size={18} />} label="Log Out" last={!isProStudent} />
             </div>
           )}
         </div>
