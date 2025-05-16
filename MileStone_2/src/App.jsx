@@ -94,7 +94,13 @@ export default function App() {
       <Route path="/student/guidance" element={<GuidancePage currentUser={user} />} />
       <Route path="/student/video" element={<StudentVideoCalls currentUser={user} />} />
       <Route path="/workshops" element={<Workshops currentUser={user} />} />
-      <Route path="workshop/:id" element={<WorkshopView currentUser={user} />} />
+      <Route path="/workshop/:id" element={
+        user?.role === 'scad' || user?.isProStudent ? (
+          <WorkshopView currentUser={user} />
+        ) : (
+          <Navigate to="/" />
+        )
+      } />
       <Route path="/faculty/evaluations" element={<FacultyEvaluations currentUser={user} />} />
       <Route path="/assessments" element={<Assessments currentUser={user} />} />
       <Route path="/scad/video" element={<ScadVideo currentUser={user} />} /> {/* Add new route for SCAD video calls */}

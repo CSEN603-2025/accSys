@@ -12,20 +12,56 @@ const FacultyEvaluations = ({ currentUser }) => {
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
 
   // Get all student evaluations
-  const getAllEvaluations = () => {
+  const getAllStudentEvaluations = () => {
     return mockUsers
       .filter(user => user.role === 'student')
-      .flatMap(student => 
-        (student.evaluations || []).map(evaluation => ({
+      .flatMap(student =>
+        (student.evaluations || [])
+          // Only include evaluations that were NOT submitted by a company
+          .filter(evaluation => !evaluation.submittedBy)
+          .map(evaluation => ({
+            ...evaluation,
+            source: 'Student',
+            student: {
+              id: student.id,
+              username: student.username,
+              email: student.email,
+              major: student.major
+            },
+            internship: evaluation.internship || student.currentInternship || student.pastInternships?.find(i => i.id === evaluation.internshipId)
+          }))
+      );
+  };
+
+  // Get all company evaluations
+  const getAllCompanyEvaluations = () => {
+    return mockUsers
+      .filter(user => user.role === 'company')
+      .flatMap(company =>
+        (company.evaluations || []).map(evaluation => ({
           ...evaluation,
-          student: {
-            id: student.id,
-            username: student.username,
-            email: student.email,
-            major: student.major
-          }
+          source: 'Company',
+          company: {
+            id: company.id,
+            companyName: company.companyName,
+            email: company.email
+          },
+          student: mockUsers.find(u => u.id.toString() === evaluation.internId),
+          internship: mockUsers
+            .find(u => u.id.toString() === evaluation.internId)
+            ?.currentInternship || mockUsers
+            .find(u => u.id.toString() === evaluation.internId)
+            ?.pastInternships?.find(i => i.company.id === company.id)
         }))
       );
+  };
+
+  // Combine all evaluations
+  const getAllEvaluations = () => {
+    return [
+      ...getAllStudentEvaluations(),
+      ...getAllCompanyEvaluations()
+    ];
   };
 
   // Filter evaluations based on search and status
@@ -35,18 +71,27 @@ const FacultyEvaluations = ({ currentUser }) => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(evaluation => 
-        evaluation.student?.username.toLowerCase().includes(query) ||
-        evaluation.student?.email.toLowerCase().includes(query) ||
+        evaluation.student?.username?.toLowerCase().includes(query) ||
+        evaluation.student?.email?.toLowerCase().includes(query) ||
         evaluation.student?.major?.toLowerCase().includes(query) ||
-        evaluation.feedback?.toLowerCase().includes(query)
+        evaluation.feedback?.toLowerCase().includes(query) ||
+        evaluation.performanceAssessment?.toLowerCase().includes(query) ||
+        evaluation.company?.companyName?.toLowerCase().includes(query)
       );
     }
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(evaluation => evaluation.status?.toLowerCase() === statusFilter.toLowerCase());
+      filtered = filtered.filter(evaluation => {
+        if (statusFilter === 'recommended') {
+          return evaluation.recommend === true;
+        } else if (statusFilter === 'not_recommended') {
+          return evaluation.recommend === false;
+        }
+        return true;
+      });
     }
 
-    return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return filtered.sort((a, b) => new Date(b.createdAt || b.submittedOn) - new Date(a.createdAt || a.submittedOn));
   };
 
   const formatDate = (date) => {
@@ -74,38 +119,63 @@ const FacultyEvaluations = ({ currentUser }) => {
         borderRadius: 12,
         padding: '24px',
         marginBottom: '20px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        borderLeft: evaluation.source === 'Student' ? '6px solid #22c55e' : '6px solid #2563eb'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        {/* BADGE */}
+        <span style={{
+          display: 'inline-block',
+          background: evaluation.source === 'Student' ? '#dcfce7' : '#dbeafe',
+          color: evaluation.source === 'Student' ? '#16a34a' : '#2563eb',
+          fontWeight: 700,
+          fontSize: 13,
+          borderRadius: 6,
+          padding: '2px 10px',
+          marginBottom: 8
+        }}>
+          {evaluation.source === 'Student' ? 'Student Evaluation' : 'Company Evaluation'}
+        </span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', marginTop: 8 }}>
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
               {evaluation.internship?.title || 'Untitled Internship'}
             </h3>
             <div style={{ color: '#64748b', fontSize: '14px' }}>
-              Student: <span style={{ fontWeight: '500', color: '#334155' }}>{evaluation.student?.username || 'Unknown Student'}</span>
+              {evaluation.source === 'Student' ? (
+                <>Student: <span style={{ fontWeight: '500', color: '#334155' }}>{evaluation.student?.username || 'Unknown Student'}</span></>
+              ) : (
+                <>Company: <span style={{ fontWeight: '500', color: '#334155' }}>{evaluation.company?.companyName || 'Unknown Company'}</span></>
+              )}
             </div>
+            {evaluation.source === 'Student' && (
+              <div style={{ color: '#64748b', fontSize: '14px' }}>
+                {evaluation.student?.major && `Major: ${evaluation.student.major}`}
+              </div>
+            )}
+            {evaluation.source === 'Company' && (
+              <div style={{ color: '#64748b', fontSize: '14px' }}>
+                Company Email: {evaluation.company?.email}
+              </div>
+            )}
             <div style={{ color: '#64748b', fontSize: '14px' }}>
-              {evaluation.student?.major && `Major: ${evaluation.student.major}`}
-            </div>
-            <div style={{ color: '#64748b', fontSize: '14px' }}>
-              Company: <span style={{ fontWeight: '500', color: '#334155' }}>{evaluation.internship?.company?.companyName || 'Unknown Company'}</span>
-            </div>
-            <div style={{ color: '#64748b', fontSize: '14px' }}>
-              Supervisor: <span style={{ fontWeight: '500', color: '#334155' }}>{evaluation.internship?.supervisor || 'Not specified'}</span>
+              Internship Company: <span style={{ fontWeight: '500', color: '#334155' }}>{evaluation.internship?.company?.companyName || 'Unknown Company'}</span>
             </div>
             <div style={{ color: '#64748b', fontSize: '14px' }}>
               Duration: {formatDate(evaluation.internship?.startDate)} - {formatDate(evaluation.internship?.endDate)}
             </div>
+            <div style={{ color: '#64748b', fontSize: '14px', marginTop: 4 }}>
+              <b>Source:</b> {evaluation.source}
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            {renderStars(evaluation.rating || 0)}
+            {evaluation.source === 'Company' && renderStars(evaluation.overallRating || evaluation.rating || 0)}
           </div>
         </div>
 
         <div style={{ marginBottom: '16px' }}>
           <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Feedback:</div>
           <div style={{ color: '#334155', fontSize: '15px' }}>
-            {evaluation.feedback || 'No feedback provided'}
+            {evaluation.performanceAssessment || evaluation.feedback || 'No feedback provided'}
           </div>
         </div>
 
@@ -127,7 +197,7 @@ const FacultyEvaluations = ({ currentUser }) => {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ color: '#64748b', fontSize: '14px' }}>
-            Submitted: {formatDate(evaluation.createdAt)}
+            Submitted: {formatDate(evaluation.createdAt || evaluation.submittedOn)}
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button
@@ -286,7 +356,7 @@ const FacultyEvaluations = ({ currentUser }) => {
             )}
 
             <div style={{ color: '#64748b', fontSize: '14px', marginTop: '16px' }}>
-              Submitted on: {formatDate(evaluation.createdAt)}
+              Submitted on: {formatDate(evaluation.createdAt || evaluation.submittedOn)}
             </div>
           </div>
         </div>

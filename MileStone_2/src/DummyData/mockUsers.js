@@ -227,6 +227,9 @@ const profileViews = [
   }
 ];
 
+student1.addNotification("Scad Admin is calling you");
+student1.addNotification("Scad Admin left the meeting");
+
 student1.profileViews = profileViews;
 
 

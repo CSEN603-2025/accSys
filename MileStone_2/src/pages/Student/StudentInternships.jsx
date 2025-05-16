@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
-import { mockInternships, mockReports } from '../../DummyData/mockUsers';
+import { mockInternships, mockReports, mockUsers } from '../../DummyData/mockUsers';
 import { Eye, Edit2, Trash2, Upload, Calendar, Search, Building2, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 
@@ -66,6 +66,8 @@ const StudentInternships = ({ currentUser }) => {
   const [evaluations, setEvaluations] = useState(currentUser?.evaluations || []);
   const [editingEvaluationId, setEditingEvaluationId] = useState(null);
   const [evaluationError, setEvaluationError] = useState('');
+  const [dateRangeStart, setDateRangeStart] = useState('');
+  const [dateRangeEnd, setDateRangeEnd] = useState('');
 
   // Format date helper function
   const formatDate = (date) => {
@@ -195,6 +197,11 @@ const StudentInternships = ({ currentUser }) => {
           currentUser.evaluations[userEvaluationIndex] = updatedEvaluation;
         }
       }
+      // Persist in mockUsers
+      const studentInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+      if (studentInMock) {
+        studentInMock.updateEvaluation(updatedEvaluation);
+      }
     } else {
       // Add new evaluation
       const newEvaluation = {
@@ -207,6 +214,11 @@ const StudentInternships = ({ currentUser }) => {
       };
       setEvaluations(prev => [...prev, newEvaluation]);
       currentUser?.submitEvaluation?.(newEvaluation);
+      // Persist in mockUsers
+      const studentInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+      if (studentInMock) {
+        studentInMock.addEvaluation(newEvaluation);
+      }
     }
     setEvaluationForm({ feedback: '', recommend: false });
     setEditingEvaluationId(null);
@@ -254,6 +266,12 @@ const StudentInternships = ({ currentUser }) => {
     // Remove from user's evaluations
     if (currentUser?.evaluations) {
       currentUser.evaluations = currentUser.evaluations.filter(e => e.id !== evaluationId);
+    }
+
+    // Persist in mockUsers
+    const studentInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+    if (studentInMock && Array.isArray(studentInMock.evaluations)) {
+      studentInMock.evaluations = studentInMock.evaluations.filter(e => e.id !== evaluationId);
     }
 
     // If this was the evaluation being edited, reset the form
@@ -324,25 +342,29 @@ const StudentInternships = ({ currentUser }) => {
     return <div style={{ padding: 40, textAlign: 'center', color: '#b91c1c', fontWeight: 600 }}>Please log in to view your reports and internships.</div>;
   }
 
-  // Filter internships based on status and search
+  // Filter internships based on status, search, and date range
+  const now = new Date();
   const filteredInternships = internships.filter(internship => {
-    const now = new Date();
     const startDate = new Date(internship.startDate);
     const endDate = new Date(internship.endDate);
-    const isAccepted = internship.status === 'accepted';
-    const isPast = endDate < now && !isAccepted;
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = searchQuery === '' ||
-      (internship.title?.toLowerCase().includes(searchLower) ||
-        internship.company?.companyName?.toLowerCase().includes(searchLower));
+    const isCurrent = startDate <= now && now <= endDate && internship.status === 'accepted';
+    const isCompleted = now > endDate || internship.status === 'completed';
 
     // Status filter
-    if (statusFilter !== 'all') {
-      if (statusFilter === 'current' && !isAccepted) return false;
-      if (statusFilter === 'completed' && !isPast) return false;
-    }
+    if (statusFilter === 'current' && !isCurrent) return false;
+    if (statusFilter === 'completed' && !isCompleted) return false;
 
-    return matchesSearch;
+    // Date range filter
+    if (dateRangeStart && startDate < new Date(dateRangeStart)) return false;
+    if (dateRangeEnd && endDate > new Date(dateRangeEnd)) return false;
+
+    // Search filter
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      searchQuery === '' ||
+      (internship.title?.toLowerCase().includes(searchLower) ||
+        internship.company?.companyName?.toLowerCase().includes(searchLower))
+    );
   });
 
   return (
@@ -362,7 +384,7 @@ const StudentInternships = ({ currentUser }) => {
             top: 0,
             background: '#f8fafc',
             padding: '16px 0',
-            zIndex: 10,
+            zIndex: 1,
             width: '100%',
             maxWidth: 1100
           }}>
@@ -414,6 +436,37 @@ const StudentInternships = ({ currentUser }) => {
               <option value="current">Current</option>
               <option value="completed">Completed</option>
             </select>
+
+            <input
+              type="date"
+              value={dateRangeStart}
+              onChange={e => setDateRangeStart(e.target.value)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 8,
+                border: '1px solid #e2e8f0',
+                background: '#fff',
+                fontSize: 15,
+                width: 160,
+                height: 40
+              }}
+              placeholder="Start date"
+            />
+            <input
+              type="date"
+              value={dateRangeEnd}
+              onChange={e => setDateRangeEnd(e.target.value)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 8,
+                border: '1px solid #e2e8f0',
+                background: '#fff',
+                fontSize: 15,
+                width: 160,
+                height: 40
+              }}
+              placeholder="End date"
+            />
           </div>
 
           {/* Internships List */}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SideBar from '../../Components/SideBar';
 import NavBar from '../../Components/NavBar';
+import { mockUsers } from '../../DummyData/mockUsers';
 
 const StudentEvaluations = ({ currentUser }) => {
   // --- My Evaluations logic (copied from StudentInternships evaluation modal) ---
@@ -72,6 +73,11 @@ const StudentEvaluations = ({ currentUser }) => {
       if (userEvaluationIndex !== -1) {
         currentUser.evaluations[userEvaluationIndex] = updatedEvaluation;
       }
+      // Persist in mockUsers
+      const studentInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+      if (studentInMock) {
+        studentInMock.updateEvaluation(updatedEvaluation);
+      }
     } else {
       // Add new evaluation
       const newEvaluation = {
@@ -84,6 +90,11 @@ const StudentEvaluations = ({ currentUser }) => {
       };
       setEvaluations(prev => [...prev, newEvaluation]);
       currentUser.submitEvaluation?.(newEvaluation);
+      // Persist in mockUsers
+      const studentInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+      if (studentInMock) {
+        studentInMock.addEvaluation(newEvaluation);
+      }
     }
     setEvaluationForm({ feedback: '', recommend: false });
     setEditingEvaluationId(null);
@@ -105,6 +116,11 @@ const StudentEvaluations = ({ currentUser }) => {
   const handleDeleteEvaluation = (evaluationId) => {
     setEvaluations(prev => prev.filter(evaluation => evaluation.id !== evaluationId));
     currentUser.evaluations = currentUser.evaluations.filter(e => e.id !== evaluationId);
+    // Persist in mockUsers
+    const studentInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+    if (studentInMock && Array.isArray(studentInMock.evaluations)) {
+      studentInMock.evaluations = studentInMock.evaluations.filter(e => e.id !== evaluationId);
+    }
     if (editingEvaluationId === evaluationId) {
       setEditingEvaluationId(null);
       setEvaluationForm({ feedback: '', recommend: false });

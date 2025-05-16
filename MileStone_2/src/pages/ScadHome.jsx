@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import SideBar from '../Components/SideBar';
 import NavBar from '../Components/NavBar';
 import InternshipCalendar from '../Components/InternshipCalendar';
-import { BarChart3, Users, Clock, BookOpen, Star, Building2, Calendar } from 'lucide-react';
+import { BarChart3, Users, Clock, BookOpen, Star, Building2, Calendar, X } from 'lucide-react';
 import { mockUsers } from '../DummyData/mockUsers';
+import jsPDF from 'jspdf';
+import IncomingCallNotification from '../Components/IncomingCallNotification';
 
 const StatCard = ({ title, value, icon: Icon, color }) => (
   <div style={{
@@ -97,6 +99,73 @@ const ScadHome = ({ currentUser }) => {
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
 
+  // Download statistics as PDF
+  const handleDownloadStats = () => {
+    const doc = new jsPDF();
+    let y = 20;
+    doc.setFontSize(18);
+    doc.text('SCAD Dashboard Statistics', 14, y);
+    y += 10;
+    doc.setFontSize(12);
+    doc.text(`Accepted Reports: ${reportStats.accepted}`, 14, y); y += 7;
+    doc.text(`Rejected Reports: ${reportStats.rejected}`, 14, y); y += 7;
+    doc.text(`Flagged Reports: ${reportStats.flagged}`, 14, y); y += 7;
+    doc.text(`Average Review Time: ${avgReviewTime}`, 14, y); y += 10;
+    doc.setFontSize(14);
+    doc.text('Top Courses:', 14, y); y += 7;
+    doc.setFontSize(12);
+    topCourses.forEach(course => {
+      doc.text(`${course.name}: ${course.count} students`, 18, y); y += 6;
+    });
+    y += 4;
+    doc.setFontSize(14);
+    doc.text('Top Rated Companies:', 14, y); y += 7;
+    doc.setFontSize(12);
+    topRatedCompanies.forEach(company => {
+      doc.text(`${company.name}: ${company.rating}/5.0`, 18, y); y += 6;
+    });
+    y += 4;
+    doc.setFontSize(14);
+    doc.text('Top Companies by Internship Count:', 14, y); y += 7;
+    doc.setFontSize(12);
+    topCompaniesByCount.forEach(company => {
+      doc.text(`${company.name}: ${company.count} internships`, 18, y); y += 6;
+    });
+    doc.save('scad_dashboard_statistics.pdf');
+  };
+
+  const [incomingCall, setIncomingCall] = useState(null);
+
+  // Simulate incoming call (for testing)
+  useEffect(() => {
+    const simulateIncomingCall = () => {
+      const callers = [
+        { id: 1, name: 'John Doe', type: 'Student' },
+        { id: 2, name: 'Company XYZ', type: 'Company' },
+        { id: 3, name: 'Faculty Member', type: 'Faculty' }
+      ];
+      
+      const randomCaller = callers[Math.floor(Math.random() * callers.length)];
+      setIncomingCall(randomCaller);
+    };
+
+    // Simulate a call every 30 seconds (for testing)
+    const interval = setInterval(simulateIncomingCall, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAcceptCall = () => {
+    // Handle accepted call
+    console.log('Call accepted:', incomingCall);
+    setIncomingCall(null);
+  };
+
+  const handleRejectCall = () => {
+    // Handle rejected call
+    console.log('Call rejected:', incomingCall);
+    setIncomingCall(null);
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
       {/* Sidebar */}
@@ -105,8 +174,33 @@ const ScadHome = ({ currentUser }) => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {/* Navbar */}
         <NavBar currentUser={currentUser} />
+        {/* Incoming Call Notification */}
+        {incomingCall && (
+          <IncomingCallNotification
+            onAccept={handleAcceptCall}
+            onReject={handleRejectCall}
+          />
+        )}
         {/* Dashboard Content */}
         <div style={{ padding: '2rem', flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+            <button
+              onClick={handleDownloadStats}
+              style={{
+                background: '#1746a2',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                padding: '10px 24px',
+                fontWeight: 600,
+                fontSize: 16,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+            >
+              Download Statistics Report
+            </button>
+          </div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>Admin Dashboard</h1>
           <p style={{ color: '#4B5563', marginBottom: '1.5rem' }}>Welcome back, {currentUser?.username}! Here's an overview of your system.</p>
 
@@ -244,113 +338,117 @@ const ScadHome = ({ currentUser }) => {
             </div>
 
             {/* Internship Cycles */}
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              padding: '1.5rem'
-            }}>
-              <h2 style={{
-                fontSize: '1.25rem',
-                fontWeight: 700,
-                marginBottom: '1rem',
-                display: 'flex',
-                alignItems: 'center'
+            {currentUser?.role === 'scad' && (
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '0.5rem',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                padding: '1.5rem'
               }}>
-                <Calendar style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', color: '#059669' }} />
-                Internship Cycles
-              </h2>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '1rem',
-                height: '100%'
-              }}>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(7, 1fr)',
-                  gap: '0.25rem',
-                  fontSize: '0.875rem'
+                <h2 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center'
                 }}>
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} style={{ textAlign: 'center', color: '#6B7280', fontWeight: 500 }}>
-                      {day}
-                    </div>
-                  ))}
-                  {Array.from({ length: 35 }, (_, i) => {
-                    const date = new Date();
-                    date.setDate(date.getDate() - date.getDay() + i);
-                    const isCurrentMonth = date.getMonth() === new Date().getMonth();
-                    return (
-                      <div
-                        key={i}
-                        style={{
-                          textAlign: 'center',
-                          padding: '0.5rem',
-                          color: isCurrentMonth ? '#1F2937' : '#9CA3AF',
-                          backgroundColor: date.getDate() === new Date().getDate() ? '#E5E7EB' : 'transparent',
-                          borderRadius: '0.25rem',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {date.getDate()}
+                  <Calendar style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', color: '#059669' }} />
+                  Internship Cycles
+                </h2>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '1rem',
+                  height: '100%'
+                }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(7, 1fr)',
+                    gap: '0.25rem',
+                    fontSize: '0.875rem'
+                  }}>
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                      <div key={day} style={{ textAlign: 'center', color: '#6B7280', fontWeight: 500 }}>
+                        {day}
                       </div>
-                    );
-                  })}
-                </div>
-                <div style={{ marginTop: 'auto' }}>
-                  <button
-                    onClick={() => document.getElementById('calendar-modal').showModal()}
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      backgroundColor: 'rgb(23, 70, 162)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '0.375rem',
-                      cursor: 'pointer',
-                      fontWeight: 500,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem'
-                    }}
-                  >
-                    <Calendar style={{ width: '1rem', height: '1rem' }} />
-                    Manage Cycles
-                  </button>
+                    ))}
+                    {Array.from({ length: 35 }, (_, i) => {
+                      const date = new Date();
+                      date.setDate(date.getDate() - date.getDay() + i);
+                      const isCurrentMonth = date.getMonth() === new Date().getMonth();
+                      return (
+                        <div
+                          key={i}
+                          style={{
+                            textAlign: 'center',
+                            padding: '0.5rem',
+                            color: isCurrentMonth ? '#1F2937' : '#9CA3AF',
+                            backgroundColor: date.getDate() === new Date().getDate() ? '#E5E7EB' : 'transparent',
+                            borderRadius: '0.25rem',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {date.getDate()}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ marginTop: '0' }}>
+                    <button
+                      onClick={() => document.getElementById('calendar-modal').showModal()}
+                      style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        backgroundColor: 'rgb(23, 70, 162)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <Calendar style={{ width: '1rem', height: '1rem' }} />
+                      Manage Cycles
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Calendar Modal */}
-          <dialog id="calendar-modal" style={{
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            maxWidth: '90vw',
-            width: '800px'
-          }}>
-            <InternshipCalendar />
-            <button
-              onClick={() => document.getElementById('calendar-modal').close()}
-              style={{
-                position: 'absolute',
-                top: '1rem',
-                right: '1rem',
-                padding: '0.5rem',
-                backgroundColor: '#EF4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                cursor: 'pointer'
-              }}
-            >
-              Close
-            </button>
-          </dialog>
+          {currentUser?.role === 'scad' && (
+            <dialog id="calendar-modal" style={{
+              padding: '1.5rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              maxWidth: '90vw',
+              width: '800px'
+            }}>
+              <InternshipCalendar />
+              <button
+                onClick={() => document.getElementById('calendar-modal').close()}
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  right: '1rem',
+                  padding: '0.5rem',
+                  backgroundColor: '#fff',
+                  color: 'rgb(100, 116, 139)',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={18}/>
+              </button>
+            </dialog>
+          )}
         </div>
       </div>
     </div>

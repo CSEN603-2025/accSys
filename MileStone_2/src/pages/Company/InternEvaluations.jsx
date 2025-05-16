@@ -7,7 +7,7 @@ import { mockUsers } from '../../DummyData/mockUsers';
 const InternEvaluations = ({ currentUser }) => {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [evaluations, setEvaluations] = useState([]);
+  const [evaluations, setEvaluations] = useState(currentUser?.evaluations || []);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
   const [newEvaluation, setNewEvaluation] = useState({
@@ -76,6 +76,19 @@ const InternEvaluations = ({ currentUser }) => {
       additionalComments: ''
     });
     setShowModal(false);
+    // Persist in mockUsers
+    const companyInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+    if (companyInMock) {
+      companyInMock.addEvaluation(evaluation);
+      // Also update the student's evaluations
+      const studentInMock = (window.mockUsers || mockUsers).find(u => u.id.toString() === evaluation.internId);
+      if (studentInMock) {
+        studentInMock.addEvaluation({
+          ...evaluation,
+          submittedBy: currentUser.companyName || currentUser.username
+        });
+      }
+    }
   };
 
   const handleEditClick = (evaluation) => {
@@ -92,11 +105,40 @@ const InternEvaluations = ({ currentUser }) => {
     );
     setSelectedEvaluation(null);
     setShowEditModal(false);
+    // Persist in mockUsers
+    const companyInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+    if (companyInMock) {
+      companyInMock.updateEvaluation(selectedEvaluation);
+      // Also update the student's evaluations
+      const studentInMock = (window.mockUsers || mockUsers).find(u => u.id.toString() === selectedEvaluation.internId);
+      if (studentInMock) {
+        const studentEvaluation = studentInMock.evaluations.find(e => e.id === selectedEvaluation.id);
+        if (studentEvaluation) {
+          studentInMock.updateEvaluation({
+            ...selectedEvaluation,
+            submittedBy: currentUser.companyName || currentUser.username
+          });
+        }
+      }
+    }
   };
 
   const handleDeleteEvaluation = (evaluationId) => {
     if (window.confirm('Are you sure you want to delete this evaluation?')) {
+      const evaluationToDelete = evaluations.find(e => e.id === evaluationId);
       setEvaluations(prev => prev.filter(evaluation => evaluation.id !== evaluationId));
+      // Persist in mockUsers
+      const companyInMock = (window.mockUsers || mockUsers).find(u => u.id === currentUser.id);
+      if (companyInMock && Array.isArray(companyInMock.evaluations)) {
+        companyInMock.evaluations = companyInMock.evaluations.filter(e => e.id !== evaluationId);
+        // Also remove from student's evaluations
+        if (evaluationToDelete) {
+          const studentInMock = (window.mockUsers || mockUsers).find(u => u.id.toString() === evaluationToDelete.internId);
+          if (studentInMock && Array.isArray(studentInMock.evaluations)) {
+            studentInMock.evaluations = studentInMock.evaluations.filter(e => e.id !== evaluationId);
+          }
+        }
+      }
     }
   };
 

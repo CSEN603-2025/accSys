@@ -266,7 +266,7 @@ const Workshops = ({ currentUser }) => {
 
   const handleJoinWorkshop = (workshop) => {
     if (isProStudent && workshop.isLive) {
-      navigate(`/workshop/${workshop.id}/live`);
+      navigate(`/workshop/${workshop.id}`);
     }
   };
 
@@ -367,7 +367,7 @@ const Workshops = ({ currentUser }) => {
   };
 
   const handleViewWorkshop = (workshopId) => {
-    navigate(`/workshop/${workshopId}/view`);
+    navigate(`/workshop/${workshopId}`);
   };
 
   // If user is not SCAD or Pro Student, redirect to home
@@ -596,28 +596,30 @@ const Workshops = ({ currentUser }) => {
                               <X size={16} />
                               Unregister
                             </button>
-                            <button
-                              onClick={() => {
-                                setSelectedWorkshop(workshop);
-                                setShowRatingModal(true);
-                              }}
-                              style={{
-                                flex: 1,
-                                padding: '8px 16px',
-                                background: '#f1f5f9',
-                                color: '#1e293b',
-                                border: 'none',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem'
-                              }}
-                            >
-                              <Star size={16} />
-                              Rate Workshop
-                            </button>
+                            {workshop.ratings && !workshop.ratings.some(rating => rating.student.id === currentUser.id) && (
+                              <button
+                                onClick={() => {
+                                  setSelectedWorkshop(workshop);
+                                  setShowRatingModal(true);
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '8px 16px',
+                                  background: '#f1f5f9',
+                                  color: '#1e293b',
+                                  border: 'none',
+                                  borderRadius: 6,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '0.5rem'
+                                }}
+                              >
+                                <Star size={16} />
+                                Rate Workshop
+                              </button>
+                            )}
                           </>
                         ) : (
                           <button

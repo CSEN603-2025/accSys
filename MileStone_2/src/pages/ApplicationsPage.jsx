@@ -5,9 +5,9 @@ import NavBar from '../Components/NavBar';
 import SideBar from '../Components/SideBar';
 
 const STATUS_STYLES = {
-  completed: { background: '#e0e7ff', color: '#2563eb' },
+  accepted: { background: '#e0e7ff', color: '#2563eb' },
   pending: { background: '#fef9c3', color: '#b45309' },
-  approved: { background: '#e0e7ff', color: '#2563eb' },
+  finalized: { background: '#e0e7ff', color: '#2563eb' },
   rejected: { background: '#fee2e2', color: '#b91c1c' },
 };
 

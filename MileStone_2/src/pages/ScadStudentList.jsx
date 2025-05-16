@@ -511,4 +511,4 @@ const ScadStudentList = ({ currentUser }) => {
   );
 };
 
-export default ScadStudentList; 
+export default ScadStudentList;

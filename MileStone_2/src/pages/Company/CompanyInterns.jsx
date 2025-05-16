@@ -13,13 +13,16 @@ const CompanyInterns = ({ currentUser }) => {
   // Get current and past interns
   const getCurrentInterns = () => {
     return mockUsers
-      .filter(user => user.role === 'student' && user.currentInternship?.company.id === currentUser.id)
+      .filter(user =>
+        user.role === 'student' &&
+        user.currentInternship?.company.id === currentUser.id &&
+        user.currentInternship.status !== 'completed'
+      )
       .map(student => ({
         ...student,
         internshipDetails: student.currentInternship
       }));
   };
-
   const getCompletedInterns = () => {
     return mockUsers
       .filter(user =>
@@ -306,23 +309,25 @@ const CompanyInterns = ({ currentUser }) => {
                     </td>
                   )}
                   <td style={{ padding: '16px 20px' }}>
-                    <button
-                      onClick={() => {
-                        setSelectedIntern(intern);
-                        setShowDetailsModal(true);
-                      }}
-                      style={{
-                        background: '#f1f5f9',
-                        border: 'none',
-                        borderRadius: 6,
-                        padding: '6px 16px',
-                        color: '#1746a2',
-                        fontWeight: 500,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      View Details
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => {
+                          setSelectedIntern(intern);
+                          setShowDetailsModal(true);
+                        }}
+                        style={{
+                          background: '#f1f5f9',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '6px 16px',
+                          color: '#1746a2',
+                          fontWeight: 500,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        View Details
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

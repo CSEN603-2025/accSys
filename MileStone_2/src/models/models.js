@@ -178,6 +178,17 @@ export class Student extends User {
         }
         return null;
     }
+
+    addEvaluation(evaluation) {
+        this.evaluations.push(evaluation);
+    }
+
+    updateEvaluation(evaluation) {
+        const idx = this.evaluations.findIndex(e => e.id === evaluation.id);
+        if (idx !== -1) {
+            this.evaluations[idx] = evaluation;
+        }
+    }
 }
 
 // ===== Faculty Class =====
@@ -271,6 +282,7 @@ export class Company extends User {
         this.pastInterns = [];
         this.approvalStatus = "pending"; // pending, approved, rejected
         this.rejectionReason = "";
+        this.evaluations = [];
     }
 
     approve() {
@@ -302,6 +314,17 @@ export class Company extends User {
         student.currentInternship = internship;
         student.addNotification(`Hired for internship: ${internship.title}` + ` at ${this.companyName}`);
         this.addNotification(`Hired intern: ${student.username} for "${internship.title}"`);
+    }
+
+    addEvaluation(evaluation) {
+        this.evaluations.push(evaluation);
+    }
+
+    updateEvaluation(evaluation) {
+        const idx = this.evaluations.findIndex(e => e.id === evaluation.id);
+        if (idx !== -1) {
+            this.evaluations[idx] = evaluation;
+        }
     }
 }
 

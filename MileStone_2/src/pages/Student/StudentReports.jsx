@@ -60,6 +60,7 @@ const StudentReports = ({ currentUser }) => {
   const [selectedAction, setSelectedAction] = useState(null); // 'flag' or 'reject'
   const [clarificationText, setClarificationText] = useState('');
   const [selectedReportForAction, setSelectedReportForAction] = useState(null);
+  const [majorFilter, setMajorFilter] = useState('all');
 
   const isStudent = currentUser?.role === 'student';
   const isFaculty = currentUser?.role === 'faculty';
@@ -100,9 +101,11 @@ const StudentReports = ({ currentUser }) => {
     }
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(report => (report.status?.toLowerCase() || '') === statusFilter.toLowerCase());
+      filtered = filtered.filter(report => (report.status?.toLowerCase() || 'pending') === statusFilter.toLowerCase());
     }
-
+    if ((isFaculty || isSCAD) && majorFilter !== 'all') {
+      filtered = filtered.filter(report => (report.student?.major || '').toLowerCase() === majorFilter.toLowerCase());
+    }
     return filtered.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
   };
 
@@ -175,7 +178,7 @@ const StudentReports = ({ currentUser }) => {
           body: form.body,
           courses: form.courses || [],
           submissionDate: new Date(),
-          status: 'Submitted',
+          status: 'pending',
         };
         setReports((prev) => [...prev, newReport]);
         currentUser?.submitReport(newReport);
@@ -196,15 +199,185 @@ const StudentReports = ({ currentUser }) => {
   };
 
   const handleDownload = (report) => {
-    // Generate PDF using jsPDF
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(report.title, 10, 20);
-    doc.setFontSize(12);
-    doc.text('Content:', 10, 35);
-    doc.text(report.body, 10, 45, { maxWidth: 180 });
-    doc.text('Courses Used: ' + report.courses.join(', '), 10, 85);
-    doc.save(`${report.title.replace(/\s+/g, '_')}_report.pdf`);
+    try {
+      // Create new PDF document
+      const doc = new jsPDF();
+
+      // Helper function to sanitize text
+      const sanitizeText = (text) => {
+        if (text === null || text === undefined) return '';
+        return String(text).trim();
+      };
+
+      // Helper function to add text with word wrap and validation
+      const addWrappedText = (text, x, y, maxWidth, lineHeight = 7) => {
+        const sanitizedText = sanitizeText(text);
+        if (!sanitizedText) return 0;
+        
+        try {
+          const splitText = doc.splitTextToSize(sanitizedText, maxWidth);
+          if (Array.isArray(splitText) && splitText.length > 0) {
+            doc.text(splitText, x, y);
+            return splitText.length * lineHeight;
+          }
+          return 0;
+        } catch (error) {
+          console.error('Error in addWrappedText:', error);
+          return 0;
+        }
+      };
+
+      // Helper function to add section with validation
+      const addSection = (title, content, startY) => {
+        if (!title || !content) return 0;
+        
+        doc.setFontSize(14);
+        doc.setTextColor(23, 70, 162); // #1746a2
+        doc.text(sanitizeText(title), 20, startY);
+        
+        doc.setFontSize(12);
+        doc.setTextColor(51, 65, 85); // #334155
+        return addWrappedText(content, 20, startY + 7, 170);
+      };
+
+      // Set document properties
+      doc.setProperties({
+        title: sanitizeText(report.title),
+        subject: 'Internship Report',
+        author: sanitizeText(report.student?.username) || 'Student',
+        creator: 'SCAD System'
+      });
+
+      // Add header with logo and title
+      doc.setFontSize(20);
+      doc.setTextColor(23, 70, 162); // #1746a2
+      doc.text('Internship Report', 105, 20, { align: 'center' });
+      
+      // Add report title
+      doc.setFontSize(16);
+      doc.setTextColor(51, 65, 85); // #334155
+      doc.text(sanitizeText(report.title), 105, 35, { align: 'center' });
+      
+      // Add horizontal line
+      doc.setDrawColor(226, 232, 240); // #e2e8f0
+      doc.line(20, 40, 190, 40);
+
+      let yPosition = 50;
+
+      // Student Details Section
+      doc.setFontSize(14);
+      doc.setTextColor(23, 70, 162); // #1746a2
+      doc.text('Student Details', 20, yPosition);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(51, 65, 85); // #334155
+      yPosition += 7;
+      doc.text(`Name: ${sanitizeText(report.student?.username)}`, 20, yPosition);
+      yPosition += 7;
+      doc.text(`Email: ${sanitizeText(report.student?.email)}`, 20, yPosition);
+      yPosition += 7;
+      doc.text(`Major: ${sanitizeText(report.student?.major)}`, 20, yPosition);
+      yPosition += 15;
+
+      // Internship Details Section
+      doc.setFontSize(14);
+      doc.setTextColor(23, 70, 162); // #1746a2
+      doc.text('Internship Details', 20, yPosition);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(51, 65, 85); // #334155
+      yPosition += 7;
+      doc.text(`Company: ${sanitizeText(report.internship?.company?.companyName)}`, 20, yPosition);
+      yPosition += 7;
+      doc.text(`Supervisor: ${sanitizeText(report.internship?.mainSupervisor)}`, 20, yPosition);
+      yPosition += 7;
+      doc.text(`Start Date: ${sanitizeText(formatDate(report.internship?.startDate))}`, 20, yPosition);
+      yPosition += 7;
+      doc.text(`End Date: ${sanitizeText(formatDate(report.internship?.endDate))}`, 20, yPosition);
+      yPosition += 15;
+
+      // Report Content Section
+      doc.setFontSize(14);
+      doc.setTextColor(23, 70, 162); // #1746a2
+      doc.text('Report Content', 20, yPosition);
+      yPosition += 7;
+
+      // Introduction
+      doc.setFontSize(12);
+      doc.setTextColor(51, 65, 85); // #334155
+      doc.text('Introduction:', 20, yPosition);
+      yPosition += 7;
+      const introHeight = addWrappedText(report.introduction, 20, yPosition, 170);
+      yPosition += introHeight + 10;
+
+      // Body
+      doc.text('Body:', 20, yPosition);
+      yPosition += 7;
+      const bodyHeight = addWrappedText(report.body, 20, yPosition, 170);
+      yPosition += bodyHeight + 10;
+
+      // Courses
+      doc.text('Courses Used:', 20, yPosition);
+      yPosition += 7;
+      const coursesText = Array.isArray(report.courses) ? report.courses.join(', ') : '';
+      const coursesHeight = addWrappedText(coursesText, 20, yPosition, 170);
+      yPosition += coursesHeight + 15;
+
+      // Evaluation Section (if present)
+      if (report.evaluation) {
+        // Check if we need a new page
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setTextColor(23, 70, 162); // #1746a2
+        doc.text('Evaluation Details', 20, yPosition);
+        yPosition += 7;
+
+        doc.setFontSize(12);
+        doc.setTextColor(51, 65, 85); // #334155
+        const evaluationDetails = [
+          `Overall Rating: ${sanitizeText(report.evaluation.overallRating)}`,
+          `Technical Skills: ${sanitizeText(report.evaluation.technicalSkills)}`,
+          `Soft Skills: ${sanitizeText(report.evaluation.softSkills)}`,
+          `Performance Assessment: ${sanitizeText(report.evaluation.performanceAssessment)}`,
+          `Skills Assessment: ${sanitizeText(report.evaluation.skillsAssessment)}`,
+          `Additional Comments: ${sanitizeText(report.evaluation.additionalComments)}`
+        ];
+
+        evaluationDetails.forEach(detail => {
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          const detailHeight = addWrappedText(detail, 20, yPosition, 170);
+          yPosition += detailHeight + 5;
+        });
+      }
+
+      // Add footer with page numbers
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139); // #64748b
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.width / 2,
+          doc.internal.pageSize.height - 10,
+          { align: 'center' }
+        );
+      }
+
+      // Save the PDF with sanitized filename
+      const sanitizedTitle = sanitizeText(report.title).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      doc.save(`${sanitizedTitle || 'report'}_report.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('There was an error generating the PDF. Please try again.');
+    }
   };
 
   const handleEdit = (report) => {
@@ -296,6 +469,14 @@ const StudentReports = ({ currentUser }) => {
       selectedReportForAction.student.addNotification(
         `Your report "${selectedReportForAction.title}" has been ${selectedAction}. Reason: ${clarificationText}`
       );
+    } else if (selectedReportForAction.studentId) {
+      // Fallback: find student by ID in mockUsers
+      const studentUser = mockUsers.find(u => u.id === selectedReportForAction.studentId);
+      if (studentUser) {
+        studentUser.addNotification(
+          `Your report "${selectedReportForAction.title}" has been ${selectedAction}. Reason: ${clarificationText}`
+        );
+      }
     }
 
     // Close the modal and reset state
@@ -310,18 +491,32 @@ const StudentReports = ({ currentUser }) => {
     if (!report) return null;
 
     const statusColors = {
-      submitted: { bg: '#e0e7ff', text: '#2563eb' },
+      pending: { bg: '#fef3c7', text: '#b45309' },
       flagged: { bg: '#fff7ed', text: '#b45309' },
       rejected: { bg: '#fee2e2', text: '#b91c1c' },
       approved: { bg: '#dcfce7', text: '#16a34a' }
     };
 
-    const status = (report?.status || 'submitted').toLowerCase();
+    const status = (report?.status || 'pending').toLowerCase();
     const statusStyle = statusColors[status] || { bg: '#f1f5f9', text: '#64748b' };
 
     const handleStatusChange = (newStatus) => {
       if (newStatus === 'approved') {
-        // Direct approval without clarification
+        // Find the student in mockUsers and update the report status in their reports array
+        if (report.student && report.student.id) {
+          const studentUser = mockUsers.find(u => u.id === report.student.id);
+          if (studentUser && Array.isArray(studentUser.reports)) {
+            const reportIndex = studentUser.reports.findIndex(r => r.id === report.id);
+            if (reportIndex !== -1) {
+              studentUser.reports[reportIndex].status = 'approved';
+              studentUser.reports[reportIndex].clarification = null;
+              studentUser.reports[reportIndex].clarificationDate = new Date();
+              studentUser.reports[reportIndex].clarifiedBy = currentUser.username;
+              studentUser.addNotification(`Your report "${report.title}" has been approved.`);
+            }
+          }
+        }
+        // Update local UI state as well
         const updatedReport = {
           ...report,
           status: 'approved',
@@ -329,20 +524,12 @@ const StudentReports = ({ currentUser }) => {
           clarificationDate: new Date(),
           clarifiedBy: currentUser.username
         };
-
-        // Update reports state
         setReports(prev => prev.map(r =>
           r.id === report.id ? updatedReport : r
         ));
-
-        // Notify the student
-        if (report.student) {
-          report.student.addNotification(
-            `Your report "${report.title}" has been approved.`
-          );
-        }
-        onClose();
-      } else {
+        setShowReportModal(false);
+        setSelectedReport(null);
+      } else if (newStatus === 'flagged' || newStatus === 'rejected') {
         // For flag and reject, show clarification modal
         setSelectedReportForAction(report);
         setSelectedAction(newStatus);
@@ -393,77 +580,64 @@ const StudentReports = ({ currentUser }) => {
           {/* Report Header */}
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '8px' }}>{report?.title || 'Untitled Report'}</h2>
-              <div style={{
-                padding: '6px 12px',
-                borderRadius: '20px',
-                fontSize: '14px',
-                fontWeight: '500',
-                background: statusStyle.bg,
-                color: statusStyle.text
-              }}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+              <div style={{ flex: 1, marginRight: '16px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '8px' }}>{report?.title || 'Untitled Report'}</h2>
+                <div style={{
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  background: statusStyle.bg,
+                  color: statusStyle.text,
+                  display: 'inline-block'
+                }}>
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </div>
               </div>
             </div>
-            <div style={{ color: '#64748b', fontSize: '15px' }}>
-              Submitted by: <span style={{ fontWeight: '500', color: '#334155' }}>{report?.student?.username || 'Unknown Student'}</span>
-            </div>
-            <div style={{ color: '#64748b', fontSize: '15px' }}>
-              {report?.student?.major && `Major: ${report.student.major}`}
-            </div>
-            <div style={{ color: '#64748b', fontSize: '15px' }}>
-              Submitted on: {formatDate(report?.submissionDate)}
+            {/* Student & Internship Details */}
+            <div style={{ marginBottom: 16, background: '#f8fafc', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontWeight: 500, marginBottom: 4 }}>Student Details:</div>
+              <div>Name: {report.student?.username}</div>
+              <div>Email: {report.student?.email}</div>
+              <div>Major: {report.student?.major}</div>
+              <div style={{ fontWeight: 500, margin: '12px 0 4px 0' }}>Internship Details:</div>
+              <div>Company: {report.internship?.company?.companyName || 'N/A'}</div>
+              <div>Main Supervisor: {report.internship?.mainSupervisor || 'N/A'}</div>
+              <div>Start Date: {formatDate(report.internship?.startDate)}</div>
+              <div>End Date: {formatDate(report.internship?.endDate)}</div>
             </div>
           </div>
 
           {/* Report Content */}
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: '#334155' }}>Report Content</h3>
-            <div style={{
-              background: '#f8fafc',
-              padding: '20px',
-              borderRadius: '8px',
-              fontSize: '15px',
-              lineHeight: '1.6',
-              color: '#334155',
-              whiteSpace: 'pre-wrap'
-            }}>
-              {report?.introduction}
-            </div>
-            <div style={{
-              background: '#f8fafc',
-              padding: '20px',
-              borderRadius: '8px',
-              fontSize: '15px',
-              lineHeight: '1.6',
-              color: '#334155',
-              whiteSpace: 'pre-wrap',
-              marginTop: 12
-            }}>
-              {report?.body}
-            </div>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Introduction</div>
+            <div style={{ marginBottom: 16 }}>{report.introduction}</div>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Body</div>
+            <div style={{ marginBottom: 16 }}>{report.body}</div>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Courses Used</div>
+            <div style={{ marginBottom: 16 }}>{(report.courses || []).join(', ')}</div>
           </div>
 
-          {/* Clarification Section (if report is flagged or rejected) */}
-          {(report?.status === 'flagged' || report?.status === 'rejected') && report?.clarification && (
-            <div style={{ marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: '#334155' }}>
-                {report.status === 'flagged' ? 'Flag Reason' : 'Rejection Reason'}
-              </h3>
-              <div style={{
-                background: report.status === 'flagged' ? '#fff7ed' : '#fee2e2',
-                padding: '20px',
-                borderRadius: '8px',
-                fontSize: '15px',
-                lineHeight: '1.6',
-                color: '#334155',
-                whiteSpace: 'pre-wrap'
-              }}>
-                {report.clarification}
-              </div>
-              <div style={{ color: '#64748b', fontSize: '14px', marginTop: '8px' }}>
-                Clarified by: {report.clarifiedBy} on {formatDate(report.clarificationDate)}
-              </div>
+          {/* Evaluation Details if present */}
+          {report.evaluation && (
+            <div style={{ background: '#f1f5f9', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, marginBottom: 8 }}>Evaluation Details</div>
+              <div>Overall Rating: {report.evaluation.overallRating}</div>
+              <div>Technical Skills: {report.evaluation.technicalSkills}</div>
+              <div>Soft Skills: {report.evaluation.softSkills}</div>
+              <div>Performance Assessment: {report.evaluation.performanceAssessment}</div>
+              <div>Skills Assessment: {report.evaluation.skillsAssessment}</div>
+              <div>Additional Comments: {report.evaluation.additionalComments}</div>
+            </div>
+          )}
+
+          {/* Clarification if present */}
+          {report.clarification && (
+            <div style={{ background: '#fff7ed', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, marginBottom: 8 }}>Clarification</div>
+              <div>{report.clarification}</div>
+              <div style={{ fontSize: 13, color: '#b45309', marginTop: 4 }}>By: {report.clarifiedBy} on {formatDate(report.clarificationDate)}</div>
             </div>
           )}
 
@@ -502,7 +676,7 @@ const StudentReports = ({ currentUser }) => {
                     paddingRight: '40px'
                   }}
                 >
-                  <option value="submitted">Set as Submitted</option>
+                  <option value="pending">Set as Pending</option>
                   <option value="flagged">Flag Report</option>
                   <option value="rejected">Reject Report</option>
                   <option value="approved">Approve Report</option>
@@ -642,13 +816,13 @@ const StudentReports = ({ currentUser }) => {
   // Report Card Component
   const ReportCard = ({ report }) => {
     const statusColors = {
-      submitted: { bg: '#e0e7ff', text: '#2563eb' },
+      pending: { bg: '#fef3c7', text: '#b45309' },
       flagged: { bg: '#fff7ed', text: '#b45309' },
       rejected: { bg: '#fee2e2', text: '#b91c1c' },
       approved: { bg: '#dcfce7', text: '#16a34a' }
     };
 
-    const status = (report?.status || 'submitted').toLowerCase();
+    const status = (report?.status || 'pending').toLowerCase();
     const statusStyle = statusColors[status] || { bg: '#f1f5f9', text: '#64748b' };
 
     return (
@@ -826,7 +1000,7 @@ const StudentReports = ({ currentUser }) => {
               }}
             >
               <option value="all">All Reports</option>
-              <option value="submitted">Submitted</option>
+              <option value="pending">Pending</option>
               <option value="flagged">Flagged</option>
               <option value="rejected">Rejected</option>
               <option value="approved">Approved</option>
@@ -990,6 +1164,11 @@ const StudentReports = ({ currentUser }) => {
                             <div style={{ color: '#64748b', fontSize: 14 }}>{formatDate(report.submissionDate)}</div>
                             <div style={{ fontSize: 15 }}><b>Content:</b> {report.body}</div>
                             <div style={{ color: '#1746a2', fontSize: 15 }}>Courses: {(report.courses || []).join(', ')}</div>
+                            {/* Show clarification/reason if present, else default message */}
+                            <div style={{ background: '#fffbe6', borderRadius: 6, padding: '8px 12px', color: '#b45309', margin: '8px 0' }}>
+                              <b>Reason:</b> {report.clarification || 'Please contact your supervisor for more details.'}
+                              <div style={{ fontSize: 13, color: '#b45309', marginTop: 2 }}>By: {report.clarifiedBy || 'System'} on {formatDate(report.clarificationDate) || formatDate(report.submissionDate)}</div>
+                            </div>
                             {/* Appeal form for flagged */}
                             {!appealState[report.id]?.submitted ? (
                               <form onSubmit={e => handleAppealSubmit(e, report.id)} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>

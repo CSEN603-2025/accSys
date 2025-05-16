@@ -19,7 +19,6 @@ const roleLinks = {
   ],
   faculty: [
     { icon: <House />, label: 'Dashboard', path: '/faculty' },
-    { icon: <Users />, label: 'Students', path: '/faculty/students' },
     { icon: <Building2 />, label: 'Companies', path: '/companies' },
     { icon: <BriefcaseBusiness />, label: 'Internships', path: '/internships' },
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
@@ -40,6 +39,7 @@ const roleLinks = {
     { icon: <Edit />, label: 'Reports', path: '/student/reports' },
     { icon: <Star />, label: 'Evaluations', path: '/faculty/evaluations' },
     { icon: <Video />, label: 'Video Calls', path: '/scad/video' },
+     { icon: <Award />, label: 'Workshops', path: '/workshops' },
   ],
 };
 
@@ -165,7 +165,7 @@ const SideBar = ({ userRole, currentUser }) => {
 
       {/* Navigation */}
       <nav style={{ flex: 1, width: '100%' }}>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0 , zIndex:10}}>
           {links.map((link) => (
             <SideBarLink
               key={link.label}
@@ -181,7 +181,7 @@ const SideBar = ({ userRole, currentUser }) => {
       </nav>
       {/* Copyright */}
       {!collapsed && (
-        <div style={{ fontSize: 13, color: '#cbd5e1', padding: '1.5rem', position: 'absolute', bottom: 0, width: '100%' }}>
+        <div style={{ fontSize: 13, color: '#cbd5e1', padding: '1.5rem', marginTop: 'auto', width: '100%' }}>
           © 2025 GUC
         </div>
       )}
